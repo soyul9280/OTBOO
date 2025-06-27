@@ -1,8 +1,8 @@
 package com.codeit.weatherwear.domain.clothes.repository;
 
-import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSortDirection;
 import com.codeit.weatherwear.domain.clothes.entity.Attributes;
 
+import com.codeit.weatherwear.global.request.SortDirection;
 import java.util.UUID;
 import org.springframework.data.domain.Slice;
 
@@ -12,7 +12,7 @@ public interface AttributesCustomRepository {
         UUID idAfter,
         int limit,
         String sortBy,
-        AttributesSortDirection sortDirection,
+        SortDirection sortDirection,
         String keywordLike
     );
     Long getTotalCount(String keywordLike);

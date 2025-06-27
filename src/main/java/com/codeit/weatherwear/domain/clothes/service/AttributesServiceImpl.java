@@ -1,13 +1,13 @@
 package com.codeit.weatherwear.domain.clothes.service;
 
 import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSearchRequest;
-import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSortDirection;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.entity.Attributes;
 import com.codeit.weatherwear.domain.clothes.mapper.AttributesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributesRepository;
+import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.HashSet;
 import java.util.List;
@@ -84,7 +84,7 @@ public class AttributesServiceImpl implements AttributesService {
     /**
      * 속성 조회
      * @param request 조회 조건
-     * @return List<ClothesAttributeDefDto> 결과 리스트
+     * @return ClothesAttributeDefDto 결과 리스트
      */
     @Override
     public PageResponse<ClothesAttributeDefDto> searchAttributes(AttributesSearchRequest request) {
@@ -92,7 +92,7 @@ public class AttributesServiceImpl implements AttributesService {
         UUID idAfter = request.idAfter();
         int limit = request.limit();
         String sortBy = request.sortBy();
-        AttributesSortDirection sortDirection = request.sortDirection();
+        SortDirection sortDirection = request.sortDirection();
         String keywordLike = request.keywordLike();
 
         Slice<Attributes> attributes = attributesRepository.searchAttributes(cursor, idAfter, limit,

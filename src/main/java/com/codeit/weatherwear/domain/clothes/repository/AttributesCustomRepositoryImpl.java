@@ -1,8 +1,8 @@
 package com.codeit.weatherwear.domain.clothes.repository;
 
-import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSortDirection;
 import com.codeit.weatherwear.domain.clothes.entity.Attributes;
 import com.codeit.weatherwear.domain.clothes.entity.QAttributes;
+import com.codeit.weatherwear.global.request.SortDirection;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -25,10 +25,10 @@ public class AttributesCustomRepositoryImpl implements AttributesCustomRepositor
 
     @Override
     public Slice<Attributes> searchAttributes(String cursor, UUID idAfter, int limit, String sortBy,
-        AttributesSortDirection sortDirection, String keywordLike) {
+        SortDirection sortDirection, String keywordLike) {
 
         QAttributes attributes = QAttributes.attributes;
-        Order direction = (sortDirection.equals(AttributesSortDirection.ASCENDING) ? Order.ASC : Order.DESC);
+        Order direction = (sortDirection.equals(SortDirection.ASCENDING) ? Order.ASC : Order.DESC);
 
         OrderSpecifier<?> orderSpecifier = buildOrderSpecifiers(sortBy, direction, attributes);
 
@@ -38,7 +38,7 @@ public class AttributesCustomRepositoryImpl implements AttributesCustomRepositor
             : attributes.name.containsIgnoreCase(keywordLike));
 
         if(cursor != null &&!cursor.isBlank()) {
-            condition.and(getCursorCondition(cursor, idAfter, sortBy, keywordLike, condition, direction, attributes));
+            condition.and(getCursorCondition(cursor, idAfter, sortBy, condition, direction, attributes));
         }
 
         JPAQuery<Attributes> query = factory.selectFrom(attributes);
@@ -65,7 +65,7 @@ public class AttributesCustomRepositoryImpl implements AttributesCustomRepositor
             .fetchOne();
     }
 
-    private BooleanBuilder getCursorCondition(String cursor, UUID idAfter, String sortBy, String keywordLike,
+    private BooleanBuilder getCursorCondition(String cursor, UUID idAfter, String sortBy,
         BooleanBuilder condition, Order direction, QAttributes attributes) {
         switch (sortBy) {
             case "name":

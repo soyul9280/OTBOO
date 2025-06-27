@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.clothes.dto.request;
 
+import com.codeit.weatherwear.global.request.SortDirection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -22,7 +23,7 @@ public record AttributesSearchRequest(
     String sortBy,
     @Schema(description = "정렬 방향", example = "ASCENDING")
     @NotNull
-    AttributesSortDirection sortDirection,
+    SortDirection sortDirection,
     @Schema(description = "검색어", example = "색깔")
     String keywordLike
 ) {
