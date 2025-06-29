@@ -19,10 +19,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/clothes")
-public class ClothesController implements ClothApi {
+public class ClothController implements ClothApi {
 
     private final ClothService clothesService;
 
+    /**
+     * 의상 등록
+     *
+     * @param request 등록 의상 정보
+     * @return
+     */
     @Override
     @PostMapping
     public ResponseEntity<ClothesDto> create(@Valid @RequestBody ClothesCreateRequest request) {
@@ -30,6 +36,12 @@ public class ClothesController implements ClothApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(createClothes);
     }
 
+    /**
+     * 의상을 삭제합니다.
+     *
+     * @param clothesId 의상 ID
+     * @return
+     */
     @Override
     @DeleteMapping("/{clothesId}")
     public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {

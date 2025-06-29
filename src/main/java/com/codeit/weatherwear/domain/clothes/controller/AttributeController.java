@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/clothes/attribute-defs")
-public class AttributesController implements AttributeApi {
+public class AttributeController implements AttributeApi {
     private final AttributeService service;
 
     /**

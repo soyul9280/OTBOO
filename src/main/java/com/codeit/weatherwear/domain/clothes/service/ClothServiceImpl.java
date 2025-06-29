@@ -33,6 +33,12 @@ public class ClothServiceImpl implements ClothService {
     private final UserRepository userRepository;
     private final ClothMapper clothMapper;
 
+    /**
+     * 의상 등록
+     *
+     * @param request 의상 생성 요청 DTO
+     * @return 의상 DTO
+     */
     @Override
     @Transactional
     public ClothesDto create(ClothesCreateRequest request) {
@@ -71,11 +77,15 @@ public class ClothServiceImpl implements ClothService {
         return clothMapper.toDto(saveClothes);
     }
 
+    /**
+     * 의상 삭제
+     * @param clothesId 의상 ID
+     */
     @Override
     @Transactional
     public void delete(UUID clothesId) {
         Cloth cloth = clothRepository.findById(clothesId)
-            .orElseThrow(()->new IllegalArgumentException("존재하지 않는 옷입니다."));
+            .orElseThrow(()->new IllegalArgumentException("의상을 찾을 수 없습니다"));
         clothRepository.delete(cloth);
     }
 

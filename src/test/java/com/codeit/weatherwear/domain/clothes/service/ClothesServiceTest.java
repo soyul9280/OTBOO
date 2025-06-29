@@ -166,8 +166,23 @@ public class ClothesServiceTest {
             //when
             sut.delete(clothesId);
             //then
-            verify(clothRepository,times(1)).findById(clothesId);
-            verify(clothRepository,times(1)).delete(clothes);
+            verify(clothRepository, times(1)).findById(clothesId);
+            verify(clothRepository, times(1)).delete(clothes);
+        }
+
+        @Test
+        @DisplayName("삭제 실패 - 존재하지 않는 의상")
+        void delete_fail() {
+            // given
+            UUID id = UUID.randomUUID();
+            given(clothRepository.findById(id)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> sut.delete(id))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("의상을 찾을 수 없습니다");
+            verify(clothRepository, times(1)).findById(id);
+            verify(clothRepository, never()).delete(any());
         }
     }
 }
