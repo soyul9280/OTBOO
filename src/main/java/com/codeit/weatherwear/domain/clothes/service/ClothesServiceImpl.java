@@ -70,5 +70,15 @@ public class ClothesServiceImpl implements ClothesService {
 
         return clothesMapper.toDto(saveClothes);
     }
+
+    @Override
+    @Transactional
+    public void delete(UUID clothesId) {
+        Clothes clothes = clothesRepository.findById(clothesId)
+            .orElseThrow(()->new IllegalArgumentException("존재하지 않는 옷입니다."));
+        clothesRepository.delete(clothes);
+    }
+
+
 }
 

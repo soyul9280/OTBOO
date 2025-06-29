@@ -140,4 +140,34 @@ public class ClothesServiceTest {
             verify(clothesRepository, never()).save(any());
         }
     }
+
+    @Nested
+    @DisplayName("의상 삭제 테스트")
+    class UpdateClothes {
+
+        @Test
+        @DisplayName("삭제 성공")
+        void delete_success() {
+            //given
+            UUID ownerId = UUID.randomUUID();
+            UUID clothesId = UUID.randomUUID();
+            Clothes clothes = Clothes.builder()
+                .id(clothesId)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .name("후드티")
+                .clothesType(ClothesType.TOP)
+                .clothesImageUrl(null)
+                .user(User.builder().id(ownerId).build())
+                .build();
+
+            given(clothesRepository.findById(clothesId)).willReturn(Optional.of(clothes));
+
+            //when
+            sut.delete(clothesId);
+            //then
+            verify(clothesRepository,times(1)).findById(clothesId);
+            verify(clothesRepository,times(1)).delete(clothes);
+        }
+    }
 }
