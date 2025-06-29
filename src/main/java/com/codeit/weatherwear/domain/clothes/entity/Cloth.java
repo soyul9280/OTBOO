@@ -1,5 +1,7 @@
 package com.codeit.weatherwear.domain.clothes.entity;
 
+import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDto;
+import com.codeit.weatherwear.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.codeit.weatherwear.domain.user.entity.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -17,7 +19,10 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -70,5 +75,27 @@ public class Cloth {
         }
         this.clothesWithAttributes.add(attributes);
         attributes.setClothes(this);
+    }
+
+    public void updateCloth(ClothesUpdateRequest request,List<Attribute> attributeDefs) {
+
+        this.name = request.name();
+        this.clothType = request.type();
+        this.clothesWithAttributes.clear();
+        Map<UUID,Attribute> attrMap=attributeDefs.stream()
+            .collect(Collectors.toMap(Attribute::getId, Function.identity()));
+
+        for (ClothesAttributeDto dto : request.attributes()) {
+            Attribute def = attrMap.get(dto.definitionId());
+            if(def==null) {
+                throw new IllegalArgumentException("정의되지 않은 속성입니다.");
+            }
+            ClothWithAttributes attributes = ClothWithAttributes.builder()
+                .value(dto.value())
+                .attribute(def)
+                .build();
+            this.addAttribute(attributes);
+        }
+        updatedAt = Instant.now();
     }
 }

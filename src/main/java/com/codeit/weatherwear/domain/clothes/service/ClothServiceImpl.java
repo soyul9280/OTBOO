@@ -2,6 +2,7 @@ package com.codeit.weatherwear.domain.clothes.service;
 
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
+import com.codeit.weatherwear.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
@@ -25,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class ClothServiceImpl implements ClothService {
 
     private final ClothRepository clothRepository;
@@ -40,7 +41,6 @@ public class ClothServiceImpl implements ClothService {
      * @return 의상 DTO
      */
     @Override
-    @Transactional
     public ClothesDto create(ClothesCreateRequest request) {
         //사용자 찾기
         User user = userRepository.findById(request.ownerId())
@@ -77,12 +77,27 @@ public class ClothServiceImpl implements ClothService {
         return clothMapper.toDto(saveClothes);
     }
 
+    @Override
+    public ClothesDto update(ClothesUpdateRequest request) {
+        Cloth cloth = clothRepository.findByName(request.name())
+            .orElseThrow(() -> new IllegalArgumentException("의상을 찾을 수 없습니다"));
+
+        List<UUID> attrIds = request.attributes().stream()
+            .map(ClothesAttributeDto::definitionId)
+            .toList();
+        List<Attribute> attributes = attributeRepository.findAllById(attrIds);
+
+
+        cloth.updateCloth(request,attributes);
+        return clothMapper.toDto(cloth);
+    }
+
+
     /**
      * 의상 삭제
      * @param clothesId 의상 ID
      */
     @Override
-    @Transactional
     public void delete(UUID clothesId) {
         Cloth cloth = clothRepository.findById(clothesId)
             .orElseThrow(()->new IllegalArgumentException("의상을 찾을 수 없습니다"));
