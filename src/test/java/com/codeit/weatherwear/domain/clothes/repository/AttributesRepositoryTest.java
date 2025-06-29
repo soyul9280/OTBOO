@@ -34,4 +34,6 @@ class AttributesRepositoryTest {
         assertThat(result.getName()).isEqualTo("색상");
         assertThat(result.getSelectableValues()).containsExactly("빨강", "파랑");
     }
+
+
 }

@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.clothes.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -56,8 +57,8 @@ public class ClothesServiceTest {
             //given
             UUID ownerId = UUID.randomUUID();
             UUID clothesId = UUID.randomUUID();
-            UUID colorId= UUID.randomUUID();
-            UUID sizeId= UUID.randomUUID();
+            UUID colorId = UUID.randomUUID();
+            UUID sizeId = UUID.randomUUID();
 
             ClothesAttributeDto color = new ClothesAttributeDto(colorId, "파랑");
             ClothesAttributeDto size = new ClothesAttributeDto(sizeId, "S");
@@ -65,7 +66,7 @@ public class ClothesServiceTest {
                 ownerId,
                 "후드티",
                 ClothesType.TOP,
-                List.of(color,size)
+                List.of(color, size)
             );
             ClothesAttributeWithDefDto colorDto = new ClothesAttributeWithDefDto(colorId,
                 "색상", List.of("빨강", "파랑"), "파랑");
@@ -105,7 +106,7 @@ public class ClothesServiceTest {
             User mockUser = User.builder().id(ownerId).build();
             given(userRepository.findById(ownerId)).willReturn(Optional.of(mockUser));
 
-            given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef,sizeDef));
+            given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef, sizeDef));
             given(clothesRepository.save(any(Clothes.class))).willReturn(clothes);
             given(mapper.toDto(any(Clothes.class))).willReturn(clothesDto);
             //when
@@ -114,6 +115,29 @@ public class ClothesServiceTest {
             assertThat(result.getName()).isEqualTo("후드티");
             assertThat(result.getAttributes().get(0).value()).isEqualTo("파랑");
             verify(clothesRepository, times(1)).save(any(Clothes.class));
+        }
+
+        @Test
+        @DisplayName("의상 등록 실패 - 속성ID가 존재하지 않을 경우")
+        void create_fail() {
+            //given
+            UUID ownerId = UUID.randomUUID();
+            UUID attributesId = UUID.randomUUID();
+            ClothesCreateRequest request = new ClothesCreateRequest(ownerId, "후드티",
+                ClothesType.TOP,
+                List.of(new ClothesAttributeDto(attributesId, "파랑"))
+            );
+
+            User mockUser = User.builder().id(ownerId).build();
+            given(userRepository.findById(ownerId)).willReturn(Optional.of(mockUser));
+            given(attributeRepository.findAllById(any())).willReturn(List.of()); // 속성 없음
+
+            // when & then
+            assertThatThrownBy(() -> sut.create(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("존재하지 않는 속성");
+
+            verify(clothesRepository, never()).save(any());
         }
     }
 }
