@@ -1,13 +1,27 @@
 package com.codeit.weatherwear.domain.clothes.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 
+import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDto;
+import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeWithDefDto;
+import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
+import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
+import com.codeit.weatherwear.domain.clothes.entity.Attributes;
+import com.codeit.weatherwear.domain.clothes.entity.Clothes;
+import com.codeit.weatherwear.domain.clothes.entity.ClothesType;
+import com.codeit.weatherwear.domain.clothes.mapper.ClothesMapper;
+import com.codeit.weatherwear.domain.clothes.repository.AttributesRepository;
+import com.codeit.weatherwear.domain.clothes.repository.ClothesRepository;
+import com.codeit.weatherwear.domain.user.entity.User;
+import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,7 +35,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class ClothesServiceTest {
 
     @Mock
-    private ClothesRepository repository;
+    private AttributesRepository attributeRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private ClothesRepository clothesRepository;
     @Mock
     private ClothesMapper mapper;
 
@@ -36,10 +54,11 @@ public class ClothesServiceTest {
         @DisplayName("등록 성공")
         void create_success() {
             //given
-            UUID id=UUID.randomUUID();
             UUID ownerId = UUID.randomUUID();
+            UUID clothesId = UUID.randomUUID();
             UUID colorId= UUID.randomUUID();
             UUID sizeId= UUID.randomUUID();
+
             ClothesAttributeDto color = new ClothesAttributeDto(colorId, "파랑");
             ClothesAttributeDto size = new ClothesAttributeDto(sizeId, "S");
             ClothesCreateRequest request = new ClothesCreateRequest(
@@ -53,17 +72,48 @@ public class ClothesServiceTest {
             ClothesAttributeWithDefDto sizeDto = new ClothesAttributeWithDefDto(sizeId,
                 "사이즈", List.of("S", "L"), "S");
 
-            ClothesDto clothesDto = new ClothesDto(id, ownerId, "후드티", null, ClothesType.TOP,
-                List.of(colorDto,sizeDto));
+            Attributes colorDef = Attributes.builder()
+                .id(colorId)
+                .name("색상")
+                .selectableValues(List.of("빨강", "파랑"))
+                .build();
+            Attributes sizeDef = Attributes.builder()
+                .id(sizeId)
+                .name("사이즈")
+                .selectableValues(List.of("S", "L"))
+                .build();
 
-            given(repository.save(any(Clothes.class))).willReturn(clothes);
+            ClothesDto clothesDto = ClothesDto.builder()
+                .id(clothesId)
+                .ownerId(ownerId)
+                .name("후드티")
+                .imageUrl(null)
+                .type(ClothesType.TOP)
+                .attributes(List.of(colorDto, sizeDto))
+                .build();
+
+            Clothes clothes = Clothes.builder()
+                .id(clothesId)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .name("후드티")
+                .clothesType(ClothesType.TOP)
+                .clothesImageUrl(null)
+                .user(User.builder().id(ownerId).build())
+                .build();
+
+            User mockUser = User.builder().id(ownerId).build();
+            given(userRepository.findById(ownerId)).willReturn(Optional.of(mockUser));
+
+            given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef,sizeDef));
+            given(clothesRepository.save(any(Clothes.class))).willReturn(clothes);
             given(mapper.toDto(any(Clothes.class))).willReturn(clothesDto);
             //when
             ClothesDto result = sut.create(request);
             //then
-            assertThat(result.name()).isEqualTo("후드티");
-            assertThat(result.selectDto().value).isEqualTo("파랑");
-            verify(repository, times(1)).save(any(Clothes.class));
+            assertThat(result.getName()).isEqualTo("후드티");
+            assertThat(result.getAttributes().get(0).value()).isEqualTo("파랑");
+            verify(clothesRepository, times(1)).save(any(Clothes.class));
         }
     }
 }
