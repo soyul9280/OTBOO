@@ -49,7 +49,7 @@ public class ClothesServiceTest {
 
     @Nested
     @DisplayName("의상 등록 테스트")
-    class RegisterClothes {
+    class RegisterCloth {
 
         @Test
         @DisplayName("등록 성공")
@@ -143,7 +143,7 @@ public class ClothesServiceTest {
 
     @Nested
     @DisplayName("의상 삭제 테스트")
-    class UpdateClothes {
+    class DeleteCloth {
 
         @Test
         @DisplayName("삭제 성공")
@@ -183,6 +183,75 @@ public class ClothesServiceTest {
                 .hasMessageContaining("의상을 찾을 수 없습니다");
             verify(clothRepository, times(1)).findById(id);
             verify(clothRepository, never()).delete(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("의상 수정 테스트")
+    class UpdateCloth {
+
+        @Test
+        @DisplayName("수정 성공")
+        void update_success() {
+            //given
+            UUID ownerId = UUID.randomUUID();
+            UUID clothesId = UUID.randomUUID();
+            UUID colorId = UUID.randomUUID();
+            UUID sizeId = UUID.randomUUID();
+
+            ClothesAttributeDto color = new ClothesAttributeDto(colorId, "파랑");
+            ClothesAttributeDto size = new ClothesAttributeDto(sizeId, "S");
+
+            ClothesAttributeWithDefDto colorDto = new ClothesAttributeWithDefDto(colorId,
+                "색상", List.of("빨강", "파랑"), "파랑");
+
+            Attribute colorDef = Attribute.builder()
+                .id(colorId)
+                .name("색상")
+                .selectableValues(List.of("빨강", "파랑"))
+                .build();
+
+            ClothesDto clothesDto = ClothesDto.builder()
+                .id(clothesId)
+                .ownerId(ownerId)
+                .name("후드티")
+                .imageUrl(null)
+                .type(ClothType.TOP)
+                .attributes(List.of(colorDto))
+                .build();
+
+            Cloth clothes = Cloth.builder()
+                .id(clothesId)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .name("후드티")
+                .clothType(ClothType.TOP)
+                .clothesImageUrl(null)
+                .user(User.builder().id(ownerId).build())
+                .build();
+
+            ClothesUpdateRequest request = new ClothesUpdateRequest(
+                "하얀 후드티",
+                ClothType.TOP,
+                List.of(
+                    new ClothesAttributeDto(colorId, "회색"),
+                    new ClothesAttributeDto(sizeId, "XL")
+                )
+            );
+
+            User mockUser = User.builder().id(ownerId).build();
+            given(userRepository.findById(ownerId)).willReturn(Optional.of(mockUser));
+
+            given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef));
+            given(mapper.toDto(any(Cloth.class))).willReturn(clothesDto);
+            //when
+            ClothesDto result=sut.update(request);
+
+            //then
+            assertThat(result.getAttributes().get(0).value()).isEqualTo("회색");
+            assertThat(result.getType()).isEqualTo(ClothType.TOP);
+            verify(attributeRepository, times(1)).findById(clothesId);
+            verify(attributeRepository, times(1)).findAllById(any());
         }
     }
 }
