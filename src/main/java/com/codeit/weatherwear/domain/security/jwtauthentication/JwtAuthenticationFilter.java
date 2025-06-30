@@ -48,7 +48,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             User user = userRepository.findById(userId).orElseThrow(
                 () -> new UsernameNotFoundException("User not found with id: " + userId));
             CustomUserDetails userDetails = new CustomUserDetails(
-
                 userId,
                 user.getEmail(),
                 user.getPassword(),
