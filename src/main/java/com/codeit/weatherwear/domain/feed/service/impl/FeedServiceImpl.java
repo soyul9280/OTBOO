@@ -60,29 +60,6 @@ public class FeedServiceImpl implements FeedService {
     return toPageResponse(feedDtoList, condition, hasNext);
   }
 
-  private PageResponse<FeedDto> toPageResponse(List<FeedDto> dtoList, FeedSearchCondition condition,
-      boolean hasNext) {
-
-    UUID nextIdAfter = null;
-    Object nextCursor = null;
-    if (hasNext && !dtoList.isEmpty()) {
-      nextIdAfter = dtoList.get(dtoList.size() - 1).getId();
-      nextCursor =
-          condition.getSortBy().equals("createdAt") ? dtoList.get(dtoList.size() - 1).getCreatedAt()
-              : dtoList.get(dtoList.size() - 1).getLikeCount();
-    }
-
-    return new PageResponse<>(
-        dtoList,
-        nextCursor,
-        nextIdAfter,
-        hasNext,
-        dtoList.size(),
-        condition.getSortBy(),
-        condition.getSortDirection().name()
-    );
-  }
-
   @Transactional
   @Override
   public FeedDto createFeed(FeedCreateRequest feedCreateRequest) {
@@ -167,6 +144,29 @@ public class FeedServiceImpl implements FeedService {
     // todo: likedByMe 로직 필요 - feedLike 도메인
 
     return feedMapper.toDto(feed, authorDto, weatherSummaryDto, ootds, false);
+  }
+
+  private PageResponse<FeedDto> toPageResponse(List<FeedDto> dtoList, FeedSearchCondition condition,
+      boolean hasNext) {
+
+    UUID nextIdAfter = null;
+    Object nextCursor = null;
+    if (hasNext && !dtoList.isEmpty()) {
+      nextIdAfter = dtoList.get(dtoList.size() - 1).getId();
+      nextCursor =
+          condition.getSortBy().equals("createdAt") ? dtoList.get(dtoList.size() - 1).getCreatedAt()
+              : dtoList.get(dtoList.size() - 1).getLikeCount();
+    }
+
+    return new PageResponse<>(
+        dtoList,
+        nextCursor,
+        nextIdAfter,
+        hasNext,
+        dtoList.size(),
+        condition.getSortBy(),
+        condition.getSortDirection().name()
+    );
   }
 
 }

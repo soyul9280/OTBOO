@@ -10,9 +10,11 @@ import com.codeit.weatherwear.global.request.SortDirection;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.DateTimeExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
 import java.util.List;
@@ -36,7 +38,8 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
     return queryFactory
         .selectFrom(feed)
         .where(
-            idAfter(feed, condition.getIdAfter(), condition.getSortDirection()),
+            idAfter(feed, condition.getIdAfter(), condition.getSortBy(),
+                condition.getSortDirection()),
             keywordLike(condition.getKeywordLike()),
             skyStatusEqual(condition.getSkyStatusEqual()),
             precipitationTypeEqual(condition.getPrecipitationsTypeEqual()),
@@ -47,29 +50,52 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
         .fetch();
   }
 
-  private BooleanExpression idAfter(QFeed feed, UUID idAfter, SortDirection direction) {
+  private BooleanExpression idAfter(QFeed feed, UUID idAfter, String sortBy,
+      SortDirection direction) {
     if (idAfter == null) {
       return null;
     }
     QFeed subFeed = new QFeed("subFeed");
 
-    JPQLQuery<Instant> createdAtSubQuery = JPAExpressions
-        .select(subFeed.createdAt)
-        .from(subFeed)
-        .where(subFeed.id.eq(idAfter));
+    switch (sortBy) {
+      case "createdAt" -> {
+        DateTimeExpression<Instant> createdAtValue = Expressions.dateTimeTemplate(
+            Instant.class,
+            "({0})",
+            JPAExpressions.select(subFeed.createdAt)
+                .from(subFeed)
+                .where(subFeed.id.eq(idAfter))
+        );
 
-    if (direction == SortDirection.ASCENDING) {
-      return feed.createdAt.gt(createdAtSubQuery)
-          .or( // OR 조건 시작
-              feed.createdAt.eq(createdAtSubQuery)
-                  .and(feed.id.gt(idAfter)) // 동일 시간일 때 ID 비교
-          );
-    } else {
-      return feed.createdAt.lt(createdAtSubQuery)
-          .or( // OR 조건 시작
-              feed.createdAt.eq(createdAtSubQuery)
-                  .and(feed.id.lt(idAfter)) // 동일 시간일 때 ID 비교
-          );
+        DateTimeExpression<Instant> createdAt = feed.createdAt;
+        if (direction == SortDirection.ASCENDING) {
+          return createdAt.gt(createdAtValue)
+              .or(createdAt.eq(createdAtValue).and(feed.id.gt(idAfter)));
+        } else {
+          return createdAt.lt(createdAtValue)
+              .or(createdAt.eq(createdAtValue).and(feed.id.lt(idAfter)));
+        }
+      }
+
+      case "likeCount" -> {
+        NumberExpression<Integer> likeCountValue = Expressions.numberTemplate(
+            Integer.class,
+            "({0})",
+            JPAExpressions.select(subFeed.likeCount)
+                .from(subFeed)
+                .where(subFeed.id.eq(idAfter))
+        );
+
+        NumberExpression<Integer> likeCount = feed.likeCount;
+        if (direction == SortDirection.ASCENDING) {
+          return likeCount.gt(likeCountValue)
+              .or(likeCount.eq(likeCountValue).and(feed.id.gt(idAfter)));
+        } else {
+          return likeCount.lt(likeCountValue)
+              .or(likeCount.eq(likeCountValue).and(feed.id.lt(idAfter)));
+        }
+      }
+      default -> throw new UnsupportedOperationException("Sort field not implemented: " + sortBy);
     }
   }
 
