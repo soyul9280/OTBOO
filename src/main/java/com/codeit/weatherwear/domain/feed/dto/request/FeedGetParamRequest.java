@@ -35,6 +35,7 @@ public class FeedGetParamRequest {
 
   public FeedSearchCondition toSearchCondition() {
     return FeedSearchCondition.builder()
+        .cursor(this.cursor)
         .idAfter(this.getIdAfter())
         .limit(this.getLimit())
         .sortBy(this.sortBy)

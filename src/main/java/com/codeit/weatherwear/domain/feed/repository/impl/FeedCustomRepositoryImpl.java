@@ -11,10 +11,8 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimeExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
 import java.util.List;
@@ -28,17 +26,21 @@ import org.springframework.util.StringUtils;
 public class FeedCustomRepositoryImpl implements FeedCustomRepository {
 
   private final JPAQueryFactory queryFactory;
-  List<String> ALLOWED_SORT_FIELDS = List.of("createdAt", "likeCount");
 
+  private static final String SORT_BY_CREATED_AT = "createdAt";
+  private static final String SORT_BY_LIKE_COUNT = "likeCount";
+  private static final List<String> ALLOWED_SORT_FIELDS = List.of(SORT_BY_CREATED_AT,
+      SORT_BY_LIKE_COUNT);
 
   @Override
-  public List<Feed> searchFeeds(FeedSearchCondition condition) {
+  public List<Feed> searchFeeds(FeedSearchCondition condition, int limit) {
+
     QFeed feed = QFeed.feed;
 
     return queryFactory
         .selectFrom(feed)
         .where(
-            idAfter(feed, condition.getIdAfter(), condition.getSortBy(),
+            idAfter(feed, condition.getIdAfter(), condition.getCursor(), condition.getSortBy(),
                 condition.getSortDirection()),
             keywordLike(condition.getKeywordLike()),
             skyStatusEqual(condition.getSkyStatusEqual()),
@@ -46,53 +48,39 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
             authorIdEqual(condition.getAuthorIdEqual())
         )
         .orderBy(sortBy(condition.getSortBy(), condition.getSortDirection()))
-        .limit(condition.getLimit())
+        .limit(limit)
         .fetch();
   }
 
-  private BooleanExpression idAfter(QFeed feed, UUID idAfter, String sortBy,
+  private BooleanExpression idAfter(QFeed feed, UUID idAfter, String cursor, String sortBy,
       SortDirection direction) {
-    if (idAfter == null) {
+
+    if (idAfter == null || cursor == null) {
       return null;
     }
-    QFeed subFeed = new QFeed("subFeed");
 
     switch (sortBy) {
-      case "createdAt" -> {
-        DateTimeExpression<Instant> createdAtValue = Expressions.dateTimeTemplate(
-            Instant.class,
-            "({0})",
-            JPAExpressions.select(subFeed.createdAt)
-                .from(subFeed)
-                .where(subFeed.id.eq(idAfter))
-        );
-
+      case SORT_BY_CREATED_AT -> {
+        Instant cursorCreatedAt = Instant.parse(cursor);
         DateTimeExpression<Instant> createdAt = feed.createdAt;
         if (direction == SortDirection.ASCENDING) {
-          return createdAt.gt(createdAtValue)
-              .or(createdAt.eq(createdAtValue).and(feed.id.gt(idAfter)));
+          return createdAt.gt(cursorCreatedAt)
+              .or(createdAt.eq(cursorCreatedAt).and(feed.id.gt(idAfter)));
         } else {
-          return createdAt.lt(createdAtValue)
-              .or(createdAt.eq(createdAtValue).and(feed.id.lt(idAfter)));
+          return createdAt.lt(cursorCreatedAt)
+              .or(createdAt.eq(cursorCreatedAt).and(feed.id.lt(idAfter)));
         }
       }
 
-      case "likeCount" -> {
-        NumberExpression<Integer> likeCountValue = Expressions.numberTemplate(
-            Integer.class,
-            "({0})",
-            JPAExpressions.select(subFeed.likeCount)
-                .from(subFeed)
-                .where(subFeed.id.eq(idAfter))
-        );
-
+      case SORT_BY_LIKE_COUNT -> {
+        int cursorLikeCount = Integer.parseInt(cursor);
         NumberExpression<Integer> likeCount = feed.likeCount;
         if (direction == SortDirection.ASCENDING) {
-          return likeCount.gt(likeCountValue)
-              .or(likeCount.eq(likeCountValue).and(feed.id.gt(idAfter)));
+          return likeCount.gt(cursorLikeCount)
+              .or(likeCount.eq(cursorLikeCount).and(feed.id.gt(idAfter)));
         } else {
-          return likeCount.lt(likeCountValue)
-              .or(likeCount.eq(likeCountValue).and(feed.id.lt(idAfter)));
+          return likeCount.lt(cursorLikeCount)
+              .or(likeCount.eq(cursorLikeCount).and(feed.id.lt(idAfter)));
         }
       }
       default -> throw new UnsupportedOperationException("Sort field not implemented: " + sortBy);
@@ -127,8 +115,10 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
     Order order = direction == SortDirection.ASCENDING ? Order.ASC : Order.DESC;
 
     OrderSpecifier<?> primarySort = switch (sortBy) {
-      case "createdAt" -> new OrderSpecifier<>(order, path.getDateTime("createdAt", Instant.class));
-      case "likeCount" -> new OrderSpecifier<>(order, path.getNumber("likeCount", Integer.class));
+      case SORT_BY_CREATED_AT ->
+          new OrderSpecifier<>(order, path.getDateTime(SORT_BY_CREATED_AT, Instant.class));
+      case SORT_BY_LIKE_COUNT ->
+          new OrderSpecifier<>(order, path.getNumber(SORT_BY_LIKE_COUNT, Integer.class));
       default -> throw new UnsupportedOperationException("Sort field not implemented: " + sortBy);
     };
 

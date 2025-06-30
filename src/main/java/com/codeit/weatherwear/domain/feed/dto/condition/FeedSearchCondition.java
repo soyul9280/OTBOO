@@ -10,6 +10,8 @@ import lombok.Getter;
 @Getter
 @Builder
 public class FeedSearchCondition {
+
+  private String cursor;
   private UUID idAfter;
   private int limit;
   private String sortBy;
@@ -19,8 +21,4 @@ public class FeedSearchCondition {
   private SkyStatus skyStatusEqual;
   private PrecipitationsType precipitationsTypeEqual;
   private UUID authorIdEqual;
-
-  public void setLimit(int limit) {
-    this.limit = limit;
-  }
 }
