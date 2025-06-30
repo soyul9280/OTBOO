@@ -4,6 +4,7 @@ import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthent
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationFilter;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationSuccessHandler;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetailsService;
+import com.codeit.weatherwear.domain.security.jwtauthentication.JwtAuthenticationFilter;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -31,7 +33,8 @@ public class SecurityConfig {
     @Bean
     @Profile("!test")
     SecurityFilterChain chain(HttpSecurity httpSecurity,
-        CustomAuthenticationFilter customAuthenticationFilter) throws Exception {
+        CustomAuthenticationFilter customAuthenticationFilter,
+        JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
 
         httpSecurity
             .authorizeHttpRequests(auth -> auth
@@ -39,7 +42,11 @@ public class SecurityConfig {
                 // TODO: 일단은 모든 요청 허용
                 .anyRequest().permitAll()
             )
-            .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(jwtAuthenticationFilter, CustomAuthenticationFilter.class)
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
             // TODO: csrf 활성화
             .csrf(csrf -> csrf.disable())
         ;

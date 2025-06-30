@@ -57,7 +57,7 @@ public class JwtSessionService {
         );
         return jwtSession;
     }
-    
+
     // 토큰 생성
     private String createTokenWithClaims(UUID userId, TokenType tokenType, Instant expirationTime) {
         Instant now = clock.instant();
@@ -70,7 +70,8 @@ public class JwtSessionService {
             .subject(userId.toString())
             .issuedAt(Date.from(now))
             .expiration(Date.from(expirationTime))
-            .claim("type", tokenType.name());
+            .claim("type", tokenType.name())
+            .claim("userId", userId.toString());
 
         return builder
             .signWith(getSigningKey(), SIG.HS256)
