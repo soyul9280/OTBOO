@@ -26,8 +26,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "clothes_attribute_def")
 @Getter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 public class Attribute {
@@ -47,6 +45,16 @@ public class Attribute {
     @Type(JsonType.class)
     @Column(name = "selectable_values", columnDefinition = "jsonb")
     private List<String> selectableValues;
+
+    @Builder
+    public Attribute(UUID id, Instant createdAt, Instant updatedAt, String name,
+        List<String> selectableValues) {
+        this.id = id;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.name = name;
+        this.selectableValues = selectableValues;
+    }
 
     public void update(ClothesAttributeDefUpdateRequest request) {
         if (!this.name.equals(request.name())) {
