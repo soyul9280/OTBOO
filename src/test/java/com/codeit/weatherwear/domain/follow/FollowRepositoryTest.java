@@ -90,7 +90,7 @@ class FollowRepositoryTest {
   }
 
   @Test
-  @DisplayName("following 목록 조회")
+  @DisplayName("following 목록 조회 - 전체 조회")
   void getFollowing() {
     int limit = 20;
     List<FollowDto> followings = followRepository
@@ -109,10 +109,10 @@ class FollowRepositoryTest {
   void getFollowingWithCursor() {
     int limit = 1;
     Instant cursor = aliceFollowBob.getCreatedAt().truncatedTo(ChronoUnit.MICROS);
-    List<FollowDto> followers = followRepository
-        .getFollowers(alice.getId(), cursor.toString(), aliceFollowBob.getId(), limit, null);
+    List<FollowDto> followings = followRepository
+        .getFollowings(alice.getId(), cursor.toString(), aliceFollowBob.getId(), limit, null);
 
-    assertThat(followers).hasSize(0);
+    assertThat(followings).hasSize(0);
   }
 
   @Test
