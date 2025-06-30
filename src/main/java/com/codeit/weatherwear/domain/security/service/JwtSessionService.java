@@ -1,6 +1,7 @@
 package com.codeit.weatherwear.domain.security.service;
 
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
+import com.codeit.weatherwear.domain.security.entity.JwtSession;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtBuilder;
@@ -18,6 +19,7 @@ import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,28 +35,32 @@ public class JwtSessionService {
         ACCESS, REFRESH
     }
 
-    // 액세스 토큰 발급
-    public String issueAccessToken(UUID userId) {
-        return createTokenWithClaims(
-            userId,
-            jwtProperties.getAccessToken().getValiditySeconds(),
-            TokenType.ACCESS
-        );
-    }
+    @Transactional
+    public JwtSession createJwtSession(UUID userId) {
+        Instant accessTokenExpirationTime = Instant.now()
+            .plusSeconds(jwtProperties.getAccessToken().getValiditySeconds());
+        Instant refreshTokenExpirationTime = Instant.now()
+            .plusSeconds(jwtProperties.getRefreshToken().getValiditySeconds());
 
-    // 리프레시 토큰 발급
-    public String issueRefreshToken(UUID userId) {
-        return createTokenWithClaims(
-            userId,
-            jwtProperties.getRefreshToken().getValiditySeconds(),
-            TokenType.REFRESH
-        );
-    }
+        String accessToken = createTokenWithClaims(userId, TokenType.ACCESS,
+            accessTokenExpirationTime);
+        String refreshToken = createTokenWithClaims(userId, TokenType.REFRESH,
+            refreshTokenExpirationTime);
 
+        JwtSession jwtSession = jwtSessionRepository.save(
+            new JwtSession(
+                userId,
+                accessToken,
+                refreshToken,
+                accessTokenExpirationTime
+            )
+        );
+        return jwtSession;
+    }
+    
     // 토큰 생성
-    private String createTokenWithClaims(UUID userId, long validitySeconds, TokenType tokenType) {
+    private String createTokenWithClaims(UUID userId, TokenType tokenType, Instant expirationTime) {
         Instant now = clock.instant();
-        Instant expirationTime = now.plusSeconds(validitySeconds);
 
         JwtBuilder builder = Jwts.builder()
             .header()
