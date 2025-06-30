@@ -1,7 +1,6 @@
 package com.codeit.weatherwear.domain.clothes.controller.api;
 
 import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSearchRequest;
-import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSortDirection;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
@@ -23,16 +22,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "의상 속성 정의", description = "의상 속성 정의 관련 API")
 @RequestMapping("/api/clothes/attribute-defs")
-public interface AttributesApi {
+public interface AttributeApi {
 
     @Operation(summary = "의상 속성 정의 등록", description = "의상 속성 정의 등록 API")
     @ApiResponses({
         @ApiResponse(
-            responseCode = "200",
+            responseCode = "201",
             description = "의상 속성 정의 등록 성공",
             content = @Content(schema = @Schema(implementation = ClothesAttributeDefDto.class))),
         @ApiResponse(
@@ -89,9 +87,8 @@ public interface AttributesApi {
     @Operation(summary = "의상 속성 삭제", description = "의상 속성 정의 삭제 API")
     @ApiResponses({
         @ApiResponse(
-            responseCode = "200",
-            description = "의상 속성 정의 삭제 성공",
-            content = @Content(schema = @Schema(implementation = ClothesAttributeDefDto.class))),
+            responseCode = "204",
+            description = "의상 속성 정의 삭제 성공"),
         @ApiResponse(
             responseCode = "400",
             description = "의상 속성 정의 삭제 실패",

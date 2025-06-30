@@ -10,10 +10,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
-import com.codeit.weatherwear.domain.clothes.entity.Attributes;
-import com.codeit.weatherwear.domain.clothes.repository.AttributesRepository;
-import com.codeit.weatherwear.domain.clothes.service.AttributesService;
 import com.codeit.weatherwear.global.config.TestSecurityConfig;
+import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
+import com.codeit.weatherwear.domain.clothes.service.AttributeService;
 import com.codeit.weatherwear.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -30,17 +30,18 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(AttributesController.class)
+
+@WebMvcTest(AttributeController.class)
 @Import({GlobalExceptionHandler.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
-public class AttributesControllerTest {
+public class AttributeControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
-    private AttributesService service;
+    private AttributeService service;
     @MockitoBean
-    private AttributesRepository repository;
+    private AttributeRepository repository;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -74,7 +75,7 @@ public class AttributesControllerTest {
     void update_success() throws Exception {
         //given
         UUID id = UUID.randomUUID();
-        Attributes attributes = Attributes.builder()
+        Attribute attributes = Attribute.builder()
             .name("색상")
             .selectableValues(new ArrayList<>(List.of("빨강", "파랑")))
             .build();

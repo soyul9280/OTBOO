@@ -10,9 +10,10 @@ import static org.mockito.Mockito.verify;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
-import com.codeit.weatherwear.domain.clothes.entity.Attributes;
-import com.codeit.weatherwear.domain.clothes.mapper.AttributesMapper;
-import com.codeit.weatherwear.domain.clothes.repository.AttributesRepository;
+
+import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
+import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +31,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class AttributeDefServiceTest {
 
     @Mock
-    private AttributesRepository attributesRepository;
+    private AttributeRepository attributeRepository;
 
     @Mock
-    private AttributesMapper attributesMapper;
+    private AttributeMapper attributeMapper;
 
     @InjectMocks
-    private AttributesServiceImpl sut;
+    private AttributeServiceImpl sut;
 
     @Nested
     @DisplayName("속성 등록 테스트")
@@ -48,7 +49,7 @@ public class AttributeDefServiceTest {
             ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(
                 "색상",
                 List.of("빨강", "파랑"));
-            Attributes attributes = Attributes.builder()
+            Attribute attributes = Attribute.builder()
                 .id(UUID.randomUUID())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -56,21 +57,21 @@ public class AttributeDefServiceTest {
                 .selectableValues(List.of("빨강", "파랑")).build();
             ClothesAttributeDefDto dto = new ClothesAttributeDefDto(attributes.getId(),
                 attributes.getName(), attributes.getSelectableValues());
-            given(attributesRepository.save(any(Attributes.class))).willReturn(attributes);
-            given(attributesMapper.toDto(any(Attributes.class))).willReturn(dto);
+            given(attributeRepository.save(any(Attribute.class))).willReturn(attributes);
+            given(attributeMapper.toDto(any(Attribute.class))).willReturn(dto);
             //when
             ClothesAttributeDefDto result = sut.create(request);
             //then
             assertThat(result.name()).isEqualTo("색상");
             assertThat(result.selectableValues()).containsExactly("빨강", "파랑");
-            verify(attributesRepository, times(1)).save(any(Attributes.class));
+            verify(attributeRepository, times(1)).save(any(Attribute.class));
         }
 
         @Test
         @DisplayName("속성 등록 실패 - 중복 속성 입력")
         void createAttributes_Fail() {
             //given
-            given(attributesRepository.existsByName("사이즈")).willReturn(true);
+            given(attributeRepository.existsByName("사이즈")).willReturn(true);
             ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(
                 "사이즈",
                 List.of("L")
@@ -92,24 +93,24 @@ public class AttributeDefServiceTest {
         void updateAttributes_Success() {
             //given
             UUID id = UUID.randomUUID();
-            Attributes attributes = Attributes.builder()
+            Attribute attributes = Attribute.builder()
                 .id(id)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .name("색상")
                 .selectableValues(new ArrayList<>(List.of("빨강", "파랑"))).build();
-            given(attributesRepository.findById(id)).willReturn(Optional.of(attributes));
+            given(attributeRepository.findById(id)).willReturn(Optional.of(attributes));
 
             ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("색상",
                 List.of("빨강", "노랑"));
-            given(attributesMapper.toDto(attributes))
+            given(attributeMapper.toDto(attributes))
                 .willReturn(new ClothesAttributeDefDto(id, "색상", List.of("빨강", "노랑")));
             //when
             ClothesAttributeDefDto result = sut.update(id, request);
             //then
             assertThat(result.name()).isEqualTo("색상");
             assertThat(result.selectableValues()).containsExactly("빨강", "노랑");
-            verify(attributesRepository, times(1)).findById(id);
+            verify(attributeRepository, times(1)).findById(id);
         }
 
         @Test
@@ -117,13 +118,13 @@ public class AttributeDefServiceTest {
         void updateAttributes_Fail() {
             //given
             UUID id = UUID.randomUUID();
-            Attributes attributes = Attributes.builder()
+            Attribute attributes = Attribute.builder()
                 .id(id)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .name("색상")
                 .selectableValues(new ArrayList<>(List.of("빨강", "파랑"))).build();
-            given(attributesRepository.findById(id)).willReturn(Optional.of(attributes));
+            given(attributeRepository.findById(id)).willReturn(Optional.of(attributes));
 
             ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("사이즈",
                 List.of("S", "L"));
@@ -132,7 +133,7 @@ public class AttributeDefServiceTest {
             assertThatThrownBy(() -> sut.update(id, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("해당 속성명이 일치하지 않습니다.");
-            verify(attributesRepository, times(1)).findById(id);
+            verify(attributeRepository, times(1)).findById(id);
         }
     }
 
@@ -145,18 +146,18 @@ public class AttributeDefServiceTest {
         void deleteAttributes_Success() {
             //given
             UUID id = UUID.randomUUID();
-            Attributes attributes = Attributes.builder()
+            Attribute attributes = Attribute.builder()
                 .id(id)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .name("색상")
                 .selectableValues(new ArrayList<>(List.of("빨강", "파랑"))).build();
-            given(attributesRepository.findById(id)).willReturn(Optional.of(attributes));
+            given(attributeRepository.findById(id)).willReturn(Optional.of(attributes));
             //when
             sut.delete(id);
             //then
-            verify(attributesRepository, times(1)).findById(id);
-            verify(attributesRepository, times(1)).deleteById(id);
+            verify(attributeRepository, times(1)).findById(id);
+            verify(attributeRepository, times(1)).deleteById(id);
         }
     }
 

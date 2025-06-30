@@ -1,13 +1,13 @@
 package com.codeit.weatherwear.domain.clothes.service;
 
 import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSearchRequest;
-import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSortDirection;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
-import com.codeit.weatherwear.domain.clothes.entity.Attributes;
-import com.codeit.weatherwear.domain.clothes.mapper.AttributesMapper;
-import com.codeit.weatherwear.domain.clothes.repository.AttributesRepository;
+import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
+import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
+import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.HashSet;
 import java.util.List;
@@ -21,10 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AttributesServiceImpl implements AttributesService {
+public class AttributeServiceImpl implements AttributeService {
 
-    private final AttributesRepository attributesRepository;
-    private final AttributesMapper attributesMapper;
+    private final AttributeRepository attributeRepository;
+    private final AttributeMapper attributeMapper;
 
     /**
      * 속성 등록
@@ -35,7 +35,7 @@ public class AttributesServiceImpl implements AttributesService {
     @Override
     @Transactional
     public ClothesAttributeDefDto create(ClothesAttributeDefCreateRequest request) {
-        if (attributesRepository.existsByName(request.name())) {
+        if (attributeRepository.existsByName(request.name())) {
             throw new IllegalArgumentException("이미 등록된 속성입니다.");
         }
         Set<String> uniqueValues = new HashSet<>(request.selectValues());
@@ -43,13 +43,13 @@ public class AttributesServiceImpl implements AttributesService {
             throw new IllegalArgumentException("중복된 값이 입력되었습니다.");
         }
 
-        Attributes attributes = Attributes.builder()
+        Attribute attributes = Attribute.builder()
             .name(request.name())
             .selectableValues(request.selectValues())
             .build();
 
-        Attributes save = attributesRepository.save(attributes);
-        return attributesMapper.toDto(save);
+        Attribute save = attributeRepository.save(attributes);
+        return attributeMapper.toDto(save);
     }
 
     /**
@@ -62,10 +62,10 @@ public class AttributesServiceImpl implements AttributesService {
     @Override
     @Transactional
     public ClothesAttributeDefDto update(UUID id, ClothesAttributeDefUpdateRequest request) {
-        Attributes attributes = attributesRepository.findById(id)
+        Attribute attributes = attributeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 속성입니다"));
         attributes.update(request);
-        return attributesMapper.toDto(attributes);
+        return attributeMapper.toDto(attributes);
     }
 
     /**
@@ -76,15 +76,15 @@ public class AttributesServiceImpl implements AttributesService {
     @Override
     @Transactional
     public void delete(UUID id) {
-        Attributes attributes = attributesRepository.findById(id)
+        Attribute attributes = attributeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 속성입니다"));
-        attributesRepository.deleteById(attributes.getId());
+        attributeRepository.deleteById(attributes.getId());
     }
 
     /**
      * 속성 조회
      * @param request 조회 조건
-     * @return List<ClothesAttributeDefDto> 결과 리스트
+     * @return ClothesAttributeDefDto 결과 리스트
      */
     @Override
     public PageResponse<ClothesAttributeDefDto> searchAttributes(AttributesSearchRequest request) {
@@ -92,18 +92,18 @@ public class AttributesServiceImpl implements AttributesService {
         UUID idAfter = request.idAfter();
         int limit = request.limit();
         String sortBy = request.sortBy();
-        AttributesSortDirection sortDirection = request.sortDirection();
+        SortDirection sortDirection = request.sortDirection();
         String keywordLike = request.keywordLike();
 
-        Slice<Attributes> attributes = attributesRepository.searchAttributes(cursor, idAfter, limit,
+        Slice<Attribute> attributes = attributeRepository.searchAttributes(cursor, idAfter, limit,
             sortBy, sortDirection, keywordLike);
 
-        List<Attributes> attributesList = attributes.getContent();
+        List<Attribute> attributesList = attributes.getContent();
         List<ClothesAttributeDefDto> result = attributesList.stream()
-            .map(attributesMapper::toDto)
+            .map(attributeMapper::toDto)
             .toList();
 
-        Attributes last =
+        Attribute last =
             (attributesList.size() > 0) ? attributesList.get(attributesList.size() - 1) : null;
         Object nextCursor = null;
         UUID nextIdAfter = null;
@@ -125,7 +125,7 @@ public class AttributesServiceImpl implements AttributesService {
             nextCursor,
             nextIdAfter,
             attributes.hasNext(),
-            attributesRepository.getTotalCount(keywordLike),
+            attributeRepository.getTotalCount(keywordLike),
             sortBy,
             sortDirection.name()
         );

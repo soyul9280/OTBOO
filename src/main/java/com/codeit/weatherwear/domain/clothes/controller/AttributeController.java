@@ -1,11 +1,11 @@
 package com.codeit.weatherwear.domain.clothes.controller;
 
-import com.codeit.weatherwear.domain.clothes.controller.api.AttributesApi;
+import com.codeit.weatherwear.domain.clothes.controller.api.AttributeApi;
 import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSearchRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
-import com.codeit.weatherwear.domain.clothes.service.AttributesService;
+import com.codeit.weatherwear.domain.clothes.service.AttributeService;
 import com.codeit.weatherwear.global.response.PageResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -25,8 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/clothes/attribute-defs")
-public class AttributesController implements AttributesApi {
-    private final AttributesService service;
+public class AttributeController implements AttributeApi {
+    private final AttributeService service;
 
     /**
      * 새로운 의상 속성을 등록합니다.
