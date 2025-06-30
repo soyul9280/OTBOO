@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
-import com.codeit.weatherwear.domain.clothes.repository.AttributesRepository;
+import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.global.config.JpaConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -26,14 +26,14 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(JpaConfig.class)
-public class AttributesTest {
+public class AttributeTest {
 
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     private TestRestTemplate restTemplate;
     @Autowired
-    private AttributesRepository repository;
+    private AttributeRepository repository;
 
     @Autowired
     private EntityManager em;

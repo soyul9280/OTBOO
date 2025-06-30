@@ -1,6 +1,6 @@
 package com.codeit.weatherwear.domain.clothes.entity;
 
-public enum ClothesType {
+public enum ClothType {
     TOP,
     BOTTOM,
     DRESS,

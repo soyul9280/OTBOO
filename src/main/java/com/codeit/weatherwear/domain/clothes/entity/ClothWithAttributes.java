@@ -28,7 +28,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ClothesWithAttributes {
+public class ClothWithAttributes {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
@@ -45,13 +45,13 @@ public class ClothesWithAttributes {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clothes_id")
-    private Clothes clothes;
+    private Cloth cloth;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "definition_id")
-    private Attributes attributes;
+    private Attribute attribute;
 
-    public void setClothes(Clothes clothes) {
-        this.clothes = clothes;
+    public void setClothes(Cloth cloth) {
+        this.cloth = cloth;
     }
 }

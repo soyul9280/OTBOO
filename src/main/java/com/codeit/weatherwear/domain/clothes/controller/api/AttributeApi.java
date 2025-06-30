@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "의상 속성 정의", description = "의상 속성 정의 관련 API")
 @RequestMapping("/api/clothes/attribute-defs")
-public interface AttributesApi {
+public interface AttributeApi {
 
     @Operation(summary = "의상 속성 정의 등록", description = "의상 속성 정의 등록 API")
     @ApiResponses({

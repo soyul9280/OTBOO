@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +29,10 @@ import org.springframework.data.annotation.LastModifiedDate;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
+@Table(name = "clothes")
 @Getter
 @AllArgsConstructor
-public class Clothes {
+public class Cloth {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(updatable = false)
@@ -49,7 +51,7 @@ public class Clothes {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type",nullable = false)
-    private ClothesType clothesType;
+    private ClothType clothType;
 
     @Column(name = "image_url")
     private String clothesImageUrl;
@@ -58,11 +60,11 @@ public class Clothes {
     @JoinColumn(name = "owner_id")
     private User user;
 
-    @OneToMany(mappedBy = "clothes",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cloth",cascade = CascadeType.ALL)
     @Builder.Default
-    private List<ClothesWithAttributes> clothesWithAttributes=new ArrayList<>();
+    private List<ClothWithAttributes> clothesWithAttributes=new ArrayList<>();
 
-    public void addAttributes(ClothesWithAttributes attributes) {
+    public void addAttribute(ClothWithAttributes attributes) {
         if (this.clothesWithAttributes == null) {
             this.clothesWithAttributes = new ArrayList<>();
         }

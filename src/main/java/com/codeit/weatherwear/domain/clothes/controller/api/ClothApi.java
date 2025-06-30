@@ -1,7 +1,6 @@
 package com.codeit.weatherwear.domain.clothes.controller.api;
 
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
-import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.global.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "의상 관리", description = "의상 관련 API")
 @RequestMapping("/api/clothes")
-public interface ClothesApi {
+public interface ClothApi {
 
     @Operation(summary = "옷 등록", description = "옷 등록 API")
     @ApiResponses({

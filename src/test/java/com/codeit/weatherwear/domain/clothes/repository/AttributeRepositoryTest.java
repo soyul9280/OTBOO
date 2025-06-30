@@ -1,8 +1,8 @@
 package com.codeit.weatherwear.domain.clothes.repository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.codeit.weatherwear.domain.clothes.entity.Attributes;
+import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.global.config.JpaConfig;
 import java.util.List;
 
@@ -16,20 +16,20 @@ import org.springframework.test.context.ActiveProfiles;
 @DataJpaTest
 @ActiveProfiles("test")
 @Import({JpaConfig.class})
-class AttributesRepositoryTest {
+class AttributeRepositoryTest {
 
     @Autowired
-    private AttributesRepository sut;
+    private AttributeRepository sut;
 
     @Test
     @DisplayName("저장 성공")
     void save_success() {
         //given
-        Attributes attributes = Attributes.builder()
+        Attribute attributes = Attribute.builder()
             .name("색상")
             .selectableValues(List.of("빨강", "파랑")).build();
         //when
-        Attributes result = sut.save(attributes);
+        Attribute result = sut.save(attributes);
         //then
         assertThat(result.getName()).isEqualTo("색상");
         assertThat(result.getSelectableValues()).containsExactly("빨강", "파랑");

@@ -7,7 +7,7 @@ import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpda
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.UUID;
 
-public interface AttributesService {
+public interface AttributeService {
     ClothesAttributeDefDto create(ClothesAttributeDefCreateRequest request);
 
     ClothesAttributeDefDto update(UUID id, ClothesAttributeDefUpdateRequest request);

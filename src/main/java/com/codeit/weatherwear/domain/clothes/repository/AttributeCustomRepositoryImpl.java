@@ -1,7 +1,7 @@
 package com.codeit.weatherwear.domain.clothes.repository;
 
-import com.codeit.weatherwear.domain.clothes.entity.Attributes;
-import com.codeit.weatherwear.domain.clothes.entity.QAttributes;
+import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.domain.clothes.entity.QAttribute;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
@@ -19,15 +19,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class AttributesCustomRepositoryImpl implements AttributesCustomRepository {
+public class AttributeCustomRepositoryImpl implements AttributeCustomRepository {
 
     private final JPAQueryFactory factory;
 
     @Override
-    public Slice<Attributes> searchAttributes(String cursor, UUID idAfter, int limit, String sortBy,
+    public Slice<Attribute> searchAttributes(String cursor, UUID idAfter, int limit, String sortBy,
         SortDirection sortDirection, String keywordLike) {
 
-        QAttributes attributes = QAttributes.attributes;
+        QAttribute attributes = QAttribute.attribute;
         Order direction = (sortDirection.equals(SortDirection.ASCENDING) ? Order.ASC : Order.DESC);
 
         OrderSpecifier<?> orderSpecifier = buildOrderSpecifiers(sortBy, direction, attributes);
@@ -41,11 +41,11 @@ public class AttributesCustomRepositoryImpl implements AttributesCustomRepositor
             condition.and(getCursorCondition(cursor, idAfter, sortBy, condition, direction, attributes));
         }
 
-        JPAQuery<Attributes> query = factory.selectFrom(attributes);
+        JPAQuery<Attribute> query = factory.selectFrom(attributes);
         query.where(condition);
         query.orderBy(orderSpecifier);
         query.limit(limit+1);
-        List<Attributes> attributesList = query.fetch();
+        List<Attribute> attributesList = query.fetch();
         boolean hasNext=attributesList.size()>limit;
         if(hasNext) {
             attributesList.remove(attributesList.size()-1);
@@ -55,7 +55,7 @@ public class AttributesCustomRepositoryImpl implements AttributesCustomRepositor
 
     @Override
     public Long getTotalCount(String keywordLike) {
-        QAttributes attributes = QAttributes.attributes;
+        QAttribute attributes = QAttribute.attribute;
         BooleanBuilder builder = new BooleanBuilder();
         builder.and((keywordLike==null||keywordLike.isBlank())?null
             :attributes.name.containsIgnoreCase(keywordLike));
@@ -66,7 +66,7 @@ public class AttributesCustomRepositoryImpl implements AttributesCustomRepositor
     }
 
     private BooleanBuilder getCursorCondition(String cursor, UUID idAfter, String sortBy,
-        BooleanBuilder condition, Order direction, QAttributes attributes) {
+        BooleanBuilder condition, Order direction, QAttribute attributes) {
         switch (sortBy) {
             case "name":
                 condition.and((direction.equals(Order.ASC))
@@ -92,7 +92,7 @@ public class AttributesCustomRepositoryImpl implements AttributesCustomRepositor
 
     // 정렬 기준 필드 + createdAt을 함께 적용한 Order By 조건을 생성함
     private OrderSpecifier<?> buildOrderSpecifiers(String sortBy, Order direction,
-        QAttributes attributes) {
+        QAttribute attributes) {
         OrderSpecifier<?> orderSpecifier;
 
         switch (sortBy) {

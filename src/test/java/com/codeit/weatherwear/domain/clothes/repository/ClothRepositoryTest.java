@@ -3,15 +3,14 @@ package com.codeit.weatherwear.domain.clothes.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.codeit.weatherwear.domain.clothes.entity.Attributes;
-import com.codeit.weatherwear.domain.clothes.entity.Clothes;
-import com.codeit.weatherwear.domain.clothes.entity.ClothesType;
-import com.codeit.weatherwear.domain.clothes.entity.ClothesWithAttributes;
+import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.domain.clothes.entity.Cloth;
+import com.codeit.weatherwear.domain.clothes.entity.ClothType;
+import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.config.JpaConfig;
 import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +21,16 @@ import org.springframework.test.context.ActiveProfiles;
 @DataJpaTest
 @ActiveProfiles("test")
 @Import({JpaConfig.class})
-public class ClothesRepositoryTest {
+public class ClothRepositoryTest {
 
     @Autowired
-    private ClothesRepository sut;
+    private ClothRepository sut;
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private AttributesRepository attributesRepository;
+    private AttributeRepository attributeRepository;
 
     @Test
     @DisplayName("저장 성공")
@@ -41,26 +40,26 @@ public class ClothesRepositoryTest {
             .name("테스트유저")
             .build());
 
-        Attributes color = attributesRepository.save(Attributes.builder()
+        Attribute color = attributeRepository.save(Attribute.builder()
             .name("색상")
             .selectableValues(List.of("빨강", "파랑"))
             .build());
 
-        Clothes clothes = Clothes.builder()
+        Cloth clothes = Cloth.builder()
             .name("후드티")
-            .clothesType(ClothesType.TOP)
+            .clothType(ClothType.TOP)
             .user(user)
             .build();
 
-        ClothesWithAttributes attr = ClothesWithAttributes.builder()
+        ClothWithAttributes attr = ClothWithAttributes.builder()
             .value("파랑")
-            .attributes(color)
+            .attribute(color)
             .build();
 
-        clothes.addAttributes(attr);
+        clothes.addAttribute(attr);
 
         // when
-        Clothes saved = sut.save(clothes);
+        Cloth saved = sut.save(clothes);
 
         // then
         assertThat(saved.getId()).isNotNull();

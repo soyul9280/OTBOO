@@ -3,13 +3,13 @@ package com.codeit.weatherwear.domain.clothes.service;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import com.codeit.weatherwear.domain.clothes.entity.Attributes;
-import com.codeit.weatherwear.domain.clothes.entity.Clothes;
-import com.codeit.weatherwear.domain.clothes.entity.ClothesWithAttributes;
+import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.domain.clothes.entity.Cloth;
+import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 
-import com.codeit.weatherwear.domain.clothes.mapper.ClothesMapper;
-import com.codeit.weatherwear.domain.clothes.repository.AttributesRepository;
-import com.codeit.weatherwear.domain.clothes.repository.ClothesRepository;
+import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
+import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
+import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -26,12 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ClothesServiceImpl implements ClothesService {
+public class ClothServiceImpl implements ClothService {
 
-    private final ClothesRepository clothesRepository;
-    private final AttributesRepository attributeRepository;
+    private final ClothRepository clothRepository;
+    private final AttributeRepository attributeRepository;
     private final UserRepository userRepository;
-    private final ClothesMapper clothesMapper;
+    private final ClothMapper clothMapper;
 
     @Override
     @Transactional
@@ -44,39 +44,39 @@ public class ClothesServiceImpl implements ClothesService {
             .map(ClothesAttributeDto::definitionId).toList();
 
         //속성 찾기
-        List<Attributes> attributesList=attributeRepository.findAllById(attributesIds);
-        Map<UUID,Attributes> attributesMap=attributesList.stream().collect(
-            Collectors.toMap(Attributes::getId, Function.identity()));
+        List<Attribute> attributesList=attributeRepository.findAllById(attributesIds);
+        Map<UUID,Attribute> attributesMap=attributesList.stream().collect(
+            Collectors.toMap(Attribute::getId, Function.identity()));
 
-        Clothes clothes=Clothes.builder()
+        Cloth clothes=Cloth.builder()
             .name(request.name())
-            .clothesType(request.type())
+            .clothType(request.type())
             .user(user)
             .build();
 
         for (ClothesAttributeDto attrDto : request.attributes()) {
-            Attributes attributes = attributesMap.get(attrDto.definitionId());
+            Attribute attributes = attributesMap.get(attrDto.definitionId());
             if(attributes==null) {
                 throw new IllegalArgumentException("존재하지 않는 속성입니다.");
             }
-            ClothesWithAttributes result = ClothesWithAttributes.builder()
+            ClothWithAttributes result = ClothWithAttributes.builder()
                 .value(attrDto.value())
-                .attributes(attributes)
+                .attribute(attributes)
                 .build();
-            clothes.addAttributes(result);
+            clothes.addAttribute(result);
         }
 
-        Clothes saveClothes = clothesRepository.save(clothes);
+        Cloth saveClothes = clothRepository.save(clothes);
 
-        return clothesMapper.toDto(saveClothes);
+        return clothMapper.toDto(saveClothes);
     }
 
     @Override
     @Transactional
     public void delete(UUID clothesId) {
-        Clothes clothes = clothesRepository.findById(clothesId)
+        Cloth cloth = clothRepository.findById(clothesId)
             .orElseThrow(()->new IllegalArgumentException("존재하지 않는 옷입니다."));
-        clothesRepository.delete(clothes);
+        clothRepository.delete(cloth);
     }
 
 

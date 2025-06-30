@@ -30,7 +30,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class Attributes {
+public class Attribute {
     @Id@GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 

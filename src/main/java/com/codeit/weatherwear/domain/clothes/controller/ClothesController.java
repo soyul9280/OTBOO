@@ -1,9 +1,9 @@
 package com.codeit.weatherwear.domain.clothes.controller;
 
-import com.codeit.weatherwear.domain.clothes.controller.api.ClothesApi;
+import com.codeit.weatherwear.domain.clothes.controller.api.ClothApi;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import com.codeit.weatherwear.domain.clothes.service.ClothesService;
+import com.codeit.weatherwear.domain.clothes.service.ClothService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/clothes")
-public class ClothesController implements ClothesApi {
+public class ClothesController implements ClothApi {
 
-    private final ClothesService clothesService;
+    private final ClothService clothesService;
 
     @Override
     @PostMapping

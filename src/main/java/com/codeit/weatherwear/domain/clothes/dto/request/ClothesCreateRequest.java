@@ -1,13 +1,13 @@
 package com.codeit.weatherwear.domain.clothes.dto.request;
 
-import com.codeit.weatherwear.domain.clothes.entity.ClothesType;
+import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import java.util.List;
 import java.util.UUID;
 
 public record ClothesCreateRequest(
     UUID ownerId,
     String name,
-    ClothesType type,
+    ClothType type,
     List<ClothesAttributeDto> attributes
 ) {
 }
