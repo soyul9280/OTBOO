@@ -51,32 +51,27 @@ public class ClothServiceImpl implements ClothService {
 
         //속성 찾기
         List<Attribute> attributesList=attributeRepository.findAllById(attributesIds);
-        Map<UUID,Attribute> attributesMap=attributesList.stream().collect(
-            Collectors.toMap(Attribute::getId, Function.identity()));
 
-        Cloth clothes=Cloth.builder()
+        Cloth cloth=Cloth.builder()
             .name(request.name())
             .clothType(request.type())
             .user(user)
             .build();
 
-        for (ClothesAttributeDto attrDto : request.attributes()) {
-            Attribute attributes = attributesMap.get(attrDto.definitionId());
-            if(attributes==null) {
-                throw new IllegalArgumentException("존재하지 않는 속성입니다.");
-            }
-            ClothWithAttributes result = ClothWithAttributes.builder()
-                .value(attrDto.value())
-                .attribute(attributes)
-                .build();
-            clothes.addAttribute(result);
-        }
+        //의상에 속성 적용
+        cloth.applyAttribute(request.attributes(), attributesList);
 
-        Cloth saveClothes = clothRepository.save(clothes);
+        Cloth saveCloth = clothRepository.save(cloth);
 
-        return clothMapper.toDto(saveClothes);
+        return clothMapper.toDto(saveCloth);
     }
 
+    /**
+     * 의상 수정
+     *
+     * @param request 수정 요청 DTO
+     * @return 의상 DTO
+     */
     @Override
     public ClothesDto update(ClothesUpdateRequest request) {
         Cloth cloth = clothRepository.findByName(request.name())
@@ -87,7 +82,6 @@ public class ClothServiceImpl implements ClothService {
             .toList();
         List<Attribute> attributes = attributeRepository.findAllById(attrIds);
 
-
         cloth.updateCloth(request,attributes);
         return clothMapper.toDto(cloth);
     }
@@ -95,6 +89,7 @@ public class ClothServiceImpl implements ClothService {
 
     /**
      * 의상 삭제
+     *
      * @param clothesId 의상 ID
      */
     @Override

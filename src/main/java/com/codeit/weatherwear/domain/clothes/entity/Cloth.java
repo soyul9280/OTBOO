@@ -82,13 +82,19 @@ public class Cloth {
         this.name = request.name();
         this.clothType = request.type();
         this.clothesWithAttributes.clear();
+        this.applyAttribute(request.attributes(), attributeDefs);
+        updatedAt = Instant.now();
+    }
+
+    //dto로 전해주는 속성 정보들을 attribute로 변환 & cloth에 저장
+    public void applyAttribute(List<ClothesAttributeDto> dtoList,List<Attribute> attributeDefs) {
         Map<UUID,Attribute> attrMap=attributeDefs.stream()
             .collect(Collectors.toMap(Attribute::getId, Function.identity()));
 
-        for (ClothesAttributeDto dto : request.attributes()) {
+        for (ClothesAttributeDto dto : dtoList) {
             Attribute def = attrMap.get(dto.definitionId());
             if(def==null) {
-                throw new IllegalArgumentException("정의되지 않은 속성입니다.");
+                throw new IllegalArgumentException("존재하지 않는 속성입니다.");
             }
             ClothWithAttributes attributes = ClothWithAttributes.builder()
                 .value(dto.value())
@@ -96,6 +102,5 @@ public class Cloth {
                 .build();
             this.addAttribute(attributes);
         }
-        updatedAt = Instant.now();
     }
 }
