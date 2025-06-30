@@ -1,4 +1,4 @@
-package com.codeit.weatherwear.domain.security.jwtauthentication;
+package com.codeit.weatherwear.domain.security.customauthentication.jwt;
 
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;

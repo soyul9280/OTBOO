@@ -4,7 +4,8 @@ import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthent
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationFilter;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationSuccessHandler;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetailsService;
-import com.codeit.weatherwear.domain.security.jwtauthentication.JwtAuthenticationFilter;
+import com.codeit.weatherwear.domain.security.customauthentication.jwt.JwtAuthenticationFilter;
+import com.codeit.weatherwear.domain.security.customauthentication.jwt.JwtLogoutHandler;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +25,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -34,7 +36,8 @@ public class SecurityConfig {
     @Profile("!test")
     SecurityFilterChain chain(HttpSecurity httpSecurity,
         CustomAuthenticationFilter customAuthenticationFilter,
-        JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        JwtAuthenticationFilter jwtAuthenticationFilter,
+        JwtLogoutHandler jwtLogoutHandler) throws Exception {
 
         httpSecurity
             .authorizeHttpRequests(auth -> auth
@@ -49,6 +52,13 @@ public class SecurityConfig {
             )
             // TODO: csrf 활성화
             .csrf(csrf -> csrf.disable())
+            .logout(logout -> logout
+                .logoutRequestMatcher(
+                    new AntPathRequestMatcher("/api/auth/sign-out"))
+                .logoutSuccessUrl("/") // 홈으로
+                .deleteCookies("refresh-token")    // 쿠키 삭제
+                .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
+            );
         ;
         return httpSecurity.build();
     }
