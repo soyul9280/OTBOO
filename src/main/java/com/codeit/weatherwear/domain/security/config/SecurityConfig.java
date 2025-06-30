@@ -4,6 +4,8 @@ import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthent
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationFilter;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationSuccessHandler;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetailsService;
+import com.codeit.weatherwear.domain.security.customauthentication.jwt.JwtAuthenticationFilter;
+import com.codeit.weatherwear.domain.security.customauthentication.jwt.JwtLogoutHandler;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
@@ -16,12 +18,14 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -31,7 +35,9 @@ public class SecurityConfig {
     @Bean
     @Profile("!test")
     SecurityFilterChain chain(HttpSecurity httpSecurity,
-        CustomAuthenticationFilter customAuthenticationFilter) throws Exception {
+        CustomAuthenticationFilter customAuthenticationFilter,
+        JwtAuthenticationFilter jwtAuthenticationFilter,
+        JwtLogoutHandler jwtLogoutHandler) throws Exception {
 
         httpSecurity
             .authorizeHttpRequests(auth -> auth
@@ -39,9 +45,20 @@ public class SecurityConfig {
                 // TODO: 일단은 모든 요청 허용
                 .anyRequest().permitAll()
             )
-            .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(jwtAuthenticationFilter, CustomAuthenticationFilter.class)
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
             // TODO: csrf 활성화
             .csrf(csrf -> csrf.disable())
+            .logout(logout -> logout
+                .logoutRequestMatcher(
+                    new AntPathRequestMatcher("/api/auth/sign-out"))
+                .logoutSuccessUrl("/") // 홈으로
+                .deleteCookies("refresh-token")    // 쿠키 삭제
+                .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
+            );
         ;
         return httpSecurity.build();
     }

@@ -1,8 +1,10 @@
 package com.codeit.weatherwear.domain.security.customauthentication;
 
+import com.codeit.weatherwear.domain.security.entity.JwtSession;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -34,13 +36,20 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         UUID userId = userDetails.getUserId();
 
-        // TODO: 토큰 발급
+        // 토큰 발급
+        JwtSession jwtSession = jwtSessionService.createJwtSession(userId);
 
         response.setStatus(HttpStatus.OK.value());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        // TODO: response body에 액세스 토큰, response header에 리프레시 토큰 삽입
-
+        // response body에 액세스 토큰, response cookie에 리프레시 토큰 삽입
+        Cookie refreshTokenCookie = new Cookie("refresh_token", jwtSession.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(false);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(30 * 24 * 60 * 60); // 쿠키 만료 시간 30일 
+        response.addCookie(refreshTokenCookie);
+        objectMapper.writeValue(response.getWriter(), jwtSession.getAccessToken());
     }
 }

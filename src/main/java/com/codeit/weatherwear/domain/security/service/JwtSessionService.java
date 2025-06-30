@@ -1,7 +1,11 @@
 package com.codeit.weatherwear.domain.security.service;
 
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
+import com.codeit.weatherwear.domain.security.entity.JwtSession;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
+import com.codeit.weatherwear.domain.user.entity.User;
+import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtException;
@@ -17,7 +21,9 @@ import java.util.UUID;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,43 +34,55 @@ public class JwtSessionService {
     private final JwtProperties jwtProperties;
     private final Clock clock;
     private SecretKey signingKey;
+    private final UserRepository userRepository;
 
     public enum TokenType {
         ACCESS, REFRESH
     }
 
-    // 액세스 토큰 발급
-    public String issueAccessToken(UUID userId) {
-        return createTokenWithClaims(
-            userId,
-            jwtProperties.getAccessToken().getValiditySeconds(),
-            TokenType.ACCESS
-        );
-    }
+    @Transactional
+    public JwtSession createJwtSession(UUID userId) {
+        Instant accessTokenExpirationTime = Instant.now()
+            .plusSeconds(jwtProperties.getAccessToken().getValiditySeconds());
+        Instant refreshTokenExpirationTime = Instant.now()
+            .plusSeconds(jwtProperties.getRefreshToken().getValiditySeconds());
 
-    // 리프레시 토큰 발급
-    public String issueRefreshToken(UUID userId) {
-        return createTokenWithClaims(
-            userId,
-            jwtProperties.getRefreshToken().getValiditySeconds(),
-            TokenType.REFRESH
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        String accessToken = createTokenWithClaims(user, TokenType.ACCESS,
+            accessTokenExpirationTime);
+        String refreshToken = createTokenWithClaims(user, TokenType.REFRESH,
+            refreshTokenExpirationTime);
+
+        JwtSession jwtSession = jwtSessionRepository.save(
+            new JwtSession(
+                userId,
+                accessToken,
+                refreshToken,
+                accessTokenExpirationTime
+            )
         );
+        return jwtSession;
     }
 
     // 토큰 생성
-    private String createTokenWithClaims(UUID userId, long validitySeconds, TokenType tokenType) {
+    private String createTokenWithClaims(User user, TokenType tokenType, Instant expirationTime) {
         Instant now = clock.instant();
-        Instant expirationTime = now.plusSeconds(validitySeconds);
 
         JwtBuilder builder = Jwts.builder()
             .header()
             .add("typ", "JWT")
             .and()
             .issuer(jwtProperties.getIssuer())
-            .subject(userId.toString())
+            .subject(user.getEmail())
             .issuedAt(Date.from(now))
             .expiration(Date.from(expirationTime))
-            .claim("type", tokenType.name());
+            .claim("type", tokenType.name())
+            .claim("userId", user.getId().toString())
+            .claim("name", user.getName())
+            .claim("role", user.getRole().name())
+            .claim("email", user.getEmail());
 
         return builder
             .signWith(getSigningKey(), SIG.HS256)
@@ -106,12 +124,12 @@ public class JwtSessionService {
                 .verifyWith(getSigningKey())
                 .build();
 
-            String subject = parser
+            Claims claims = parser
                 .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .getPayload();
 
-            return UUID.fromString(subject);
+            String userId = claims.get("userId", String.class);
+            return UUID.fromString(userId);
         } catch (JwtException e) {
             log.error("Failed to extract user ID from token", e);
             throw new IllegalArgumentException("Invalid JWT token", e);
@@ -119,6 +137,17 @@ public class JwtSessionService {
             log.error("Invalid UUID format in token subject", e);
             throw new IllegalArgumentException("Invalid user ID format in token", e);
         }
+    }
+
+    @Transactional
+    public void invalidateToken(String refreshToken) {
+        JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
+            // TODO: 커스텀 예외로 변경
+            .orElseThrow(() -> new IllegalArgumentException());
+
+        // TODO:토큰을 블랙리스트에 추가
+
+        jwtSessionRepository.delete(jwtSession);
     }
 
 }
