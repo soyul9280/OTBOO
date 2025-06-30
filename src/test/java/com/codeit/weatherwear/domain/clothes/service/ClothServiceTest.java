@@ -235,11 +235,11 @@ public class ClothServiceTest {
                 )
             );
 
-            given(clothRepository.findByName(request.name())).willReturn(Optional.of(cloth));
+            given(clothRepository.findById(clothesId)).willReturn(Optional.of(cloth));
             given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef));
             given(mapper.toDto(any(Cloth.class))).willReturn(clothesDto);
             //when
-            ClothesDto result=sut.update(request);
+            ClothesDto result=sut.update(clothesId,request);
 
             //then
             assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");

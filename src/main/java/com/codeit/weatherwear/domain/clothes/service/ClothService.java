@@ -7,6 +7,6 @@ import java.util.UUID;
 
 public interface ClothService {
     ClothesDto create(ClothesCreateRequest request);
-    ClothesDto update(ClothesUpdateRequest request);
+    ClothesDto update(UUID clothesId,ClothesUpdateRequest request);
     void delete(UUID clothesId);
 }

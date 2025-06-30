@@ -69,12 +69,13 @@ public class ClothServiceImpl implements ClothService {
     /**
      * 의상 수정
      *
+     * @param clothesId 수정 요청 ID
      * @param request 수정 요청 DTO
      * @return 의상 DTO
      */
     @Override
-    public ClothesDto update(ClothesUpdateRequest request) {
-        Cloth cloth = clothRepository.findByName(request.name())
+    public ClothesDto update(UUID clothesId,ClothesUpdateRequest request) {
+        Cloth cloth = clothRepository.findById(clothesId)
             .orElseThrow(() -> new IllegalArgumentException("의상을 찾을 수 없습니다"));
 
         List<UUID> attrIds = request.attributes().stream()
