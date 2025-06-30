@@ -8,6 +8,9 @@ import com.codeit.weatherwear.domain.follow.repository.FollowRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.config.JpaConfig;
+import jakarta.persistence.EntityManager;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,50 +31,57 @@ class FollowRepositoryTest {
   @Autowired
   UserRepository userRepository;
 
+  @Autowired
+  EntityManager em;
+
   UUID followingMeId;
-  UUID aId;
-  UUID bId;
-  UUID cId;
+
+  User alice;
+  User bob;
+  User charlie;
+
+  Follow aliceFollowBob;
+  Follow charlieFollowBob;
 
   @BeforeEach
-  void setUp() {
-    User alice = User.builder()
+  void setUp() throws InterruptedException {
+    alice = User.builder()
         .email("alice@test.com")
         .name("alice")
         .password("alice1234")
         .build();
 
-    User bob = User.builder()
+    bob = User.builder()
         .email("bob@test.com")
         .name("bob")
         .password("bob1234")
         .build();
 
-    User ccc = User.builder()
+    charlie = User.builder()
         .email("c@c.com")
-        .name("ccc")
-        .password("ccc1234")
+        .name("charlie")
+        .password("charlie1234")
         .build();
 
     userRepository.save(alice);
     userRepository.save(bob);
-    userRepository.save(ccc);
+    userRepository.save(charlie);
 
-    Follow follow = followRepository.save(Follow.create(bob, alice));
-    Follow follow1 = followRepository.save(Follow.create(bob, ccc));
+    aliceFollowBob = followRepository.save(Follow.create(bob, alice));
+    Thread.sleep(1);
+    charlieFollowBob = followRepository.save(Follow.create(bob, charlie));
+    em.flush();
+    em.clear();
 
-    followingMeId = follow.getId();
-    aId = alice.getId();
-    bId = bob.getId();
-    cId = ccc.getId();
+    followingMeId = aliceFollowBob.getId();
   }
 
   @Test
   @DisplayName("follow summary 조회")
   void getSummary() {
-    FollowSummaryDto summary = followRepository.getSummary(bId, aId);
+    FollowSummaryDto summary = followRepository.getSummary(bob.getId(), alice.getId());
 
-    assertThat(summary.followeeId()).isEqualTo(bId);
+    assertThat(summary.followeeId()).isEqualTo(bob.getId());
     assertThat(summary.followerCount()).isEqualTo(2);
     assertThat(summary.followingCount()).isEqualTo(0);
     assertThat(summary.followedByMe()).isTrue();
@@ -84,29 +94,86 @@ class FollowRepositoryTest {
   void getFollowing() {
     int limit = 20;
     List<FollowDto> followings = followRepository
-        .getFollowings(aId, null, null, limit, null);
+        .getFollowings(alice.getId(), null, null, limit, null);
 
     assertThat(followings)
         .hasSize(1)
         .satisfiesExactly(followDto -> {
-          assertThat(followDto.follower().userId()).isEqualTo(aId);
-          assertThat(followDto.followee().userId()).isEqualTo(bId);
+          assertThat(followDto.follower().userId()).isEqualTo(alice.getId());
+          assertThat(followDto.followee().userId()).isEqualTo(bob.getId());
         });
   }
 
   @Test
-  @DisplayName("follower 목록 조회")
-  void getFollower() {
+  @DisplayName("following 목록 조회- cursor")
+  void getFollowingWithCursor() {
+    int limit = 1;
+    Instant cursor = aliceFollowBob.getCreatedAt().truncatedTo(ChronoUnit.MICROS);
+    List<FollowDto> followers = followRepository
+        .getFollowers(alice.getId(), cursor.toString(), aliceFollowBob.getId(), limit, null);
+
+    assertThat(followers).hasSize(0);
+  }
+
+  @Test
+  @DisplayName("following 목록 조회- name")
+  void getFollowingWithName() {
+    int limit = 20;
+    List<FollowDto> followings = followRepository
+        .getFollowings(alice.getId(), null, null, limit, "bob");
+
+    assertThat(followings)
+        .hasSize(1)
+        .allSatisfy(following -> assertThat(following.followee().userId()).isEqualTo(bob.getId()))
+        .satisfiesExactly(
+            follower1 -> assertThat(follower1.follower().userId()).isEqualTo(alice.getId())
+        );
+  }
+
+  @Test
+  @DisplayName("follower 목록 조회 - 전체 조회")
+  void getAllFollower() {
     int limit = 20;
     List<FollowDto> followers = followRepository
-        .getFollowers(bId, null, null, limit, null);
+        .getFollowers(bob.getId(), null, null, limit, null);
 
     assertThat(followers)
         .hasSize(2)
-        .allSatisfy(follower -> assertThat(follower.followee().userId()).isEqualTo(bId))
+        .allSatisfy(follower -> assertThat(follower.followee().userId()).isEqualTo(bob.getId()))
         .satisfiesExactly(
-            follower1 -> assertThat(follower1.follower().userId()).isEqualTo(cId),
-            follower2 -> assertThat(follower2.follower().userId()).isEqualTo(aId)
+            follower1 -> assertThat(follower1.follower().userId()).isEqualTo(charlie.getId()),
+            follower2 -> assertThat(follower2.follower().userId()).isEqualTo(alice.getId())
+        );
+  }
+
+  @Test
+  @DisplayName("follower 목록 조회- cursor")
+  void getFollowerWithCursor() {
+    int limit = 1;
+    Instant cursor = charlieFollowBob.getCreatedAt().truncatedTo(ChronoUnit.MICROS);
+    List<FollowDto> followers = followRepository
+        .getFollowers(bob.getId(), cursor.toString(), charlieFollowBob.getId(), limit, null);
+
+    assertThat(followers)
+        .hasSize(1)
+        .allSatisfy(follower -> assertThat(follower.followee().userId()).isEqualTo(bob.getId()))
+        .satisfiesExactly(
+            follower1 -> assertThat(follower1.follower().userId()).isEqualTo(alice.getId())
+        );
+  }
+
+  @Test
+  @DisplayName("follower 목록 조회- name")
+  void getFollowerWithName() {
+    int limit = 20;
+    List<FollowDto> followers = followRepository
+        .getFollowers(bob.getId(), null, null, limit, "alice");
+
+    assertThat(followers)
+        .hasSize(1)
+        .allSatisfy(follower -> assertThat(follower.followee().userId()).isEqualTo(bob.getId()))
+        .satisfiesExactly(
+            follower1 -> assertThat(follower1.follower().userId()).isEqualTo(alice.getId())
         );
   }
 }

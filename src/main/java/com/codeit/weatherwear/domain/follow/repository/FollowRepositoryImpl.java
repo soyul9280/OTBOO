@@ -86,9 +86,12 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         .where(
             follow.follower.id.eq(followerId),
             cursor(cursor, idAfter),
-            nameLike(nameLike)
+            followeeNameLike(nameLike)
         )
-        .orderBy(follow.createdAt.desc())
+        .orderBy(
+            follow.createdAt.desc(),
+            follow.id.desc()
+        )
         .limit(limit + 1)
         .fetch();
   }
@@ -116,18 +119,28 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         .where(
             follow.followee.id.eq(followeeId),
             cursor(cursor, idAfter),
-            nameLike(nameLike)
+            followerNameLike(nameLike)
         )
-        .orderBy(follow.createdAt.desc())
+        .orderBy(
+            follow.createdAt.desc(),
+            follow.id.desc()
+        )
         .limit(limit + 1)
         .fetch();
   }
 
-  private BooleanExpression nameLike(String nameLike) {
+  private BooleanExpression followerNameLike(String nameLike) {
     if (nameLike == null || nameLike.isBlank()) {
       return null;
     }
     return follow.follower.name.containsIgnoreCase(nameLike);
+  }
+
+  private BooleanExpression followeeNameLike(String nameLike) {
+    if (nameLike == null || nameLike.isBlank()) {
+      return null;
+    }
+    return follow.followee.name.containsIgnoreCase(nameLike);
   }
 
   private BooleanExpression cursor(String cursor, UUID idAfter) {
