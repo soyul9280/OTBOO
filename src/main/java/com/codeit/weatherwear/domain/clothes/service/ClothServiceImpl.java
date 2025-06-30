@@ -46,11 +46,11 @@ public class ClothServiceImpl implements ClothService {
         User user = userRepository.findById(request.ownerId())
             .orElseThrow(UserNotFoundException::new);
 
-        List<UUID> attributesIds = request.attributes().stream()
+        List<UUID> attributeIds = request.attributes().stream()
             .map(ClothesAttributeDto::definitionId).toList();
 
         //속성 찾기
-        List<Attribute> attributesList=attributeRepository.findAllById(attributesIds);
+        List<Attribute> attributeList=attributeRepository.findAllById(attributeIds);
 
         Cloth cloth=Cloth.builder()
             .name(request.name())
@@ -59,11 +59,11 @@ public class ClothServiceImpl implements ClothService {
             .build();
 
         //의상에 속성 적용
-        cloth.applyAttribute(request.attributes(), attributesList);
+        cloth.applyAttribute(request.attributes(), attributeList);
 
-        Cloth saveCloth = clothRepository.save(cloth);
+        Cloth savedCloth = clothRepository.save(cloth);
 
-        return clothMapper.toDto(saveCloth);
+        return clothMapper.toDto(savedCloth);
     }
 
     /**

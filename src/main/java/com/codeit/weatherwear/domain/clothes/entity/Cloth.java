@@ -6,6 +6,7 @@ import com.codeit.weatherwear.domain.user.entity.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -20,6 +21,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,13 +32,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "clothes")
 @Getter
-@AllArgsConstructor
 public class Cloth {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -66,8 +68,21 @@ public class Cloth {
     private User user;
 
     @OneToMany(mappedBy = "cloth",cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<ClothWithAttributes> clothesWithAttributes=new ArrayList<>();
+    private List<ClothWithAttributes> clothesWithAttributes;
+
+
+    @Builder
+    public Cloth(UUID id, Instant createdAt, Instant updatedAt, String name, ClothType clothType,
+        String clothesImageUrl, User user, List<ClothWithAttributes> clothesWithAttributes) {
+        this.id = id;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.name = name;
+        this.clothType = clothType;
+        this.clothesImageUrl = clothesImageUrl;
+        this.user = user;
+        this.clothesWithAttributes = Optional.ofNullable(clothesWithAttributes).orElse(new ArrayList<>());
+    }
 
     public void addAttribute(ClothWithAttributes attributes) {
         if (this.clothesWithAttributes == null) {
@@ -77,13 +92,12 @@ public class Cloth {
         attributes.setClothes(this);
     }
 
-    public void updateCloth(ClothesUpdateRequest request,List<Attribute> attributeDefs) {
+    public void updateCloth(ClothesUpdateRequest request, List<Attribute> attributeDefs) {
 
         this.name = request.name();
         this.clothType = request.type();
         this.clothesWithAttributes.clear();
         this.applyAttribute(request.attributes(), attributeDefs);
-        updatedAt = Instant.now();
     }
 
     //dto로 전해주는 속성 정보들을 attribute로 변환 & cloth에 저장
