@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record FollowDto(
     UUID id,
-    Instant created,
+    Instant createdAt,
     UserSummaryDto followee,
     UserSummaryDto follower
 ) {

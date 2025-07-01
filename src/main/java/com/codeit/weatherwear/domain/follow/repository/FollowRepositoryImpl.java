@@ -67,7 +67,7 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
   public List<FollowDto> getFollowings(UUID followerId, String cursor,
       UUID idAfter, int limit, String nameLike
   ) {
-    return queryFactory
+    List<FollowDto> fetch = queryFactory
         .select(Projections.constructor(FollowDto.class,
             follow.id,
             follow.createdAt,
@@ -94,13 +94,18 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         )
         .limit(limit + 1)
         .fetch();
+
+    if (fetch.size() > limit) {
+      fetch.remove(fetch.size() - 1);
+    }
+    return fetch;
   }
 
   @Override
   public List<FollowDto> getFollowers(UUID followeeId, String cursor,
       UUID idAfter, int limit, String nameLike
   ) {
-    return queryFactory
+    List<FollowDto> fetch = queryFactory
         .select(Projections.constructor(FollowDto.class,
             follow.id,
             follow.createdAt,
@@ -127,6 +132,11 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         )
         .limit(limit + 1)
         .fetch();
+
+    if (fetch.size() > limit) {
+      fetch.remove(fetch.size() - 1);
+    }
+    return fetch;
   }
 
   private BooleanExpression followerNameLike(String nameLike) {
