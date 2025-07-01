@@ -104,7 +104,7 @@ class NotificationRepositoryTest {
         .findNotification(alice.getId(), null, null, limit);
 
     assertThat(notifications)
-        .hasSize(2)
+        .hasSize(3)
         .allSatisfy(notification -> assertThat(notification.receiverId()).isEqualTo(alice.getId()))
         .satisfiesExactly(
             notification -> assertThat(notification.id()).isEqualTo(notification5.getId()),

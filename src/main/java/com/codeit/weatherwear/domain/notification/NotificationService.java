@@ -56,6 +56,7 @@ public class NotificationService {
     UUID nextIdAfter = null;
 
     if (hasNext) {
+      notifications.remove(notifications.size() - 1);
       NotificationDto notification = notifications.get(notifications.size() - 1);
 
       nextCursor = notification.createdAt();

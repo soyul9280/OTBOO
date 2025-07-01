@@ -76,6 +76,7 @@ public class FollowService {
     UUID nextIdAfter = null;
 
     if (hasNext) {
+      follows.remove(follows.size() - 1);
       FollowDto followDto = follows.get(follows.size() - 1);
 
       nextCursor = followDto.createdAt();

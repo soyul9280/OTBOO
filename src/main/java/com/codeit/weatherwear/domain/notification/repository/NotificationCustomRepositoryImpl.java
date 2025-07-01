@@ -19,7 +19,7 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
   @Override
   public List<NotificationDto> findNotification(UUID receiverId, String cursor, UUID idAfter,
       int limit) {
-    List<NotificationDto> fetch = queryFactory
+    return queryFactory
         .select(Projections.constructor(NotificationDto.class,
             notification.id, notification.createdAt, notification.receiverId,
             notification.title, notification.content, notification.level)
@@ -35,12 +35,6 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
         )
         .limit(limit + 1)
         .fetch();
-
-    if (fetch.size() > limit) {
-      fetch.remove(fetch.size() - 1);
-    }
-
-    return fetch;
   }
 
   private BooleanExpression cursor(String cursor, UUID idAfter) {
