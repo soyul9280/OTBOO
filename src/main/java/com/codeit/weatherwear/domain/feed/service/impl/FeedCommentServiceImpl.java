@@ -99,8 +99,9 @@ public class FeedCommentServiceImpl implements FeedCommentService {
     UUID nextIdAfter = null;
     Object nextCursor = null;
     if (commentSlice.hasNext() && !data.isEmpty()) {
-      nextIdAfter = data.get(data.size() - 1).getId();
-      nextCursor = data.get(data.size() - 1).getCreatedAt();
+      FeedComment nextFirstItem = comments.get(comments.size() - 1);
+      nextIdAfter = nextFirstItem.getId();
+      nextCursor = nextFirstItem.getCreatedAt();
     }
 
     return new PageResponse<>(

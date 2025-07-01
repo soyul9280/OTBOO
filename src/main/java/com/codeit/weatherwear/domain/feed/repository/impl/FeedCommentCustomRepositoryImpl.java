@@ -1,7 +1,6 @@
 package com.codeit.weatherwear.domain.feed.repository.impl;
 
 import com.codeit.weatherwear.domain.feed.dto.condition.FeedCommentSearchCondition;
-import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.feed.entity.FeedComment;
 import com.codeit.weatherwear.domain.feed.entity.QFeedComment;
 import com.codeit.weatherwear.domain.feed.exception.NotImplementSortFieldException;
@@ -108,7 +107,7 @@ public class FeedCommentCustomRepositoryImpl implements FeedCommentCustomReposit
       throw new UnsupportedSortFieldException(sortBy);
     }
 
-    PathBuilder<Feed> path = new PathBuilder<>(Feed.class, "feed");
+    PathBuilder<FeedComment> path = new PathBuilder<>(FeedComment.class, "feedComment");
     Order order = direction == SortDirection.ASCENDING ? Order.ASC : Order.DESC;
 
     OrderSpecifier<?> primarySort = switch (sortBy) {
