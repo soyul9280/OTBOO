@@ -18,6 +18,7 @@ import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.feed.exception.FeedNotFoundException;
 import com.codeit.weatherwear.domain.feed.mapper.FeedMapper;
 import com.codeit.weatherwear.domain.feed.repository.FeedRepository;
+import com.codeit.weatherwear.domain.feed.service.FeedCommentService;
 import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
@@ -59,6 +60,8 @@ class FeedServiceImplTest {
 
   @Mock
   private OotdService ootdService;
+  @Mock
+  private FeedCommentService feedCommentService;
 
   @Mock
   private FeedMapper feedMapper;
@@ -364,6 +367,7 @@ class FeedServiceImplTest {
 
     // verify
     verify(feedRepository).findById(feedId);
+    verify(feedCommentService).deleteFeedCommentsByFeed(mockFeed);
     verify(feedRepository).delete(mockFeed);
     verify(feedMapper).toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
         eq(List.of(mockOotdDto1, mockOotdDto2)), eq(false));
