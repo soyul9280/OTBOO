@@ -3,6 +3,8 @@ package com.codeit.weatherwear.domain.feed.repository.impl;
 import com.codeit.weatherwear.domain.feed.dto.condition.FeedSearchCondition;
 import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.feed.entity.QFeed;
+import com.codeit.weatherwear.domain.feed.exception.NotImplementSortFieldException;
+import com.codeit.weatherwear.domain.feed.exception.UnsupportedSortFieldException;
 import com.codeit.weatherwear.domain.feed.repository.FeedCustomRepository;
 import com.codeit.weatherwear.domain.weather.entity.PrecipitationsType;
 import com.codeit.weatherwear.domain.weather.entity.SkyStatus;
@@ -83,7 +85,10 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
               .or(likeCount.eq(cursorLikeCount).and(feed.id.lt(idAfter)));
         }
       }
-      default -> throw new UnsupportedOperationException("Sort field not implemented: " + sortBy);
+      default -> {
+        log.warn("Not Implement Sort Field: {}", sortBy);
+        throw new NotImplementSortFieldException(sortBy);
+      }
     }
   }
 
@@ -107,8 +112,7 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
 
     if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {
       log.warn("Unsupported Sort Field: {}", sortBy);
-      // todo: Exception 생성 필요
-      throw new IllegalArgumentException("Unsupported sort field");
+      throw new UnsupportedSortFieldException(sortBy);
     }
 
     PathBuilder<Feed> path = new PathBuilder<>(Feed.class, "feed");
@@ -119,7 +123,10 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
           new OrderSpecifier<>(order, path.getDateTime(SORT_BY_CREATED_AT, Instant.class));
       case SORT_BY_LIKE_COUNT ->
           new OrderSpecifier<>(order, path.getNumber(SORT_BY_LIKE_COUNT, Integer.class));
-      default -> throw new UnsupportedOperationException("Sort field not implemented: " + sortBy);
+      default -> {
+        log.warn("Not Implement Sort Field: {}", sortBy);
+        throw new NotImplementSortFieldException(sortBy);
+      }
     };
 
     OrderSpecifier<UUID> secondarySort = new OrderSpecifier<>(order, path.get("id", UUID.class));

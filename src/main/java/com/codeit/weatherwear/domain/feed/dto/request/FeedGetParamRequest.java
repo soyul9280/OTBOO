@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.feed.dto.request;
 
+import com.codeit.weatherwear.domain.feed.converter.EnumConverter;
 import com.codeit.weatherwear.domain.feed.dto.condition.FeedSearchCondition;
 import com.codeit.weatherwear.domain.weather.entity.PrecipitationsType;
 import com.codeit.weatherwear.domain.weather.entity.SkyStatus;
@@ -7,6 +8,7 @@ import com.codeit.weatherwear.global.request.SortDirection;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.Locale;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,13 +41,16 @@ public class FeedGetParamRequest {
         .idAfter(this.getIdAfter())
         .limit(this.getLimit())
         .sortBy(this.sortBy)
-        .sortDirection(SortDirection.valueOf(this.getSortDirection().toUpperCase()))
+        .sortDirection(
+            EnumConverter.toEnum(this.getSortDirection(), SortDirection.class, "sortDirection",
+                Locale.ENGLISH))
         .keywordLike(this.getKeywordLike())
-        .skyStatusEqual(this.getSkyStatusEqual() != null ? SkyStatus.valueOf(
-            this.getSkyStatusEqual().toUpperCase()) : null)
+        .skyStatusEqual(
+            EnumConverter.toEnum(this.getSkyStatusEqual(), SkyStatus.class, "skyStatusEqual",
+                Locale.ENGLISH))
         .precipitationsTypeEqual(
-            this.getPrecipitationTypeEqual() != null ? PrecipitationsType.valueOf(
-                this.getPrecipitationTypeEqual().toUpperCase()) : null)
+            EnumConverter.toEnum(this.getPrecipitationTypeEqual(), PrecipitationsType.class,
+                "precipitationTypeEqual", Locale.ENGLISH))
         .authorIdEqual(this.getAuthorIdEqual())
         .build();
   }
