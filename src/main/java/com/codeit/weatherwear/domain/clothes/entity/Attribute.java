@@ -67,6 +67,5 @@ public class Attribute {
 
         this.selectableValues.clear();
         this.selectableValues=new ArrayList<>(values);
-        this.updatedAt = Instant.now();
     }
 }
