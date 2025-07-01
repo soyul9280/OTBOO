@@ -42,10 +42,11 @@ public class JwtSessionService {
 
     @Transactional
     public JwtSession createJwtSession(UUID userId) {
-        Instant accessTokenExpirationTime = Instant.now()
-            .plusSeconds(jwtProperties.getAccessToken().getValiditySeconds());
-        Instant refreshTokenExpirationTime = Instant.now()
-            .plusSeconds(jwtProperties.getRefreshToken().getValiditySeconds());
+        Instant now = Instant.now();
+        Instant accessTokenExpirationTime = now.plusSeconds(
+            jwtProperties.getAccessToken().getValiditySeconds());
+        Instant refreshTokenExpirationTime = now.plusSeconds(
+            jwtProperties.getRefreshToken().getValiditySeconds());
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
