@@ -1,5 +1,7 @@
 package com.codeit.weatherwear.domain.ootd.service.impl;
 
+import com.codeit.weatherwear.domain.clothes.entity.Cloth;
+import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
 import com.codeit.weatherwear.domain.ootd.entity.Ootd;
@@ -19,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class OotdServiceImpl implements OotdService {
 
   private final OotdRepository ootdRepository;
+  private final ClothRepository clothRepository;
+
   private final OotdMapper ootdMapper;
 
   @Transactional
@@ -29,14 +33,11 @@ public class OotdServiceImpl implements OotdService {
       return List.of();
     }
 
-//    List<Clothes> clothesList = clothIds.stream()
-//        .map(clothId -> clothesRepository.findById(clothId).orElseThrow()).toList();
+    List<Cloth> clothesList = clothIds.stream()
+        .map(clothId -> clothRepository.findById(clothId).orElseThrow()).toList();
 
-    // todo: 추후 Clothes 객체가 있으면 위 주석처리 된 옷 객체로 바꾸면 됨!
-    List<Ootd> ootdList = clothIds.stream().map(
-            clothId -> ootdMapper.toEntity(feed, clothId)
-        )
-        .toList();
+    List<Ootd> ootdList = clothesList.stream()
+        .map(cloth -> ootdMapper.toEntity(feed, cloth)).toList();
 
     List<Ootd> savedList = ootdRepository.saveAll(ootdList);
 

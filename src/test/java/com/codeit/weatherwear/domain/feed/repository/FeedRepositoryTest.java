@@ -15,8 +15,6 @@ import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeed;
 import com.codeit.weatherwear.global.config.JpaConfig;
 import com.codeit.weatherwear.global.request.SortDirection;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -39,23 +37,21 @@ class FeedRepositoryTest {
   private TestEntityManager testEntityManager;
 
   @Autowired
-  private EntityManager entityManager;
-
-  @Autowired
-  private JPAQueryFactory queryFactory;
-
-  @Autowired
   private FeedRepository feedRepository;
 
+  private User user;
   private Feed feed1, feed2, feed3;
 
   @BeforeEach
   void setUp() {
     Instant now = Instant.now();
-    User user = createUser();
+    user = createUser();
     feed1 = createFeed(user, "Feed1", now.minusSeconds(60), 5);
     feed2 = createFeed(user, "Feed2", now.minusSeconds(30), 10);
     feed3 = createFeed(user, "Feed3", now, 0);
+
+    testEntityManager.flush();
+    testEntityManager.clear();
   }
 
   private User createUser() {
@@ -104,9 +100,31 @@ class FeedRepositoryTest {
     return testEntityManager.persistAndFlush(feed);
   }
 
-  private FeedSearchCondition createCondition(UUID idAfter, int limit, String sortBy,
+  // 엔티티 영속성 문제로 ID 지정이 필요한 부분은 Native SQL로 작성
+  private Feed insertFeedWithFixedId(UUID id, String content, int likeCount, Instant createdAt) {
+    Weather weather = createWeather();
+    UUID weatherId = weather.getId();
+
+    testEntityManager.getEntityManager()
+        .createNativeQuery("""
+            INSERT INTO feed (id, author_id, content, comment_count, like_count, weather_id, created_at, updated_at)
+            VALUES (:id, :authorId, :content, 0, :likeCount, :weatherId, :createdAt, :createdAt)
+            """)
+        .setParameter("id", id)
+        .setParameter("authorId", user.getId())
+        .setParameter("content", content)
+        .setParameter("likeCount", likeCount)
+        .setParameter("weatherId", weatherId)
+        .setParameter("createdAt", createdAt)
+        .executeUpdate();
+
+    return testEntityManager.find(Feed.class, id);
+  }
+
+  private FeedSearchCondition createCondition(String cursor, UUID idAfter, int limit, String sortBy,
       SortDirection sortDirection) {
     return FeedSearchCondition.builder()
+        .cursor(cursor)
         .idAfter(idAfter)
         .limit(limit)
         .sortBy(sortBy)
@@ -117,103 +135,215 @@ class FeedRepositoryTest {
   @Test
   @DisplayName("createdAt 기준 오름차순 정렬 및 페이지네이션이 제대로 동작한다")
   void pagination_with_createdAt_asc() {
+    int clientLimit = 1;
+    int repoLimit = clientLimit + 1;
     // when & then
+    // 페이지1: [feed1, feed2]
     List<Feed> page1 = feedRepository.searchFeeds(
-        createCondition(null, 1, "createdAt", SortDirection.ASCENDING));
-    assertThat(page1).hasSize(1);
+        createCondition(null, null, clientLimit, "createdAt", SortDirection.ASCENDING),
+        repoLimit
+    );
+    assertThat(page1).hasSize(repoLimit);
     assertThat(page1.get(0).getId()).isEqualTo(feed1.getId());
 
+    // 페이지2: [feed2, feed3]
     List<Feed> page2 = feedRepository.searchFeeds(
-        createCondition(page1.get(0).getId(), 1, "createdAt", SortDirection.ASCENDING));
-    assertThat(page2).hasSize(1);
+        createCondition(
+            page1.get(0).getCreatedAt().toString(), // feed1 시간
+            page1.get(0).getId(),                   // feed1 ID
+            clientLimit,
+            "createdAt",
+            SortDirection.ASCENDING),
+        repoLimit
+    );
+    assertThat(page2).hasSize(repoLimit);
     assertThat(page2.get(0).getId()).isEqualTo(feed2.getId());
 
+    // 페이지3: [feed3]
     List<Feed> page3 = feedRepository.searchFeeds(
-        createCondition(page2.get(0).getId(), 1, "createdAt", SortDirection.ASCENDING));
-    assertThat(page3).hasSize(1);
+        createCondition(
+            page2.get(0).getCreatedAt().toString(), // feed2 시간
+            page2.get(0).getId(),                   // feed2 ID
+            clientLimit,
+            "createdAt",
+            SortDirection.ASCENDING),
+        repoLimit
+    );
+    assertThat(page3).hasSize(clientLimit);
     assertThat(page3.get(0).getId()).isEqualTo(feed3.getId());
-
-    List<Feed> page4 = feedRepository.searchFeeds(
-        createCondition(page3.get(0).getId(), 1, "createdAt", SortDirection.ASCENDING));
-    assertThat(page4).isEmpty();
   }
 
   @Test
   @DisplayName("createdAt 기준 내림차순 정렬 및 페이지네이션이 제대로 동작한다")
   void pagination_with_createdAt_desc() {
+    int clientLimit = 1;
+    int repoLimit = clientLimit + 1;
     // when & then
+    // 페이지1: [feed3, feed2]
     List<Feed> page1 = feedRepository.searchFeeds(
-        createCondition(null, 1, "createdAt", SortDirection.DESCENDING));
-    assertThat(page1).hasSize(1);
+        createCondition(null, null, clientLimit, "createdAt", SortDirection.DESCENDING),
+        repoLimit
+    );
+    assertThat(page1).hasSize(repoLimit);
     assertThat(page1.get(0).getId()).isEqualTo(feed3.getId());
 
+    // 페이지2: [feed2, feed1]
     List<Feed> page2 = feedRepository.searchFeeds(
-        createCondition(page1.get(0).getId(), 1, "createdAt", SortDirection.DESCENDING));
-    assertThat(page2).hasSize(1);
+        createCondition(
+            page1.get(0).getCreatedAt().toString(), // feed3 시간
+            page1.get(0).getId(),                   // feed3 ID
+            clientLimit,
+            "createdAt",
+            SortDirection.DESCENDING),
+        repoLimit
+    );
+    assertThat(page2).hasSize(repoLimit);
     assertThat(page2.get(0).getId()).isEqualTo(feed2.getId());
 
+    // 페이지3: [feed1]
     List<Feed> page3 = feedRepository.searchFeeds(
-        createCondition(page2.get(0).getId(), 1, "createdAt", SortDirection.DESCENDING));
-    assertThat(page3).hasSize(1);
+        createCondition(
+            page2.get(0).getCreatedAt().toString(), // feed2 시간
+            page2.get(0).getId(),                   // feed2 ID
+            clientLimit,
+            "createdAt",
+            SortDirection.DESCENDING),
+        repoLimit
+    );
+    assertThat(page3).hasSize(clientLimit);
     assertThat(page3.get(0).getId()).isEqualTo(feed1.getId());
-
-    List<Feed> page4 = feedRepository.searchFeeds(
-        createCondition(page3.get(0).getId(), 1, "createdAt", SortDirection.DESCENDING));
-    assertThat(page4).isEmpty();
   }
 
   @Test
   @DisplayName("likeCount 기준 오름차순 정렬 및 페이지네이션이 제대로 동작한다")
   void pagination_with_likeCount_asc() {
+    int clientLimit = 1;
+    int repoLimit = clientLimit + 1;
     // when & then
+    // 페이지1: [feed3, feed1]
     List<Feed> page1 = feedRepository.searchFeeds(
-        createCondition(null, 1, "likeCount", SortDirection.ASCENDING));
-    assertThat(page1).hasSize(1);
+        createCondition(null, null, clientLimit, "likeCount", SortDirection.ASCENDING),
+        repoLimit
+    );
+    assertThat(page1).hasSize(repoLimit);
     assertThat(page1.get(0).getId()).isEqualTo(feed3.getId());
-    assertThat(page1.get(0).getLikeCount()).isEqualTo(feed3.getLikeCount());
 
+    // 페이지2: [feed1, feed2]
     List<Feed> page2 = feedRepository.searchFeeds(
-        createCondition(page1.get(0).getId(), 1, "likeCount", SortDirection.ASCENDING));
-    assertThat(page2).hasSize(1);
+        createCondition(
+            String.valueOf(page1.get(0).getLikeCount()),  // feed1 시간
+            page1.get(0).getId(),                         // feed1 ID
+            clientLimit,
+            "likeCount",
+            SortDirection.ASCENDING),
+        repoLimit
+    );
+    assertThat(page2).hasSize(repoLimit);
     assertThat(page2.get(0).getId()).isEqualTo(feed1.getId());
-    assertThat(page2.get(0).getLikeCount()).isEqualTo(feed1.getLikeCount());
 
+    // 페이지3: [feed2]
     List<Feed> page3 = feedRepository.searchFeeds(
-        createCondition(page2.get(0).getId(), 1, "likeCount", SortDirection.ASCENDING));
-    assertThat(page3).hasSize(1);
+        createCondition(
+            String.valueOf(page2.get(0).getLikeCount()),   // feed2 시간
+            page2.get(0).getId(),                          // feed2 ID
+            clientLimit,
+            "likeCount",
+            SortDirection.ASCENDING),
+        repoLimit
+    );
+    assertThat(page3).hasSize(clientLimit);
     assertThat(page3.get(0).getId()).isEqualTo(feed2.getId());
-    assertThat(page3.get(0).getLikeCount()).isEqualTo(feed2.getLikeCount());
-
-    List<Feed> page4 = feedRepository.searchFeeds(
-        createCondition(page3.get(0).getId(), 1, "likeCount", SortDirection.ASCENDING));
-    assertThat(page4).isEmpty();
   }
 
   @Test
   @DisplayName("likeCount 기준 내림차순 정렬 및 페이지네이션이 제대로 동작한다")
   void pagination_with_likeCount_desc() {
+    int clientLimit = 1;
+    int repoLimit = clientLimit + 1;
     // when & then
+    // 페이지1: [feed2, feed1]
     List<Feed> page1 = feedRepository.searchFeeds(
-        createCondition(null, 1, "likeCount", SortDirection.DESCENDING));
-    assertThat(page1).hasSize(1);
+        createCondition(null, null, clientLimit, "likeCount", SortDirection.DESCENDING),
+        repoLimit
+    );
+    assertThat(page1).hasSize(repoLimit);
     assertThat(page1.get(0).getId()).isEqualTo(feed2.getId());
-    assertThat(page1.get(0).getLikeCount()).isEqualTo(feed2.getLikeCount());
 
+    // 페이지2: [feed1, feed3]
     List<Feed> page2 = feedRepository.searchFeeds(
-        createCondition(page1.get(0).getId(), 1, "likeCount", SortDirection.DESCENDING));
-    assertThat(page2).hasSize(1);
+        createCondition(
+            String.valueOf(page1.get(0).getLikeCount()),  // feed1 시간
+            page1.get(0).getId(),                         // feed1 ID
+            clientLimit,
+            "likeCount",
+            SortDirection.DESCENDING),
+        repoLimit
+    );
+    assertThat(page2).hasSize(repoLimit);
     assertThat(page2.get(0).getId()).isEqualTo(feed1.getId());
-    assertThat(page2.get(0).getLikeCount()).isEqualTo(feed1.getLikeCount());
 
+    // 페이지3: [feed3]
     List<Feed> page3 = feedRepository.searchFeeds(
-        createCondition(page2.get(0).getId(), 1, "likeCount", SortDirection.DESCENDING));
-    assertThat(page3).hasSize(1);
+        createCondition(
+            String.valueOf(page2.get(0).getLikeCount()),   // feed3 시간
+            page2.get(0).getId(),                          // feed3 ID
+            clientLimit,
+            "likeCount",
+            SortDirection.DESCENDING),
+        repoLimit
+    );
+    assertThat(page3).hasSize(clientLimit);
     assertThat(page3.get(0).getId()).isEqualTo(feed3.getId());
-    assertThat(page3.get(0).getLikeCount()).isEqualTo(feed3.getLikeCount());
-
-    List<Feed> page4 = feedRepository.searchFeeds(
-        createCondition(page3.get(0).getId(), 1, "likeCount", SortDirection.DESCENDING));
-    assertThat(page4).isEmpty();
   }
+
+  @Test
+  @DisplayName("likeCount 기준 정렬 시 값이 같으면 id 순서로 정렬한다.")
+  void pagination_same_likeCount() {
+    // given
+    UUID uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    UUID uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002");
+
+    Feed sameLike1 = insertFeedWithFixedId(uuid1, "sameLike1", 120, Instant.now());
+    Feed sameLike2 = insertFeedWithFixedId(uuid2, "sameLike2", 120, Instant.now().minusSeconds(30));
+
+    int clientLimit = 2;
+    int repoLimit = clientLimit + 1;
+    // when & then
+    List<Feed> page = feedRepository.searchFeeds(
+        createCondition(null, null, clientLimit, "likeCount", SortDirection.DESCENDING),
+        repoLimit
+    );
+    assertThat(page).hasSize(repoLimit);
+    assertThat(page.get(0).getId()).isEqualTo(uuid2);
+    assertThat(page.get(0).getContent()).isEqualTo(sameLike2.getContent());
+    assertThat(page.get(1).getId()).isEqualTo(uuid1);
+    assertThat(page.get(1).getContent()).isEqualTo(sameLike1.getContent());
+  }
+
+  @Test
+  @DisplayName("createdAt 기준 정렬 시 값이 같으면 id 순서로 정렬한다.")
+  void pagination_same_createdAt() {
+    // given
+    UUID uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000003");
+    UUID uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000004");
+
+    Instant time = Instant.now();
+    Feed sameCreate1 = insertFeedWithFixedId(uuid1, "sameCreate1", 0, time);
+    Feed sameCreate2 = insertFeedWithFixedId(uuid2, "sameCreate2", 0, time);
+
+    int clientLimit = 2;
+    int repoLimit = clientLimit + 1;
+    // when & then
+    List<Feed> page = feedRepository.searchFeeds(
+        createCondition(null, null, clientLimit, "createdAt", SortDirection.DESCENDING),
+        repoLimit
+    );
+    assertThat(page).hasSize(repoLimit);
+    assertThat(page.get(0).getId()).isEqualTo(uuid2);
+    assertThat(page.get(0).getContent()).isEqualTo(sameCreate2.getContent());
+    assertThat(page.get(1).getId()).isEqualTo(uuid1);
+    assertThat(page.get(1).getContent()).isEqualTo(sameCreate1.getContent());
+  }
+
 
 }

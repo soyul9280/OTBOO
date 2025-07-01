@@ -27,6 +27,9 @@ public enum ErrorCode {
 
     // FEED
     FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "피드 조회 실패", "존재하지 않는 피드입니다."),
+    UNSUPPORTED_SORT_FIELD(HttpStatus.BAD_REQUEST, "지원하지 않는 정렬 필드", "지원하지 않는 정렬 필드입니다."),
+    NOT_IMPLEMENTED_SORT_FIELD(HttpStatus.NOT_IMPLEMENTED, "구현되지 않은 정렬 필드", "아직 구현되지 않은 정렬 필드입니다."),
+    INVALID_ENUM_VALUE(HttpStatus.BAD_REQUEST, "잘못된 Enum 필드", "잘못된 Enum 필드입니다."),
 
     // WEATHER
     INVALID_WIND_SPEED(HttpStatus.BAD_REQUEST, "유효하지 않은 풍속", "풍속은 0 이상의 값이어야 합니다."),
