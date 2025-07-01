@@ -1,6 +1,7 @@
 package com.codeit.weatherwear.domain.security.service;
 
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
+import com.codeit.weatherwear.domain.security.dto.TokenRotationResult;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
 import com.codeit.weatherwear.domain.security.exception.InvalidJwtException;
 import com.codeit.weatherwear.domain.security.exception.JwtSessionNotFoundException;
@@ -44,7 +45,7 @@ public class JwtSessionService {
 
     @Transactional
     public JwtSession createJwtSession(UUID userId) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Instant accessTokenExpirationTime = now.plusSeconds(
             jwtProperties.getAccessToken().getValiditySeconds());
         Instant refreshTokenExpirationTime = now.plusSeconds(
@@ -172,14 +173,35 @@ public class JwtSessionService {
         );
     }
 
+    @Transactional
     // 리프레시 토큰으로 액세스, 리프레시 토큰 재발급
-    public String rotateToken(String refreshToken) {
-        return null;
+    public TokenRotationResult rotateToken(String refreshToken) {
+        if (!isValidToken(refreshToken)) {
+            throw new InvalidJwtException();
+        }
+        JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
+            .orElseThrow(() -> new JwtSessionNotFoundException());
+
+        User user = userRepository.findById(jwtSession.getUserId())
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Instant now = clock.instant();
+        Instant newAccessTokenExpirationTime = now.plusSeconds(
+            jwtProperties.getAccessToken().getValiditySeconds());
+        Instant newRefreshTokenExpirationTime = now.plusSeconds(
+            jwtProperties.getRefreshToken().getValiditySeconds());
+        String newAccessToken = createTokenWithClaims(user, TokenType.ACCESS,
+            newAccessTokenExpirationTime);
+        String newRefreshToken = createTokenWithClaims(user, TokenType.REFRESH,
+            newRefreshTokenExpirationTime);
+
+        jwtSession.update(newAccessToken, newRefreshToken, newAccessTokenExpirationTime);
+
+        return new TokenRotationResult(newAccessToken, newRefreshToken);
     }
 
     // 리프레시 토큰으로 액세스 토큰 조회
     public String findAccessToken(String refreshToken) {
-        log.info("리프레시 토큰: {}", refreshToken);
         JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
             .orElseThrow(() -> new JwtSessionNotFoundException());
         return jwtSession.getAccessToken();
