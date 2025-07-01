@@ -7,6 +7,9 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
+import com.codeit.weatherwear.domain.clothes.entity.Cloth;
+import com.codeit.weatherwear.domain.clothes.entity.ClothType;
+import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
@@ -19,6 +22,7 @@ import com.codeit.weatherwear.domain.user.entity.User;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +40,8 @@ class OotdServiceImplTest {
 
   @Mock
   private OotdRepository ootdRepository;
+  @Mock
+  private ClothRepository clothRepository;
 
   @Mock
   private OotdMapper ootdMapper;
@@ -48,6 +54,7 @@ class OotdServiceImplTest {
   private List<UUID> clothIds;
   private UUID clothId1;
   private UUID clothId2;
+  private Cloth cloth1, cloth2;
 
   private List<Ootd> ootdList;
   private Ootd mockOotd1;
@@ -68,24 +75,6 @@ class OotdServiceImplTest {
     clothId1 = UUID.randomUUID();
     clothId2 = UUID.randomUUID();
     clothIds = List.of(clothId1, clothId2);
-
-    mockOotd1 = mock(Ootd.class);
-    mockOotdDto1 = OotdDto.builder()
-        .clothesId(clothId1)
-        .name("cloth1")
-        .imageUrl(null)
-        .type("상의")
-        .attributes(null)
-        .build();
-    mockOotd2 = mock(Ootd.class);
-    mockOotdDto2 = OotdDto.builder()
-        .clothesId(clothId2)
-        .name("cloth2")
-        .imageUrl(null)
-        .type("하의")
-        .attributes(null)
-        .build();
-    ootdList = List.of(mockOotd1, mockOotd2);
 
     mockLocation = new Location(37.513068, 127.102570, 961159, 1953082, "서울 송파구 신천동");
 
@@ -108,6 +97,37 @@ class OotdServiceImplTest {
 
     mockContent = "Mock Feed Content";
 
+    cloth1 = Cloth.builder()
+        .name("cloth1")
+        .clothType(ClothType.TOP)
+        .clothesImageUrl(null)
+        .user(mockAuthor)
+        .build();
+    cloth2 = Cloth.builder()
+        .name("cloth2")
+        .clothType(ClothType.BOTTOM)
+        .clothesImageUrl(null)
+        .user(mockAuthor)
+        .build();
+
+    mockOotd1 = mock(Ootd.class);
+    mockOotdDto1 = OotdDto.builder()
+        .clothesId(clothId1)
+        .name("cloth1")
+        .imageUrl(null)
+        .type("TOP")
+        .attributes(null)
+        .build();
+    mockOotd2 = mock(Ootd.class);
+    mockOotdDto2 = OotdDto.builder()
+        .clothesId(clothId2)
+        .name("cloth2")
+        .imageUrl(null)
+        .type("BOTTOM")
+        .attributes(null)
+        .build();
+    ootdList = List.of(mockOotd1, mockOotd2);
+
     feedId = UUID.randomUUID();
     mockFeed = Feed.builder()
         .author(mockAuthor)
@@ -123,8 +143,10 @@ class OotdServiceImplTest {
   @DisplayName("전달받은 Feed 객체와 clothIds를 통해 Ootd 등록을 성공한다.")
   void createOotd_success() {
     // given
-    given(ootdMapper.toEntity(mockFeed, clothId1)).willReturn(mockOotd1);
-    given(ootdMapper.toEntity(mockFeed, clothId2)).willReturn(mockOotd2);
+    given(clothRepository.findById(clothId1)).willReturn(Optional.of(cloth1));
+    given(clothRepository.findById(clothId2)).willReturn(Optional.of(cloth2));
+    given(ootdMapper.toEntity(mockFeed, cloth1)).willReturn(mockOotd1);
+    given(ootdMapper.toEntity(mockFeed, cloth2)).willReturn(mockOotd2);
     given(ootdRepository.saveAll(ootdList)).willReturn(ootdList);
     given(ootdMapper.toDto(mockOotd1)).willReturn(mockOotdDto1);
     given(ootdMapper.toDto(mockOotd2)).willReturn(mockOotdDto2);
@@ -133,8 +155,10 @@ class OotdServiceImplTest {
     List<OotdDto> result = ootdService.createOotdList(mockFeed, clothIds);
 
     // then
-    then(ootdMapper).should().toEntity(mockFeed, clothId1);
-    then(ootdMapper).should().toEntity(mockFeed, clothId2);
+    then(clothRepository).should(times(1)).findById(clothId1);
+    then(clothRepository).should(times(1)).findById(clothId2);
+    then(ootdMapper).should().toEntity(mockFeed, cloth1);
+    then(ootdMapper).should().toEntity(mockFeed, cloth2);
     then(ootdRepository).should().saveAll(ootdList);
     then(ootdMapper).should(times(1)).toDto(mockOotd1);
     then(ootdMapper).should(times(1)).toDto(mockOotd2);
