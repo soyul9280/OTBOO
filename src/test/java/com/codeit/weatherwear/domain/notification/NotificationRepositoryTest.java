@@ -108,7 +108,8 @@ class NotificationRepositoryTest {
         .allSatisfy(notification -> assertThat(notification.receiverId()).isEqualTo(alice.getId()))
         .satisfiesExactly(
             notification -> assertThat(notification.id()).isEqualTo(notification5.getId()),
-            notification -> assertThat(notification.id()).isEqualTo(notification4.getId())
+            notification -> assertThat(notification.id()).isEqualTo(notification4.getId()),
+            notification -> assertThat(notification.id()).isEqualTo(notification3.getId())
         );
   }
 
