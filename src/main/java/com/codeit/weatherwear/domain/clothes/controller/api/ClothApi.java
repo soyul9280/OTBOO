@@ -1,10 +1,8 @@
 package com.codeit.weatherwear.domain.clothes.controller.api;
 
-import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSearchRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesSearchRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesUpdateRequest;
-import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.global.response.ErrorResponse;
 import com.codeit.weatherwear.global.response.PageResponse;
