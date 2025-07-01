@@ -1,11 +1,10 @@
 package com.codeit.weatherwear.domain.feed.service.impl;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -281,8 +280,8 @@ class FeedServiceImplTest {
     // given
     List<Feed> feedList = List.of(mockFeed);
 
-
-    given(feedRepository.searchFeeds(any(FeedSearchCondition.class))).willReturn(feedList);
+    given(feedRepository.searchFeeds(any(FeedSearchCondition.class),
+        anyInt())).willReturn(feedList);
     given(ootdService.findOotdByFeedId(eq(mockFeed.getId()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
     given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
@@ -302,7 +301,7 @@ class FeedServiceImplTest {
     assertThat(resultList.sortDirection()).isEqualTo(condition.getSortDirection().name());
 
     // verify
-    verify(feedRepository).searchFeeds(any(FeedSearchCondition.class));
+    verify(feedRepository).searchFeeds(any(FeedSearchCondition.class), anyInt());
     verify(feedMapper, times(feedList.size())).toDto(eq(mockFeed), eq(mockAuthorDto),
         any(WeatherSummaryDto.class), eq(List.of(mockOotdDto1, mockOotdDto2)), eq(false));
   }
@@ -351,7 +350,8 @@ class FeedServiceImplTest {
     given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
     given(ootdService.deleteOotdByFeedId(eq(mockFeed.getId()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
-    given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class), eq(List.of(mockOotdDto1, mockOotdDto2)),
+    given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
+        eq(List.of(mockOotdDto1, mockOotdDto2)),
         eq(false))).willReturn(mockFeedDto);
 
     // when

@@ -27,7 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/clothes")
 public class ClothController implements ClothApi {
 
-    private final ClothService clothesService;
+    private final ClothService clothService;
 
     /**
      * 의상 등록
@@ -40,7 +40,7 @@ public class ClothController implements ClothApi {
     public ResponseEntity<ClothesDto> create(
         @Valid @RequestPart("request") ClothesCreateRequest request,
         @RequestPart(value="image",required = false) MultipartFile image) {
-        ClothesDto createClothes = clothesService.create(request);
+        ClothesDto createClothes = clothService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createClothes);
     }
 
@@ -59,9 +59,9 @@ public class ClothController implements ClothApi {
         ,consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<ClothesDto> update(
         @PathVariable("clothesId") UUID clothesId,
-        @RequestPart("request") ClothesUpdateRequest request,
-        @RequestParam(value = "image",required = false) MultipartFile image) {
-        ClothesDto update = clothesService.update(clothesId, request);
+        @Valid @RequestPart("request") ClothesUpdateRequest request,
+        @RequestPart(value = "image",required = false) MultipartFile image) {
+        ClothesDto update = clothService.update(clothesId, request);
         return ResponseEntity.ok(update);
     }
 
@@ -74,7 +74,7 @@ public class ClothController implements ClothApi {
     @Override
     @DeleteMapping("/{clothesId}")
     public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {
-        clothesService.delete(clothesId);
+        clothService.delete(clothesId);
         return ResponseEntity.noContent().build();
     }
 
