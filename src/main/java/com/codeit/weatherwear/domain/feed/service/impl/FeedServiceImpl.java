@@ -46,17 +46,15 @@ public class FeedServiceImpl implements FeedService {
     log.info("Request Get Feed List");
 
     FeedSearchCondition condition = paramRequest.toSearchCondition();
-    int originalLimit = condition.getLimit();
+    int limit = condition.getLimit() + 1;
 
-    condition.setLimit(originalLimit + 1);
+    List<Feed> feedList = feedRepository.searchFeeds(condition, limit);
+    boolean hasNext = feedList.size() > condition.getLimit();
 
-    List<Feed> feedList = feedRepository.searchFeeds(condition);
-    boolean hasNext = feedList.size() > originalLimit;
-
-    List<Feed> resultList = hasNext ? feedList.subList(0, originalLimit) : feedList;
+    List<Feed> resultList = hasNext ? feedList.subList(0, condition.getLimit()) : feedList;
     List<FeedDto> feedDtoList = resultList.stream().map(this::toFeedDto)
         .collect(Collectors.toList());
-
+    
     return toPageResponse(feedDtoList, condition, hasNext);
   }
 

@@ -1,9 +1,11 @@
 package com.codeit.weatherwear.domain.ootd.mapper;
 
+import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
+import com.codeit.weatherwear.domain.clothes.entity.Cloth;
+import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
 import com.codeit.weatherwear.domain.ootd.entity.Ootd;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,21 +13,23 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OotdMapper {
 
-  public Ootd toEntity(Feed feed, UUID clotheId) {
+  private final ClothMapper clothMapper;
+
+  public Ootd toEntity(Feed feed, Cloth cloth) {
     return Ootd.builder()
         .feed(feed)
-        .clothesId(clotheId)
+        .cloth(cloth)
         .build();
   }
 
   public OotdDto toDto(Ootd ootd) {
-    // todo: name 부터 아래는 clothes의 요소라 추후 Clothes 추가 시 수정할 예정
+    ClothesDto clothesDto = clothMapper.toDto(ootd.getCloth());
     return OotdDto.builder()
-        .clothesId(ootd.getClothesId())
-        .name("임시 옷 이름")
-        .imageUrl(null)
-        .type(null)
-        .attributes(null)
+        .clothesId(clothesDto.getId())
+        .name(clothesDto.getName())
+        .imageUrl(clothesDto.getImageUrl())
+        .type(clothesDto.getType().toString())
+        .attributes(clothMapper.toAttributeDefDto(ootd.getCloth().getClothesWithAttributes()))
         .build();
   }
 
