@@ -2,6 +2,8 @@ package com.codeit.weatherwear.domain.security.service;
 
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
+import com.codeit.weatherwear.domain.security.exception.InvalidJwtException;
+import com.codeit.weatherwear.domain.security.exception.JwtSessionNotFoundException;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -113,7 +115,7 @@ public class JwtSessionService {
         if (this.signingKey == null) {
 
             byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
-            return Keys.hmacShaKeyFor(keyBytes);
+            signingKey = Keys.hmacShaKeyFor(keyBytes);
         }
         return this.signingKey;
     }
@@ -133,18 +135,18 @@ public class JwtSessionService {
             return UUID.fromString(userId);
         } catch (JwtException e) {
             log.error("Failed to extract user ID from token", e);
-            throw new IllegalArgumentException("Invalid JWT token", e);
+            throw new InvalidJwtException();
         } catch (IllegalArgumentException e) {
             log.error("Invalid UUID format in token subject", e);
-            throw new IllegalArgumentException("Invalid user ID format in token", e);
+            throw new InvalidJwtException();
         }
     }
 
+    // 리프레스 토큰으로 강제 로그아웃
     @Transactional
     public void invalidateToken(String refreshToken) {
         JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
-            // TODO: 커스텀 예외로 변경
-            .orElseThrow(() -> new IllegalArgumentException());
+            .orElseThrow(() -> new JwtSessionNotFoundException());
 
         // TODO:토큰을 블랙리스트에 추가
 
