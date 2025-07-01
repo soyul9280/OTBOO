@@ -14,6 +14,4 @@ public interface JwtSessionRepository extends JpaRepository<JwtSession, UUID> {
     Optional<JwtSession> findByUserId(UUID userId);
 
     boolean existsByAccessToken(String token);
-
-    boolean existsByRefreshToken(String token);
 }

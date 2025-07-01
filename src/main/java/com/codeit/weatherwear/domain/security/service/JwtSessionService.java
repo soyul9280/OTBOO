@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.security.service;
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
 import com.codeit.weatherwear.domain.security.exception.InvalidJwtException;
+import com.codeit.weatherwear.domain.security.exception.JwtSessionNotFoundException;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -169,6 +170,19 @@ public class JwtSessionService {
             },
             () -> log.info("No active JwtSession found for userId: {}", userId)
         );
+    }
+
+    // 리프레시 토큰으로 액세스, 리프레시 토큰 재발급
+    public String rotateToken(String refreshToken) {
+        return null;
+    }
+
+    // 리프레시 토큰으로 액세스 토큰 조회
+    public String findAccessToken(String refreshToken) {
+        log.info("리프레시 토큰: {}", refreshToken);
+        JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
+            .orElseThrow(() -> new JwtSessionNotFoundException());
+        return jwtSession.getAccessToken();
     }
 
 }
