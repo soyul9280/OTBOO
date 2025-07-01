@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.user.service;
 import com.codeit.weatherwear.domain.location.dto.LocationDto;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.service.LocationService;
+import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.codeit.weatherwear.domain.user.dto.request.ChangePasswordRequest;
 import com.codeit.weatherwear.domain.user.dto.request.ProfileUpdateRequest;
 import com.codeit.weatherwear.domain.user.dto.request.UserCreateRequest;
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final LocationService locationService;
+    private final JwtSessionService jwtSessionService;
 
 
     @Transactional
@@ -77,7 +79,6 @@ public class UserServiceImpl implements UserService {
             .orElseThrow(() -> new UserNotFoundException());
 
         // Location 생성
-        // TODO: Location 생성 로직은 LocationService에 위임
         Location location = null;
         LocationDto locationDto = profileUpdateRequest.location();
         if (locationDto != null) {
@@ -105,6 +106,11 @@ public class UserServiceImpl implements UserService {
 
         user.updateLocked(userLockUpdateRequest.locked());
 
+        // 잠긴 계정은 자동으로 로그아웃
+        if (userLockUpdateRequest.locked()) {
+            jwtSessionService.invalidateToken(userId);
+        }
+
         return user.getId();
     }
 
@@ -125,6 +131,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException());
         user.updateRole(userRoleUpdateRequest.role());
+
+        // 권한 변경 시 해당 사용자는 자동으로 로그아웃
+        jwtSessionService.invalidateToken(userId);
 
         return userMapper.toUserDto(user);
     }

@@ -32,7 +32,6 @@ public enum ErrorCode {
     INVALID_WIND_SPEED(HttpStatus.BAD_REQUEST, "유효하지 않은 풍속", "풍속은 0 이상의 값이어야 합니다."),
 
     // JWT
-    JWT_SESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "로그인 상태 확인 불가", "로그인 정보가 만료되었거나 무효합니다."),
     INVALID_JWT(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT", "JWT 토큰이 손상되었거나 유효하지 않습니다.");
 
     private final HttpStatus status;

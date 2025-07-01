@@ -3,7 +3,6 @@ package com.codeit.weatherwear.domain.security.service;
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
 import com.codeit.weatherwear.domain.security.exception.InvalidJwtException;
-import com.codeit.weatherwear.domain.security.exception.JwtSessionNotFoundException;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -92,8 +91,8 @@ public class JwtSessionService {
             .compact();
     }
 
-    // 토큰 유효성 인증
-    public boolean validateToken(String token) {
+    // 토큰 유효성 검증
+    public boolean isValidToken(String token) {
         try {
 
             JwtParser parser = Jwts.parser()
@@ -109,6 +108,12 @@ public class JwtSessionService {
         }
         return false;
     }
+
+    // 로그인 상태 확인
+    public boolean isSignedIn(String token) {
+        return jwtSessionRepository.existsByAccessToken(token);
+    }
+
 
     // 서명키 생성
     private SecretKey getSigningKey() {
@@ -142,15 +147,28 @@ public class JwtSessionService {
         }
     }
 
-    // 리프레스 토큰으로 강제 로그아웃
+    // 리프레시 토큰으로 강제 로그아웃
     @Transactional
     public void invalidateToken(String refreshToken) {
-        JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
-            .orElseThrow(() -> new JwtSessionNotFoundException());
+        jwtSessionRepository.findByRefreshToken(refreshToken).ifPresentOrElse(
+            jwtSession -> {
+                // TODO: 블랙리스트 추가
+                jwtSessionRepository.delete(jwtSession);
+            },
+            () -> log.info("No active JwtSession found for refreshToken: {}", refreshToken)
+        );
+    }
 
-        // TODO:토큰을 블랙리스트에 추가
-
-        jwtSessionRepository.delete(jwtSession);
+    // userId로 강제 로그아웃
+    @Transactional
+    public void invalidateToken(UUID userId) {
+        jwtSessionRepository.findByUserId(userId).ifPresentOrElse(
+            jwtSession -> {
+                // TODO: 블랙리스트 추가
+                jwtSessionRepository.delete(jwtSession);
+            },
+            () -> log.info("No active JwtSession found for userId: {}", userId)
+        );
     }
 
 }
