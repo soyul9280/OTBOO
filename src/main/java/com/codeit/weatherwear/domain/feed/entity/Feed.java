@@ -71,10 +71,6 @@ public class Feed {
     this.content = content;
   }
 
-  public void updateLikeCount(int likeCount) {
-    this.likeCount = likeCount;
-  }
-
   public void increaseLikeCount() {
     this.likeCount++;
   }
@@ -83,17 +79,8 @@ public class Feed {
     this.likeCount--;
   }
 
-  public void updateCommentCount(int commentCount) {
-    this.commentCount = commentCount;
-  }
-
   public void increaseCommentCount() {
     this.commentCount++;
   }
-
-  public void decreaseCommentCount() {
-    this.commentCount--;
-  }
-
 
 }
