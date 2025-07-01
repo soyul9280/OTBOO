@@ -1,13 +1,13 @@
 package com.codeit.weatherwear.domain.clothes.service;
 
-import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDto;
+import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
-import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 
+import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
@@ -46,11 +46,11 @@ public class ClothServiceImpl implements ClothService {
         User user = userRepository.findById(request.ownerId())
             .orElseThrow(UserNotFoundException::new);
 
-        List<UUID> attributeIds = request.attributes().stream()
+        List<UUID> attributesIds = request.attributes().stream()
             .map(ClothesAttributeDto::definitionId).toList();
 
         //속성 찾기
-        List<Attribute> attributeList=attributeRepository.findAllById(attributeIds);
+        List<Attribute> attributesList=attributeRepository.findAllById(attributesIds);
 
         Cloth cloth=Cloth.builder()
             .name(request.name())
@@ -59,11 +59,14 @@ public class ClothServiceImpl implements ClothService {
             .build();
 
         //의상에 속성 적용
-        cloth.applyAttribute(request.attributes(), attributeList);
+        Map<UUID, Attribute> attrMap = attributesList.stream()
+            .collect(Collectors.toMap(Attribute::getId, Function.identity()));
 
-        Cloth savedCloth = clothRepository.save(cloth);
+        applyAttributesToCloth(request.attributes(), attrMap, cloth);
 
-        return clothMapper.toDto(savedCloth);
+        Cloth saveCloth = clothRepository.save(cloth);
+
+        return clothMapper.toDto(saveCloth);
     }
 
     /**
@@ -83,7 +86,13 @@ public class ClothServiceImpl implements ClothService {
             .toList();
         List<Attribute> attributes = attributeRepository.findAllById(attrIds);
 
-        cloth.updateCloth(request,attributes);
+        cloth.clearAttributes();
+        cloth.updateCloth(request.name(),request.type());
+
+        Map<UUID, Attribute> attributeMap = attributes.stream()
+            .collect(Collectors.toMap(Attribute::getId, Function.identity()));
+
+        applyAttributesToCloth(request.attributes(), attributeMap, cloth);
         return clothMapper.toDto(cloth);
     }
 
@@ -100,6 +109,27 @@ public class ClothServiceImpl implements ClothService {
         clothRepository.delete(cloth);
     }
 
+
+    private static void applyAttributesToCloth(List<ClothesAttributeDto> attributeDtos, Map<UUID, Attribute> attrMap,
+        Cloth cloth) {
+        for (ClothesAttributeDto dto : attributeDtos) {
+            Attribute attribute = attrMap.get(dto.definitionId());
+            if (attribute == null) {
+                throw new IllegalArgumentException("존재하지 않는 속성입니다.");
+            }
+            if(!attribute.getSelectableValues().contains(dto.value())) {
+                throw new IllegalArgumentException("선택한 속성 값이 존재하지 않습니다.");
+            }
+
+            ClothWithAttributes attr = ClothWithAttributes.builder()
+                .value(dto.value())
+                .attribute(attribute)
+                .cloth(cloth)
+                .build();
+
+            cloth.addAttribute(attr);
+        }
+    }
 
 }
 

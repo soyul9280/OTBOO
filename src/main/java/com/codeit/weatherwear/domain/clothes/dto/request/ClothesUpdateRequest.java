@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.clothes.dto.request;
 
+import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDto;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
