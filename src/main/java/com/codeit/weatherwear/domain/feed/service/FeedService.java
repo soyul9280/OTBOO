@@ -10,13 +10,13 @@ import java.util.UUID;
 
 public interface FeedService {
 
-  PageResponse<FeedDto> getFeedList(FeedGetParamRequest paramRequest);
+  PageResponse<FeedDto> getFeedList(FeedGetParamRequest paramRequest, UUID currentUserId);
 
-  FeedDto createFeed(FeedCreateRequest feedCreateRequest);
+  FeedDto createFeed(FeedCreateRequest feedCreateRequest, UUID currentUserId);
 
-  FeedDto updateFeed(UUID feedId, FeedUpdateRequest feedUpdateRequest);
+  FeedDto updateFeed(UUID feedId, FeedUpdateRequest feedUpdateRequest, UUID currentUserId);
 
-  FeedDto deleteFeed(UUID feedId);
+  FeedDto deleteFeed(UUID feedId, UUID currentUserId);
 
   WeatherSummaryDto getMockWeatherSummaryDto();
 
