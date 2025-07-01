@@ -9,6 +9,7 @@ import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.feed.exception.FeedNotFoundException;
 import com.codeit.weatherwear.domain.feed.mapper.FeedMapper;
 import com.codeit.weatherwear.domain.feed.repository.FeedRepository;
+import com.codeit.weatherwear.domain.feed.service.FeedCommentService;
 import com.codeit.weatherwear.domain.feed.service.FeedService;
 import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
@@ -39,6 +40,7 @@ public class FeedServiceImpl implements FeedService {
   private final FeedMapper feedMapper;
   private final FeedRepository feedRepository;
   private final OotdService ootdService;
+  private final FeedCommentService feedCommentService;
 
   @Transactional
   @Override
@@ -54,7 +56,7 @@ public class FeedServiceImpl implements FeedService {
     List<Feed> resultList = hasNext ? feedList.subList(0, condition.getLimit()) : feedList;
     List<FeedDto> feedDtoList = resultList.stream().map(this::toFeedDto)
         .collect(Collectors.toList());
-    
+
     return toPageResponse(feedDtoList, condition, hasNext);
   }
 
@@ -92,6 +94,7 @@ public class FeedServiceImpl implements FeedService {
 
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new FeedNotFoundException(feedId));
+    feedCommentService.deleteFeedCommentsByFeed(feed);
     feedRepository.delete(feed);
     List<OotdDto> ootds = ootdService.deleteOotdByFeedId(feedId);
 
