@@ -19,6 +19,7 @@ import com.codeit.weatherwear.domain.feed.exception.FeedNotFoundException;
 import com.codeit.weatherwear.domain.feed.mapper.FeedMapper;
 import com.codeit.weatherwear.domain.feed.repository.FeedRepository;
 import com.codeit.weatherwear.domain.feed.service.FeedCommentService;
+import com.codeit.weatherwear.domain.feed.service.FeedLikeService;
 import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
@@ -62,6 +63,8 @@ class FeedServiceImplTest {
   private OotdService ootdService;
   @Mock
   private FeedCommentService feedCommentService;
+  @Mock
+  private FeedLikeService feedLikeService;
 
   @Mock
   private FeedMapper feedMapper;
@@ -71,6 +74,7 @@ class FeedServiceImplTest {
 
   private FeedCreateRequest mockRequest;
   private UUID authorId;
+  private UUID currentUserId;
   private UUID weatherId;
   private String mockContent;
 
@@ -105,6 +109,7 @@ class FeedServiceImplTest {
     mockLocation = new Location(37.513068, 127.102570, 961159, 1953082, "서울 송파구 신천동");
 
     authorId = UUID.randomUUID();
+    currentUserId = authorId;
     weatherId = UUID.randomUUID();
     clothId1 = UUID.randomUUID();
     clothId2 = UUID.randomUUID();
@@ -241,7 +246,7 @@ class FeedServiceImplTest {
         eq(false))).willReturn(mockFeedDto);
 
     // when
-    FeedDto result = feedService.createFeed(mockRequest);
+    FeedDto result = feedService.createFeed(mockRequest, currentUserId);
 
     // then
     assertThat(result).isNotNull();
@@ -273,7 +278,7 @@ class FeedServiceImplTest {
     given(userRepository.findById(failedId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> feedService.createFeed(failedRequest))
+    assertThatThrownBy(() -> feedService.createFeed(failedRequest, failedId))
         .isInstanceOf(UserNotFoundException.class);
   }
 
@@ -287,12 +292,13 @@ class FeedServiceImplTest {
         anyInt())).willReturn(feedList);
     given(ootdService.findOotdByFeedId(eq(mockFeed.getId()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
+    given(feedLikeService.isLikedByMe(mockFeed, currentUserId)).willReturn(false);
     given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
         eq(List.of(mockOotdDto1, mockOotdDto2)),
         eq(false))).willReturn(mockFeedDto);
 
     // when
-    PageResponse<FeedDto> resultList = feedService.getFeedList(mockFeedQuery);
+    PageResponse<FeedDto> resultList = feedService.getFeedList(mockFeedQuery, currentUserId);
 
     // then
     assertThat(resultList).isNotNull();
@@ -305,6 +311,7 @@ class FeedServiceImplTest {
 
     // verify
     verify(feedRepository).searchFeeds(any(FeedSearchCondition.class), anyInt());
+    verify(feedLikeService).isLikedByMe(mockFeed, currentUserId);
     verify(feedMapper, times(feedList.size())).toDto(eq(mockFeed), eq(mockAuthorDto),
         any(WeatherSummaryDto.class), eq(List.of(mockOotdDto1, mockOotdDto2)), eq(false));
   }
@@ -318,12 +325,13 @@ class FeedServiceImplTest {
     given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
     given(ootdService.findOotdByFeedId(eq(mockFeed.getId()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
+    given(feedLikeService.isLikedByMe(mockFeed, currentUserId)).willReturn(false);
     given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
         eq(List.of(mockOotdDto1, mockOotdDto2)),
         eq(false))).willReturn(updateFeedDto);
 
     // when
-    FeedDto result = feedService.updateFeed(feedId, updateRequest);
+    FeedDto result = feedService.updateFeed(feedId, updateRequest, currentUserId);
 
     // then
     assertThat(result).isNotNull();
@@ -342,7 +350,7 @@ class FeedServiceImplTest {
     given(feedRepository.findById(failedId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> feedService.updateFeed(failedId, failedRequest))
+    assertThatThrownBy(() -> feedService.updateFeed(failedId, failedRequest, currentUserId))
         .isInstanceOf(FeedNotFoundException.class);
   }
 
@@ -351,6 +359,7 @@ class FeedServiceImplTest {
   void deleteFeed_success() {
     // given
     given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
+    given(feedLikeService.isLikedByMe(mockFeed, currentUserId)).willReturn(false);
     given(ootdService.deleteOotdByFeedId(eq(mockFeed.getId()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
     given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
@@ -358,7 +367,7 @@ class FeedServiceImplTest {
         eq(false))).willReturn(mockFeedDto);
 
     // when
-    FeedDto result = feedService.deleteFeed(feedId);
+    FeedDto result = feedService.deleteFeed(feedId, currentUserId);
 
     // then
     assertThat(result).isNotNull();
@@ -367,6 +376,8 @@ class FeedServiceImplTest {
 
     // verify
     verify(feedRepository).findById(feedId);
+    verify(feedLikeService).isLikedByMe(mockFeed, currentUserId);
+    verify(feedLikeService).deleteAllFeedLikeInFeed(mockFeed);
     verify(feedCommentService).deleteFeedCommentsByFeed(mockFeed);
     verify(feedRepository).delete(mockFeed);
     verify(feedMapper).toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
@@ -382,7 +393,7 @@ class FeedServiceImplTest {
     given(feedRepository.findById(failedId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> feedService.deleteFeed(failedId))
+    assertThatThrownBy(() -> feedService.deleteFeed(failedId, authorId))
         .isInstanceOf(FeedNotFoundException.class);
   }
 

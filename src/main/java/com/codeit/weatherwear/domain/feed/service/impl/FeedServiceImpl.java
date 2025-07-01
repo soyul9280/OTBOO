@@ -10,6 +10,7 @@ import com.codeit.weatherwear.domain.feed.exception.FeedNotFoundException;
 import com.codeit.weatherwear.domain.feed.mapper.FeedMapper;
 import com.codeit.weatherwear.domain.feed.repository.FeedRepository;
 import com.codeit.weatherwear.domain.feed.service.FeedCommentService;
+import com.codeit.weatherwear.domain.feed.service.FeedLikeService;
 import com.codeit.weatherwear.domain.feed.service.FeedService;
 import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
@@ -41,10 +42,11 @@ public class FeedServiceImpl implements FeedService {
   private final FeedRepository feedRepository;
   private final OotdService ootdService;
   private final FeedCommentService feedCommentService;
+  private final FeedLikeService feedLikeService;
 
   @Transactional
   @Override
-  public PageResponse<FeedDto> getFeedList(FeedGetParamRequest paramRequest) {
+  public PageResponse<FeedDto> getFeedList(FeedGetParamRequest paramRequest, UUID currentUserId) {
     log.info("Request Get Feed List");
 
     FeedSearchCondition condition = paramRequest.toSearchCondition();
@@ -54,7 +56,7 @@ public class FeedServiceImpl implements FeedService {
     boolean hasNext = feedList.size() > condition.getLimit();
 
     List<Feed> resultList = hasNext ? feedList.subList(0, condition.getLimit()) : feedList;
-    List<FeedDto> feedDtoList = resultList.stream().map(this::toFeedDto)
+    List<FeedDto> feedDtoList = resultList.stream().map(feed -> toFeedDto(feed, currentUserId))
         .collect(Collectors.toList());
 
     return toPageResponse(feedDtoList, condition, hasNext);
@@ -62,7 +64,7 @@ public class FeedServiceImpl implements FeedService {
 
   @Transactional
   @Override
-  public FeedDto createFeed(FeedCreateRequest feedCreateRequest) {
+  public FeedDto createFeed(FeedCreateRequest feedCreateRequest, UUID currentUserId) {
     log.info("Request Create Feed - authorId: {}", feedCreateRequest.getAuthorId());
 
     User author = userRepository.findById(feedCreateRequest.getAuthorId())
@@ -72,33 +74,36 @@ public class FeedServiceImpl implements FeedService {
     Feed saved = feedRepository.save(feed);
     List<OotdDto> ootdList = ootdService.createOotdList(feed, feedCreateRequest.getClothesIds());
 
-    return toFeedDto(saved, ootdList);
+    return toFeedDto(saved, ootdList, false);
   }
 
   @Transactional
   @Override
-  public FeedDto updateFeed(UUID feedId, FeedUpdateRequest feedUpdateRequest) {
+  public FeedDto updateFeed(UUID feedId, FeedUpdateRequest feedUpdateRequest, UUID currentUserId) {
     log.info("Request Update Feed - feedId: {}", feedId);
 
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new FeedNotFoundException(feedId));
     feed.updateContent(feedUpdateRequest.getContent());
 
-    return toFeedDto(feed);
+    return toFeedDto(feed, currentUserId);
   }
 
   @Transactional
   @Override
-  public FeedDto deleteFeed(UUID feedId) {
+  public FeedDto deleteFeed(UUID feedId, UUID currentUserId) {
     log.info("Request Delete Feed - feedId: {}", feedId);
 
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new FeedNotFoundException(feedId));
+    boolean likedByMe = feedLikeService.isLikedByMe(feed, currentUserId);
+
+    feedLikeService.deleteAllFeedLikeInFeed(feed);
     feedCommentService.deleteFeedCommentsByFeed(feed);
     feedRepository.delete(feed);
     List<OotdDto> ootds = ootdService.deleteOotdByFeedId(feedId);
 
-    return toFeedDto(feed, ootds);
+    return toFeedDto(feed, ootds, likedByMe);
   }
 
   // 임시로 만들어진 WeatherSummeryDto 인스턴스를 반환합니다.
@@ -127,24 +132,22 @@ public class FeedServiceImpl implements FeedService {
   }
 
   // 생성/삭제
-  private FeedDto toFeedDto(Feed feed, List<OotdDto> ootds) {
+  private FeedDto toFeedDto(Feed feed, List<OotdDto> ootds, boolean likedByMe) {
     UserSummaryDto authorDto = UserSummaryDto.from(feed.getAuthor());
     WeatherSummaryDto weatherSummaryDto = getMockWeatherSummaryDto();
 
-    // todo: likedByMe 로직 필요 - feedLike 도메인
-
-    return feedMapper.toDto(feed, authorDto, weatherSummaryDto, ootds, false);
+    return feedMapper.toDto(feed, authorDto, weatherSummaryDto, ootds, likedByMe);
   }
 
   // 일반적인 상황 (조회/갱신)
-  private FeedDto toFeedDto(Feed feed) {
+  private FeedDto toFeedDto(Feed feed, UUID currentUserId) {
     UserSummaryDto authorDto = UserSummaryDto.from(feed.getAuthor());
     WeatherSummaryDto weatherSummaryDto = getMockWeatherSummaryDto();
     List<OotdDto> ootds = ootdService.findOotdByFeedId(feed.getId());
 
-    // todo: likedByMe 로직 필요 - feedLike 도메인
+    boolean likedByMe = feedLikeService.isLikedByMe(feed, currentUserId);
 
-    return feedMapper.toDto(feed, authorDto, weatherSummaryDto, ootds, false);
+    return feedMapper.toDto(feed, authorDto, weatherSummaryDto, ootds, likedByMe);
   }
 
   private PageResponse<FeedDto> toPageResponse(List<FeedDto> dtoList, FeedSearchCondition condition,
