@@ -42,8 +42,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Authorization 헤더에서 jwt access token 추출
         String token = extractTokenFromHeader(request);
 
-        // 토큰 유효성 검증
-        if (token != null && jwtSessionService.validateToken(token)) {
+        // 토큰 유효성 & 로그인 상태 검증
+        if (token != null && jwtSessionService.isValidToken(token) && jwtSessionService.isSignedIn(
+            token)) {
             // 인증 처리
             UUID userId = jwtSessionService.extractUserId(token);
 
@@ -53,7 +54,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userId,
                 user.getEmail(),
                 user.getPassword(),
-                user.getRole()
+                user.getRole(),
+                user.isLocked()
             );
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
@@ -62,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } else if (token != null) {
-            // 잘못된 토큰 -> 401 응답
+            // 잘못된 토큰 & 비로그인 상태 -> 401 응답
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

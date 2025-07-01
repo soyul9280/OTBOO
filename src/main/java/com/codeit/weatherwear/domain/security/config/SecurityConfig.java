@@ -56,7 +56,7 @@ public class SecurityConfig {
                 .logoutRequestMatcher(
                     new AntPathRequestMatcher("/api/auth/sign-out"))
                 .logoutSuccessUrl("/") // 홈으로
-                .deleteCookies("refresh-token")    // 쿠키 삭제
+                .deleteCookies("refresh_token")    // 쿠키 삭제
                 .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
             );
         ;

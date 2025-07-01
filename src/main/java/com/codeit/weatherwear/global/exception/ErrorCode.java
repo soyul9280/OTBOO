@@ -32,7 +32,11 @@ public enum ErrorCode {
   INVALID_ENUM_VALUE(HttpStatus.BAD_REQUEST, "잘못된 Enum 필드", "잘못된 Enum 필드입니다."),
 
   // WEATHER
-  INVALID_WIND_SPEED(HttpStatus.BAD_REQUEST, "유효하지 않은 풍속", "풍속은 0 이상의 값이어야 합니다.");
+  INVALID_WIND_SPEED(HttpStatus.BAD_REQUEST, "유효하지 않은 풍속", "풍속은 0 이상의 값이어야 합니다."),
+
+  // JWT
+  JWTSESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "인증 정보 확인 실패", "토큰이 만료되거나 로그아웃되었습니다."),
+  INVALID_JWT(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT", "JWT 토큰이 손상되었거나 유효하지 않습니다.");
 
   private final HttpStatus status;
   private final String message;

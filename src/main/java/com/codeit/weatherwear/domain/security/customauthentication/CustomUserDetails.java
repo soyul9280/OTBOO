@@ -15,12 +15,15 @@ public class CustomUserDetails implements UserDetails {
     private final String password;
 
     private final Role role;
+    private final boolean locked;
 
-    public CustomUserDetails(UUID userId, String email, String password, Role role) {
+    public CustomUserDetails(UUID userId, String email, String password, Role role,
+        boolean locked) {
         this.userID = userId;
         this.email = email;
         this.password = password;
         this.role = role;
+        this.locked = locked;
     }
 
     @Override
@@ -41,7 +44,13 @@ public class CustomUserDetails implements UserDetails {
         return email;
     }
 
+    @Override
+    public boolean isAccountNonLocked() {
+        return !locked;
+    }
+
     public UUID getUserId() {
         return this.userID;
     }
+
 }

@@ -1,7 +1,10 @@
 package com.codeit.weatherwear.domain.security.service;
 
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
+import com.codeit.weatherwear.domain.security.dto.TokenRotationResult;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
+import com.codeit.weatherwear.domain.security.exception.InvalidJwtException;
+import com.codeit.weatherwear.domain.security.exception.JwtSessionNotFoundException;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -42,10 +45,11 @@ public class JwtSessionService {
 
     @Transactional
     public JwtSession createJwtSession(UUID userId) {
-        Instant accessTokenExpirationTime = Instant.now()
-            .plusSeconds(jwtProperties.getAccessToken().getValiditySeconds());
-        Instant refreshTokenExpirationTime = Instant.now()
-            .plusSeconds(jwtProperties.getRefreshToken().getValiditySeconds());
+        Instant now = clock.instant();
+        Instant accessTokenExpirationTime = now.plusSeconds(
+            jwtProperties.getAccessToken().getValiditySeconds());
+        Instant refreshTokenExpirationTime = now.plusSeconds(
+            jwtProperties.getRefreshToken().getValiditySeconds());
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -89,8 +93,8 @@ public class JwtSessionService {
             .compact();
     }
 
-    // 토큰 유효성 인증
-    public boolean validateToken(String token) {
+    // 토큰 유효성 검증
+    public boolean isValidToken(String token) {
         try {
 
             JwtParser parser = Jwts.parser()
@@ -107,12 +111,18 @@ public class JwtSessionService {
         return false;
     }
 
+    // 로그인 상태 확인
+    public boolean isSignedIn(String token) {
+        return jwtSessionRepository.existsByAccessToken(token);
+    }
+
+
     // 서명키 생성
     private SecretKey getSigningKey() {
         if (this.signingKey == null) {
 
             byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
-            return Keys.hmacShaKeyFor(keyBytes);
+            signingKey = Keys.hmacShaKeyFor(keyBytes);
         }
         return this.signingKey;
     }
@@ -132,22 +142,69 @@ public class JwtSessionService {
             return UUID.fromString(userId);
         } catch (JwtException e) {
             log.error("Failed to extract user ID from token", e);
-            throw new IllegalArgumentException("Invalid JWT token", e);
+            throw new InvalidJwtException();
         } catch (IllegalArgumentException e) {
             log.error("Invalid UUID format in token subject", e);
-            throw new IllegalArgumentException("Invalid user ID format in token", e);
+            throw new InvalidJwtException();
         }
     }
 
+    // 리프레시 토큰으로 강제 로그아웃
     @Transactional
     public void invalidateToken(String refreshToken) {
+        jwtSessionRepository.findByRefreshToken(refreshToken).ifPresentOrElse(
+            jwtSession -> {
+                // TODO: 블랙리스트 추가
+                jwtSessionRepository.delete(jwtSession);
+            },
+            () -> log.info("No active JwtSession found for refreshToken: {}", refreshToken)
+        );
+    }
+
+    // userId로 강제 로그아웃
+    @Transactional
+    public void invalidateToken(UUID userId) {
+        jwtSessionRepository.findByUserId(userId).ifPresentOrElse(
+            jwtSession -> {
+                // TODO: 블랙리스트 추가
+                jwtSessionRepository.delete(jwtSession);
+            },
+            () -> log.info("No active JwtSession found for userId: {}", userId)
+        );
+    }
+
+    @Transactional
+    // 리프레시 토큰으로 액세스, 리프레시 토큰 재발급
+    public TokenRotationResult rotateToken(String refreshToken) {
+        if (!isValidToken(refreshToken)) {
+            throw new InvalidJwtException();
+        }
         JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
-            // TODO: 커스텀 예외로 변경
-            .orElseThrow(() -> new IllegalArgumentException());
+            .orElseThrow(() -> new JwtSessionNotFoundException());
 
-        // TODO:토큰을 블랙리스트에 추가
+        User user = userRepository.findById(jwtSession.getUserId())
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        jwtSessionRepository.delete(jwtSession);
+        Instant now = clock.instant();
+        Instant newAccessTokenExpirationTime = now.plusSeconds(
+            jwtProperties.getAccessToken().getValiditySeconds());
+        Instant newRefreshTokenExpirationTime = now.plusSeconds(
+            jwtProperties.getRefreshToken().getValiditySeconds());
+        String newAccessToken = createTokenWithClaims(user, TokenType.ACCESS,
+            newAccessTokenExpirationTime);
+        String newRefreshToken = createTokenWithClaims(user, TokenType.REFRESH,
+            newRefreshTokenExpirationTime);
+
+        jwtSession.update(newAccessToken, newRefreshToken, newAccessTokenExpirationTime);
+
+        return new TokenRotationResult(newAccessToken, newRefreshToken);
+    }
+
+    // 리프레시 토큰으로 액세스 토큰 조회
+    public String findAccessToken(String refreshToken) {
+        JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
+            .orElseThrow(() -> new JwtSessionNotFoundException());
+        return jwtSession.getAccessToken();
     }
 
 }

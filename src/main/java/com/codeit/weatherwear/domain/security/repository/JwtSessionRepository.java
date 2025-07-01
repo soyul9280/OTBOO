@@ -10,4 +10,8 @@ import org.springframework.stereotype.Repository;
 public interface JwtSessionRepository extends JpaRepository<JwtSession, UUID> {
 
     Optional<JwtSession> findByRefreshToken(String refreshToken);
+
+    Optional<JwtSession> findByUserId(UUID userId);
+
+    boolean existsByAccessToken(String token);
 }
