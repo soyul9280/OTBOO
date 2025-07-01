@@ -1,6 +1,5 @@
 package com.codeit.weatherwear.domain.clothes.entity;
 
-import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
