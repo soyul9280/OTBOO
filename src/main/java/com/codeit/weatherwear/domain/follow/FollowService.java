@@ -64,28 +64,28 @@ public class FollowService {
   public PageResponse<FollowDto> getFollowers(UUID followeeId, String cursor,
       UUID idAfter, int limit, String nameLike
   ) {
-    List<FollowDto> followings = followRepository
+    List<FollowDto> followers = followRepository
         .getFollowers(followeeId, cursor, idAfter, limit, nameLike);
     long totalCount = followRepository.countByFollowee_Id(followeeId);
-    return toPageResponse(followings, limit, totalCount);
+    return toPageResponse(followers, limit, totalCount);
   }
 
-  private PageResponse<FollowDto> toPageResponse(List<FollowDto> followings, int limit, long totalCount) {
-    boolean hasNext = followings.size() > limit;
+  private PageResponse<FollowDto> toPageResponse(List<FollowDto> follows, int limit, long totalCount) {
+    boolean hasNext = follows.size() > limit;
     Instant nextCursor = null;
     UUID nextIdAfter = null;
 
     if (hasNext) {
-      followings.remove(followings.size() - 1);
-      FollowDto followDto = followings.get(followings.size() - 1);
+      follows.remove(follows.size() - 1);
+      FollowDto followDto = follows.get(follows.size() - 1);
 
-      nextCursor = followDto.created();
+      nextCursor = followDto.createdAt();
       nextIdAfter = followDto.id();
     }
     String sortBy = "createdAt";
 
     return new PageResponse<>(
-        followings,
+        follows,
         nextCursor,
         nextIdAfter,
         hasNext,
