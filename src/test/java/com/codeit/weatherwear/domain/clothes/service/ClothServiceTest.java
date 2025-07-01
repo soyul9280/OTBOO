@@ -8,7 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 
-import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDto;
+import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeWithDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesUpdateRequest;
