@@ -1,6 +1,5 @@
 package com.codeit.weatherwear.domain.notification.repository;
 
-import static com.codeit.weatherwear.domain.follow.QFollow.follow;
 import static com.codeit.weatherwear.domain.notification.QNotification.notification;
 
 import com.codeit.weatherwear.domain.notification.NotificationDto;
@@ -50,7 +49,7 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
     }
 
     Instant createdAtCursor = Instant.parse(cursor);
-    return follow.createdAt.lt(createdAtCursor)
-        .or(follow.createdAt.eq(createdAtCursor).and(follow.id.lt(idAfter)));
+    return notification.createdAt.lt(createdAtCursor)
+        .or(notification.createdAt.eq(createdAtCursor).and(notification.id.lt(idAfter)));
   }
 }

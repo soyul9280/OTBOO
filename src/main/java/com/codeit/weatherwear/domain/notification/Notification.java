@@ -49,7 +49,7 @@ public class Notification {
     INFO, WARNING, ERROR;
   }
 
-  @Builder
+  @Builder(access = AccessLevel.PROTECTED)
   private Notification(UUID receiverId, String title, String content, Level level) {
     this.receiverId = receiverId;
     this.title = title;
