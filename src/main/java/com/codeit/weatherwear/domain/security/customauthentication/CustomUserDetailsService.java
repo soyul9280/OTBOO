@@ -28,7 +28,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
-                user.getRole())
+                user.getRole(),
+                user.isLocked())
             )
             .orElseThrow(
                 () -> new UsernameNotFoundException("User not found with email: " + email));
