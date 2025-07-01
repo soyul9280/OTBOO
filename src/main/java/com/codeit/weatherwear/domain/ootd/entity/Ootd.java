@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.ootd.entity;
 
+import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.feed.entity.Feed;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,19 +41,17 @@ public class Ootd {
   @Column(name = "updated_at")
   private Instant updatedAt;
 
-  //  @ManyToOne(fetch = FetchType.LAZY)
-//  @JoinColumn(name = "feed_id", nullable = false)
-  // todo: Clothes 엔티티 추가되면 해당 부분 수정 예정
-  @Column(name = "clothes_id")
-  private UUID clothesId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "clothes_id", nullable = false)
+  private Cloth cloth;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "feed_id", nullable = false)
   private Feed feed;
 
   @Builder
-  private Ootd(Feed feed, UUID clothesId) {
+  private Ootd(Feed feed, Cloth cloth) {
     this.feed = feed;
-    this.clothesId = clothesId;
+    this.cloth = cloth;
   }
 }
