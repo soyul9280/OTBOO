@@ -56,11 +56,11 @@ public class Attribute {
         this.selectableValues = selectableValues;
     }
 
-    public void update(ClothesAttributeDefUpdateRequest request) {
-        if (!this.name.equals(request.name())) {
+    public void update(String name, List<String> selectableValues) {
+        if (!this.name.equals(name)) {
             throw new IllegalArgumentException("해당 속성명이 일치하지 않습니다.");
         }
-        List<String> values = request.selectValues();
+        List<String> values = selectableValues;
         if(values.size() != values.stream().distinct().count()) {
             throw new IllegalArgumentException("중복 선택값이 존재합니다.");
         }
