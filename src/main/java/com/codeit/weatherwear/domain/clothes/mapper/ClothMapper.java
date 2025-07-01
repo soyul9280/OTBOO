@@ -1,6 +1,6 @@
 package com.codeit.weatherwear.domain.clothes.mapper;
 
-import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeWithDefDto;
+import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeWithDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;

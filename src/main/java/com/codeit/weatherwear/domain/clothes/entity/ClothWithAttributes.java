@@ -13,7 +13,6 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,8 +23,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "clothes_attribute")
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ClothWithAttributes {
@@ -51,7 +48,19 @@ public class ClothWithAttributes {
     @JoinColumn(name = "definition_id")
     private Attribute attribute;
 
-    public void setClothes(Cloth cloth) {
+    @Builder
+    public ClothWithAttributes(UUID id, Instant createdAt, Instant updatedAt, String value,
+        Cloth cloth,
+        Attribute attribute) {
+        this.id = id;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.value = value;
+        this.cloth = cloth;
+        this.attribute = attribute;
+    }
+
+    protected void setClothes(Cloth cloth) {
         this.cloth = cloth;
     }
 }

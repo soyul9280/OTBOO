@@ -6,7 +6,6 @@ import com.codeit.weatherwear.domain.user.entity.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -20,12 +19,9 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,76 +31,65 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "clothes")
 @Getter
-@AllArgsConstructor
-@EntityListeners(AuditingEntityListener.class)  // 이거 없어서 CreatedDate가 안됨!
 public class Cloth {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(updatable = false)
+    private UUID id;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(updatable = false)
-  private UUID id;
+    @CreatedDate
+    @Column(updatable = false)
+    private Instant createdAt;
 
-  @CreatedDate
-  @Column(updatable = false)
-  private Instant createdAt;
+    @LastModifiedDate
+    @Column(updatable = true)
+    private Instant updatedAt;
 
-  @LastModifiedDate
-  @Column(updatable = true)
-  private Instant updatedAt;
+    @Column(nullable = false)
+    private String name;
 
-  @Column(nullable = false)
-  private String name;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type",nullable = false)
+    private ClothType clothType;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "type", nullable = false)
-  private ClothType clothType;
+    @Column(name = "image_url")
+    private String clothesImageUrl;
 
-  @Column(name = "image_url")
-  private String clothesImageUrl;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private User user;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "owner_id")
-  private User user;
+    @OneToMany(mappedBy = "cloth",cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<ClothWithAttributes> clothesWithAttributes;
 
-  @OneToMany(mappedBy = "cloth", cascade = CascadeType.ALL)
-  @Builder.Default
-  private List<ClothWithAttributes> clothesWithAttributes = new ArrayList<>();
 
-  public void addAttribute(ClothWithAttributes attributes) {
-    if (this.clothesWithAttributes == null) {
-      this.clothesWithAttributes = new ArrayList<>();
+    @Builder
+    public Cloth(UUID id, Instant createdAt, Instant updatedAt, String name, ClothType clothType,
+        String clothesImageUrl, User user, List<ClothWithAttributes> clothesWithAttributes) {
+        this.id = id;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.name = name;
+        this.clothType = clothType;
+        this.clothesImageUrl = clothesImageUrl;
+        this.user = user;
+        this.clothesWithAttributes = Optional.ofNullable(clothesWithAttributes).orElse(new ArrayList<>());
     }
-    this.clothesWithAttributes.add(attributes);
-    attributes.setClothes(this);
-  }
 
-  public void updateCloth(ClothesUpdateRequest request, List<Attribute> attributeDefs) {
-
-    this.name = request.name();
-    this.clothType = request.type();
-    this.clothesWithAttributes.clear();
-    this.applyAttribute(request.attributes(), attributeDefs);
-    updatedAt = Instant.now();
-  }
-
-  //dto로 전해주는 속성 정보들을 attribute로 변환 & cloth에 저장
-  public void applyAttribute(List<ClothesAttributeDto> dtoList, List<Attribute> attributeDefs) {
-    Map<UUID, Attribute> attrMap = attributeDefs.stream()
-        .collect(Collectors.toMap(Attribute::getId, Function.identity()));
-
-    for (ClothesAttributeDto dto : dtoList) {
-      Attribute def = attrMap.get(dto.definitionId());
-      if (def == null) {
-        throw new IllegalArgumentException("존재하지 않는 속성입니다.");
-      }
-      ClothWithAttributes attributes = ClothWithAttributes.builder()
-          .value(dto.value())
-          .attribute(def)
-          .build();
-      this.addAttribute(attributes);
+    public void addAttribute(ClothWithAttributes attributes) {
+        this.clothesWithAttributes.add(attributes);
+        attributes.setClothes(this);
     }
-  }
+
+    public void clearAttributes() {
+        this.clothesWithAttributes.clear();
+    }
+
+    public void updateCloth(String name, ClothType type) {
+        this.name = name;
+        this.clothType = type;
+    }
 }

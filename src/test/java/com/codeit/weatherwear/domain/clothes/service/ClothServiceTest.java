@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 
 
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDto;
-import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeWithDefDto;
+import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeWithDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
@@ -114,7 +114,9 @@ public class ClothServiceTest {
             ClothesDto result = sut.create(request);
             //then
             assertThat(result.getName()).isEqualTo("후드티");
+            assertThat(result.getType()).isEqualTo(ClothType.TOP);
             assertThat(result.getAttributes().get(0).value()).isEqualTo("파랑");
+            assertThat(result.getAttributes().get(1).value()).isEqualTo("S");
             verify(clothRepository, times(1)).save(any(Cloth.class));
         }
 
@@ -242,8 +244,9 @@ public class ClothServiceTest {
             ClothesDto result=sut.update(clothesId,request);
 
             //then
-            assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
+            assertThat(result.getName()).isEqualTo("빨강 후드티");
             assertThat(result.getType()).isEqualTo(ClothType.TOP);
+            assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
             verify(attributeRepository, times(1)).findAllById(any());
         }
     }
