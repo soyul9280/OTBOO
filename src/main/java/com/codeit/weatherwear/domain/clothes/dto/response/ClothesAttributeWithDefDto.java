@@ -1,4 +1,4 @@
-package com.codeit.weatherwear.domain.clothes.dto.request;
+package com.codeit.weatherwear.domain.clothes.dto.response;
 
 import java.util.List;
 import java.util.UUID;

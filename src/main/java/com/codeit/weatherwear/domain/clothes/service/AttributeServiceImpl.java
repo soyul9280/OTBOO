@@ -64,7 +64,7 @@ public class AttributeServiceImpl implements AttributeService {
     public ClothesAttributeDefDto update(UUID id, ClothesAttributeDefUpdateRequest request) {
         Attribute attributes = attributeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 속성입니다"));
-        attributes.update(request);
+        attributes.update(request.name(), request.selectValues());
         return attributeMapper.toDto(attributes);
     }
 

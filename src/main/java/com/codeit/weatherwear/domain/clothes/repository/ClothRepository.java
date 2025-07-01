@@ -8,6 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ClothRepository extends JpaRepository<Cloth, UUID> {
-    Optional<Cloth> findByName(String name);
 
 }
