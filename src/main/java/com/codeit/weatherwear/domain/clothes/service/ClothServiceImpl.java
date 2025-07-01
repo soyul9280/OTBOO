@@ -2,11 +2,13 @@ package com.codeit.weatherwear.domain.clothes.service;
 
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesCreateRequest;
+import com.codeit.weatherwear.domain.clothes.dto.request.ClothesSearchRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 
+import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
@@ -14,6 +16,8 @@ import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.response.PageResponse;
+import java.time.Instant;
 import java.util.List;
 
 import java.util.Map;
@@ -21,6 +25,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,6 +99,42 @@ public class ClothServiceImpl implements ClothService {
 
         applyAttributesToCloth(request.attributes(), attributeMap, cloth);
         return clothMapper.toDto(cloth);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<ClothesDto> searchClothes(ClothesSearchRequest request) {
+        Instant cursor = (request.cursor() != null && !request.cursor().isBlank())
+            ? Instant.parse(request.cursor()) : null;
+        UUID idAfter=request.idAfter();
+        int limit=request.limit();
+        ClothType typeEqual=request.typeEqual();
+        UUID ownerId=request.ownerId();
+
+        Slice<Cloth> clothes = clothRepository.searchCloths(cursor,idAfter,limit,typeEqual,ownerId);
+
+        List<Cloth> clothesList = clothes.getContent();
+        List<ClothesDto> data = clothesList.stream()
+            .map(clothMapper::toDto)
+            .toList();
+
+        Cloth last =
+            (clothesList.size() > 0) ? clothesList.get(clothesList.size() - 1) : null;
+
+        Instant nextCursor = (last !=null) ? last.getCreatedAt() : null;
+        UUID nextIdAfter = (last !=null) ? last.getId() : null;
+
+        Long totalCount = clothRepository.getTotalCount(ownerId, typeEqual);
+
+        return new PageResponse<>(
+            data,
+            nextCursor,
+            nextIdAfter,
+            clothes.hasNext(),
+            totalCount,
+            "createdAt",
+            "DESCENDING"
+        );
     }
 
 
