@@ -33,7 +33,7 @@ public class FeedLikeController {
       @PathVariable UUID feedId,
       @AuthenticationPrincipal CustomUserDetails userDetails
   ) {
-
+    feedLikeService.deleteFeedLike(feedId, userDetails.getUserId());
     return ResponseEntity.ok(null);
   }
 

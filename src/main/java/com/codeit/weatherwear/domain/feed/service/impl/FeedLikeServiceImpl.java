@@ -39,6 +39,7 @@ public class FeedLikeServiceImpl implements FeedLikeService {
   @Transactional
   @Override
   public FeedDto addFeedLike(UUID feedId, UUID currentUserId) {
+    log.debug("Request Add Feed Like - feedId: {}, userId: {}", feedId, currentUserId);
     User user = userRepository.findById(currentUserId).orElseThrow(UserNotFoundException::new);
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new FeedNotFoundException(feedId));
@@ -49,8 +50,10 @@ public class FeedLikeServiceImpl implements FeedLikeService {
 
     UserSummaryDto userSummaryDto = UserSummaryDto.from(feedLike.getUser());
     List<OotdDto> ootds = ootdService.findOotdByFeedId(feed.getId());
+    FeedDto feedDto = feedMapper.toDto(feed, userSummaryDto, null, ootds, true);
 
-    return feedMapper.toDto(feed, userSummaryDto, null, ootds, true);
+    log.info("Add Feed Like Success");
+    return feedDto;
   }
 
   /**
@@ -62,6 +65,7 @@ public class FeedLikeServiceImpl implements FeedLikeService {
   @Transactional
   @Override
   public void deleteFeedLike(UUID feedId, UUID currentUserId) {
+    log.debug("Request Delete Feed Like - feedId: {}, userId: {}", feedId, currentUserId);
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new FeedNotFoundException(feedId));
 
@@ -71,6 +75,7 @@ public class FeedLikeServiceImpl implements FeedLikeService {
           feedLikeRepository.delete(feedLike);
         }
     );
+    log.info("Delete Feed Like Success");
   }
 
   /**
@@ -81,12 +86,17 @@ public class FeedLikeServiceImpl implements FeedLikeService {
   @Transactional
   @Override
   public void deleteAllFeedLikeInFeed(Feed feed) {
+    log.debug("Request Delete All Feed Like - feedId: {}", feed.getId());
+
     feedLikeRepository.deleteAllByFeed(feed);
+    log.info("Delete All Likes in Feed Success");
   }
 
   @Transactional(readOnly = true)
   @Override
   public boolean isLikedByMe(Feed feed, UUID currentUserId) {
+    log.debug("Request isLikedByMe - feedId: {}, userId: {}", feed.getId(), currentUserId);
+
     User me = userRepository.findById(currentUserId).orElseThrow(UserNotFoundException::new);
     return feedLikeRepository.existsFeedLikeByFeedAndUser(feed, me);
   }
