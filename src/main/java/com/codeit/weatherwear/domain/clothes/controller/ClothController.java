@@ -10,6 +10,7 @@ import com.codeit.weatherwear.global.response.PageResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/clothes")
@@ -41,6 +43,8 @@ public class ClothController implements ClothApi {
     public ResponseEntity<ClothesDto> create(
         @Valid @RequestPart("request") ClothesCreateRequest request,
         @RequestPart(value="image",required = false) MultipartFile image) {
+        log.info("[옷 등록 요청] 옷 이름: {}, 의상 타입: {}", request.name(), request.type());
+
         ClothesDto createClothes = clothService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createClothes);
     }
@@ -54,6 +58,9 @@ public class ClothController implements ClothApi {
     @Override
     public ResponseEntity<PageResponse<ClothesDto>> searchClothes(
         @ModelAttribute @Valid ClothesSearchRequest request) {
+        log.info("[옷 목록 조회 요청] ownerId: {}, typeEqual: {}, limit: {}",
+            request.ownerId(),request.typeEqual(), request.limit());
+
         PageResponse<ClothesDto> result = clothService.searchClothes(request);
         return ResponseEntity.ok(result);
     }
@@ -75,6 +82,8 @@ public class ClothController implements ClothApi {
         @PathVariable("clothesId") UUID clothesId,
         @Valid @RequestPart("request") ClothesUpdateRequest request,
         @RequestPart(value = "image",required = false) MultipartFile image) {
+        log.info("[옷 수정 요청] ID: {}, 옷 이름: {}", clothesId, request.name());
+
         ClothesDto update = clothService.update(clothesId, request);
         return ResponseEntity.ok(update);
     }
@@ -88,6 +97,8 @@ public class ClothController implements ClothApi {
     @Override
     @DeleteMapping("/{clothesId}")
     public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {
+        log.info("[옷 삭제 요청] ID: {}", clothesId);
+
         clothService.delete(clothesId);
         return ResponseEntity.noContent().build();
     }
