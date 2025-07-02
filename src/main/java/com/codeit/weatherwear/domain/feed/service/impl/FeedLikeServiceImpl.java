@@ -44,11 +44,11 @@ public class FeedLikeServiceImpl implements FeedLikeService {
         .orElseThrow(() -> new FeedNotFoundException(feedId));
 
     FeedLike feedLike = feedLikeMapper.toEntity(feed, user);
-    FeedLike saved = feedLikeRepository.save(feedLike);
+    feedLikeRepository.save(feedLike);
     feed.increaseLikeCount();
 
     UserSummaryDto userSummaryDto = UserSummaryDto.from(feedLike.getUser());
-    List<OotdDto> ootds = ootdService.findOotdByFeedId(saved.getId());
+    List<OotdDto> ootds = ootdService.findOotdByFeedId(feed.getId());
 
     return feedMapper.toDto(feed, userSummaryDto, null, ootds, true);
   }
