@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -49,9 +50,11 @@ public class Feed {
   private String content;
 
   @Column(name = "like_count")
+  @Min(value = 0, message = "좋아요 개수는 음수가 될 수 없습니다")
   private int likeCount = 0;
 
   @Column(name = "comment_count")
+  @Min(value = 0, message = "댓글 수는 음수가 될 수 없습니다")
   private int commentCount = 0;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -71,29 +74,18 @@ public class Feed {
     this.content = content;
   }
 
-  public void updateLikeCount(int likeCount) {
-    this.likeCount = likeCount;
-  }
-
   public void increaseLikeCount() {
     this.likeCount++;
   }
 
   public void decreaseLikeCount() {
-    this.likeCount--;
-  }
-
-  public void updateCommentCount(int commentCount) {
-    this.commentCount = commentCount;
+    if (likeCount > 0) {
+      likeCount--;
+    }
   }
 
   public void increaseCommentCount() {
     this.commentCount++;
   }
-
-  public void decreaseCommentCount() {
-    this.commentCount--;
-  }
-
 
 }
