@@ -1,6 +1,8 @@
 package com.codeit.weatherwear.domain.auth.service;
 
+import com.codeit.weatherwear.domain.auth.dto.ResetPasswordRequest;
+
 public interface AuthService {
 
-    void resetPassword(String email);
+  void resetPassword(ResetPasswordRequest resetPasswordRequest);
 }
