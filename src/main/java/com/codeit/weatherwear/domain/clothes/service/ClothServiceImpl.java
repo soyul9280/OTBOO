@@ -93,7 +93,7 @@ public class ClothServiceImpl implements ClothService {
      */
     @Override
     public ClothesDto update(UUID clothesId,ClothesUpdateRequest request) {
-        Cloth cloth = clothRepository.findById(clothesId)
+        Cloth cloth = clothRepository.findByIdWithAttributes(clothesId)
             .orElseThrow(()->{
                 log.warn("[옷 수정 실패] id: {}, 수정 요청한 옷 이름: {}", clothesId, request.name());
                 return new ClothNotFoundException();
@@ -137,7 +137,7 @@ public class ClothServiceImpl implements ClothService {
         List<Cloth> clothesList = clothes.getContent();
         log.debug("[쿼리 실행 결과] 전체 개수: {}, hasNext: {}", clothesList.size(), clothes.hasNext());
 
-        //toDto : N+1문제위해 한번에 갖고오기
+        //toDto : N+1문제 해결위해 한번에 갖고오기
         List<UUID> ids = clothesList.stream()
             .map(Cloth::getId)
             .toList();
