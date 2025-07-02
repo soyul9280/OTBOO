@@ -123,7 +123,13 @@ public class ClothServiceImpl implements ClothService {
         Slice<Cloth> clothes = clothRepository.searchCloths(cursor,idAfter,limit,typeEqual,ownerId);
 
         List<Cloth> clothesList = clothes.getContent();
-        List<ClothesDto> data = clothesList.stream()
+
+        //toDto : N+1문제위해 한번에 갖고오기
+        List<UUID> ids = clothesList.stream()
+            .map(Cloth::getId)
+            .toList();
+        List<Cloth> clothesWithAttrs=clothRepository.findAllByIdWithAttributes(ids);
+        List<ClothesDto> data=clothesWithAttrs.stream()
             .map(clothMapper::toDto)
             .toList();
 
