@@ -21,7 +21,7 @@ public class FeedLikeController {
   private final FeedLikeService feedLikeService;
 
   @PostMapping
-  public ResponseEntity<FeedDto> addCommentLike(
+  public ResponseEntity<FeedDto> addFeedLike(
       @PathVariable UUID feedId,
       @AuthenticationPrincipal CustomUserDetails userDetails
   ) {
@@ -29,7 +29,7 @@ public class FeedLikeController {
   }
 
   @DeleteMapping
-  public ResponseEntity<Void> deleteCommentLike(
+  public ResponseEntity<Void> deleteFeedLike(
       @PathVariable UUID feedId,
       @AuthenticationPrincipal CustomUserDetails userDetails
   ) {
