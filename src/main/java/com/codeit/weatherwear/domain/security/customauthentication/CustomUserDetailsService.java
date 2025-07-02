@@ -11,28 +11,29 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
 
-    /**
-     * 로그인 시 email+password로 로그인하므로 email 기준으로 유저를 찾음
-     *
-     * @param email
-     * @return UserDetails
-     * @throws UsernameNotFoundException
-     */
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
-            .map(user -> new CustomUserDetails(
-                user.getId(),
-                user.getEmail(),
-                user.getPassword(),
-                user.getRole(),
-                user.isLocked())
-            )
-            .orElseThrow(
-                () -> new UsernameNotFoundException("User not found with email: " + email));
+  /**
+   * 로그인 시 email+password로 로그인하므로 email 기준으로 유저를 찾음
+   *
+   * @param email
+   * @return UserDetails
+   * @throws UsernameNotFoundException
+   */
+  @Override
+  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    return userRepository.findByEmail(email)
+        .map(user -> new CustomUserDetails(
+            user.getId(),
+            user.getEmail(),
+            user.getPassword(),
+            user.getRole(),
+            user.isLocked(),
+            user.getTempPasswordExpirationTime())
+        )
+        .orElseThrow(
+            () -> new UsernameNotFoundException("User not found with email: " + email));
 
-    }
+  }
 }

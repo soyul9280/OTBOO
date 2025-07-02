@@ -24,6 +24,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -62,9 +63,11 @@ public class Cloth {
   @JoinColumn(name = "owner_id")
   private User user;
 
+  @BatchSize(size = 100)
   @OneToMany(mappedBy = "cloth", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ClothWithAttributes> clothesWithAttributes;
 
+  public static final String FIELD_CREATED_AT = "createdAt";
 
   @Builder
   public Cloth(UUID id, Instant createdAt, Instant updatedAt, String name, ClothType clothType,
@@ -93,4 +96,5 @@ public class Cloth {
     this.name = name;
     this.clothType = type;
   }
+
 }

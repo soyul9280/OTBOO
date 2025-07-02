@@ -237,7 +237,7 @@ public class ClothServiceTest {
                 )
             );
 
-            given(clothRepository.findById(clothesId)).willReturn(Optional.of(cloth));
+            given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(Optional.of(cloth));
             given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef));
             given(mapper.toDto(any(Cloth.class))).willReturn(clothesDto);
             //when
