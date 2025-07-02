@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
@@ -93,10 +95,12 @@ class FollowRepositoryTest {
   @DisplayName("following 목록 조회 - 전체 조회")
   void getFollowing() {
     int limit = 20;
-    List<FollowDto> followings = followRepository
-        .getFollowings(alice.getId(), null, null, limit, null);
+    Slice<FollowDto> followings = followRepository
+        .getFollowings(alice.getId(), null, null, null, PageRequest.of(0, limit));
+    List<FollowDto> content = followings.getContent();
 
-    assertThat(followings)
+    assertThat(followings.hasNext()).isFalse();
+    assertThat(content)
         .hasSize(1)
         .satisfiesExactly(followDto -> {
           assertThat(followDto.follower().userId()).isEqualTo(alice.getId());
@@ -109,20 +113,24 @@ class FollowRepositoryTest {
   void getFollowingWithCursor() {
     int limit = 1;
     Instant cursor = aliceFollowBob.getCreatedAt().truncatedTo(ChronoUnit.MICROS);
-    List<FollowDto> followings = followRepository
-        .getFollowings(alice.getId(), cursor.toString(), aliceFollowBob.getId(), limit, null);
+    Slice<FollowDto> followings = followRepository
+        .getFollowings(alice.getId(), cursor.toString(), aliceFollowBob.getId(), null, PageRequest.of(0, limit));
+    List<FollowDto> content = followings.getContent();
 
-    assertThat(followings).hasSize(0);
+    assertThat(followings.hasNext()).isFalse();
+    assertThat(content).hasSize(0);
   }
 
   @Test
   @DisplayName("following 목록 조회- name")
   void getFollowingWithName() {
     int limit = 20;
-    List<FollowDto> followings = followRepository
-        .getFollowings(alice.getId(), null, null, limit, "bob");
+    Slice<FollowDto> followings = followRepository
+        .getFollowings(alice.getId(), null, null, "bob", PageRequest.of(0, limit));
+    List<FollowDto> content = followings.getContent();
 
-    assertThat(followings)
+    assertThat(followings.hasNext()).isFalse();
+    assertThat(content)
         .hasSize(1)
         .allSatisfy(following -> assertThat(following.followee().userId()).isEqualTo(bob.getId()))
         .satisfiesExactly(
@@ -134,10 +142,12 @@ class FollowRepositoryTest {
   @DisplayName("follower 목록 조회 - 전체 조회")
   void getAllFollower() {
     int limit = 20;
-    List<FollowDto> followers = followRepository
-        .getFollowers(bob.getId(), null, null, limit, null);
+    Slice<FollowDto> followers = followRepository
+        .getFollowers(bob.getId(), null, null, null, PageRequest.of(0, limit));
+    List<FollowDto> content = followers.getContent();
 
-    assertThat(followers)
+    assertThat(followers.hasNext()).isFalse();
+    assertThat(content)
         .hasSize(2)
         .allSatisfy(follower -> assertThat(follower.followee().userId()).isEqualTo(bob.getId()))
         .satisfiesExactly(
@@ -151,10 +161,12 @@ class FollowRepositoryTest {
   void getFollowerWithCursor() {
     int limit = 1;
     Instant cursor = charlieFollowBob.getCreatedAt().truncatedTo(ChronoUnit.MICROS);
-    List<FollowDto> followers = followRepository
-        .getFollowers(bob.getId(), cursor.toString(), charlieFollowBob.getId(), limit, null);
+    Slice<FollowDto> followers = followRepository
+        .getFollowers(bob.getId(), cursor.toString(), charlieFollowBob.getId(), null, PageRequest.of(0, limit));
+    List<FollowDto> content = followers.getContent();
 
-    assertThat(followers)
+    assertThat(followers.hasNext()).isFalse();
+    assertThat(content)
         .hasSize(1)
         .allSatisfy(follower -> assertThat(follower.followee().userId()).isEqualTo(bob.getId()))
         .satisfiesExactly(
@@ -166,10 +178,12 @@ class FollowRepositoryTest {
   @DisplayName("follower 목록 조회- name")
   void getFollowerWithName() {
     int limit = 20;
-    List<FollowDto> followers = followRepository
-        .getFollowers(bob.getId(), null, null, limit, "alice");
+    Slice<FollowDto> followers = followRepository
+        .getFollowers(bob.getId(), null, null, "alice", PageRequest.of(0, limit));
+    List<FollowDto> content = followers.getContent();
 
-    assertThat(followers)
+    assertThat(followers.hasNext()).isFalse();
+    assertThat(content)
         .hasSize(1)
         .allSatisfy(follower -> assertThat(follower.followee().userId()).isEqualTo(bob.getId()))
         .satisfiesExactly(

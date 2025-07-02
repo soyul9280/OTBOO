@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,32 +54,32 @@ public class FollowService {
   }
 
   public PageResponse<FollowDto> getFollowings(UUID followerId, String cursor,
-      UUID idAfter, int limit, String nameLike
+      UUID idAfter, String nameLike, Pageable pageable
   ) {
-    List<FollowDto> followings = followRepository
-        .getFollowings(followerId, cursor, idAfter, limit, nameLike);
+    Slice<FollowDto> followings = followRepository
+        .getFollowings(followerId, cursor, idAfter, nameLike, pageable);
     long totalCount = followRepository.countByFollower_Id(followerId);
 
-    return toPageResponse(followings, limit, totalCount);
+    return toPageResponse(followings, totalCount);
   }
 
   public PageResponse<FollowDto> getFollowers(UUID followeeId, String cursor,
-      UUID idAfter, int limit, String nameLike
+      UUID idAfter, String nameLike, Pageable pageable
   ) {
-    List<FollowDto> followers = followRepository
-        .getFollowers(followeeId, cursor, idAfter, limit, nameLike);
+    Slice<FollowDto> followers = followRepository
+        .getFollowers(followeeId, cursor, idAfter, nameLike, pageable);
     long totalCount = followRepository.countByFollowee_Id(followeeId);
-    return toPageResponse(followers, limit, totalCount);
+    return toPageResponse(followers, totalCount);
   }
 
-  private PageResponse<FollowDto> toPageResponse(List<FollowDto> follows, int limit, long totalCount) {
-    boolean hasNext = follows.size() > limit;
+  private PageResponse<FollowDto> toPageResponse(Slice<FollowDto> follows, long totalCount) {
+    List<FollowDto> content = follows.getContent();
+    boolean hasNext = follows.hasNext();
     Instant nextCursor = null;
     UUID nextIdAfter = null;
 
     if (hasNext) {
-      follows.remove(follows.size() - 1);
-      FollowDto followDto = follows.get(follows.size() - 1);
+      FollowDto followDto = content.get(content.size() - 1);
 
       nextCursor = followDto.createdAt();
       nextIdAfter = followDto.id();
@@ -85,7 +87,7 @@ public class FollowService {
     String sortBy = "createdAt";
 
     return new PageResponse<>(
-        follows,
+        content,
         nextCursor,
         nextIdAfter,
         hasNext,
