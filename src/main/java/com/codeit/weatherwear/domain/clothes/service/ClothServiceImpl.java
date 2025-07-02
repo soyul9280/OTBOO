@@ -16,8 +16,10 @@ import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import java.util.Map;
@@ -83,7 +85,7 @@ public class ClothServiceImpl implements ClothService {
      */
     @Override
     public ClothesDto update(UUID clothesId,ClothesUpdateRequest request) {
-        Cloth cloth = clothRepository.findById(clothesId)
+        Cloth cloth = clothRepository.findByIdWithAttributes(clothesId)
             .orElseThrow(() -> new IllegalArgumentException("의상을 찾을 수 없습니다"));
 
         List<UUID> attrIds = request.attributes().stream()
@@ -104,8 +106,15 @@ public class ClothServiceImpl implements ClothService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<ClothesDto> searchClothes(ClothesSearchRequest request) {
-        Instant cursor = (request.cursor() != null && !request.cursor().isBlank())
-            ? Instant.parse(request.cursor()) : null;
+        Instant cursor = null;
+        if(request.cursor() != null && !request.cursor().isBlank()){
+            try {
+                cursor = Instant.parse(request.cursor());
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("잘못된 커서 형식입니다.");
+            }
+        }
+
         UUID idAfter=request.idAfter();
         int limit=request.limit();
         ClothType typeEqual=request.typeEqual();
@@ -132,8 +141,8 @@ public class ClothServiceImpl implements ClothService {
             nextIdAfter,
             clothes.hasNext(),
             totalCount,
-            "createdAt",
-            "DESCENDING"
+            Cloth.FIELD_CREATED_AT,
+            SortDirection.DESCENDING.name()
         );
     }
 

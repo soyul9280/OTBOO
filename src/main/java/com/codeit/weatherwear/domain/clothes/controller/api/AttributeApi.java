@@ -48,7 +48,7 @@ public interface AttributeApi {
         @ApiResponse(
             responseCode = "200",
             description = "의상 속성 정의 목록 조회 성공",
-            content = @Content(schema = @Schema(implementation = ClothesAttributeDefDto.class))),
+            content = @Content(schema = @Schema(implementation = PageResponse.class))),
         @ApiResponse(
             responseCode = "400",
             description = "의상 속성 정의 목록 조회 실패",

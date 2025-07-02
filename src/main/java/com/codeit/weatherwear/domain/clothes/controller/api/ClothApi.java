@@ -53,7 +53,7 @@ public interface ClothApi {
         @ApiResponse(
             responseCode = "200",
             description = "옷 목록 조회 성공",
-            content = @Content(schema = @Schema(implementation = ClothesDto.class))),
+            content = @Content(schema = @Schema(implementation = PageResponse.class))),
         @ApiResponse(
             responseCode = "400",
             description = "옷 목록 조회 실패",

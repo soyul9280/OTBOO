@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -46,6 +47,7 @@ public class ClothWithAttributes {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "definition_id")
+    @BatchSize(size = 100)
     private Attribute attribute;
 
     @Builder
