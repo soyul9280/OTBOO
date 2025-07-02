@@ -1,24 +1,62 @@
 package com.codeit.weatherwear.domain.auth.service;
 
-import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
-import com.codeit.weatherwear.domain.security.service.JwtSessionService;
+import com.codeit.weatherwear.domain.auth.dto.ResetPasswordRequest;
+import com.codeit.weatherwear.domain.user.entity.User;
+import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import java.security.SecureRandom;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-    private final JwtSessionService jwtSessionService;
-    private final JwtSessionRepository jwtSessionRepository;
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final SecureRandom secureRandom = new SecureRandom();
+  private final static String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678";
 
-    // 비밀번호 초기화
-    @Override
-    public void resetPassword(String email) {
+  @Value("${resetpassword.validity-seconds}")
+  private long PASSWORD_VALIDITY_SECONDS;
 
+  // 비밀번호 초기화
+  @Transactional
+  @Override
+  public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+    String email = resetPasswordRequest.email();
+    
+    // TODO: 이메일 전송 로직 추가
+
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UserNotFoundException());
+
+    // 임시 비밀번호
+    String tempPassword = generateTempPassword();
+    String encodedTempPassword = passwordEncoder.encode(tempPassword);
+
+    // DB 업데이트
+    user.setTempPassword(encodedTempPassword, Instant.now().plusSeconds(PASSWORD_VALIDITY_SECONDS));
+
+    log.info("임시 비밀번호: {}", tempPassword);
+  }
+
+  // 임시 비밀번호 생성
+  // 8자리, 영문, 숫자
+  private String generateTempPassword() {
+    StringBuffer stringBuffer = new StringBuffer();
+    for (int i = 0; i < 8; i++) {
+      // 무작위 인덱스 반환
+      int index = secureRandom.nextInt(CHARS.length());
+      stringBuffer.append(CHARS.charAt(index));
     }
+    return stringBuffer.toString();
+  }
+
 }
