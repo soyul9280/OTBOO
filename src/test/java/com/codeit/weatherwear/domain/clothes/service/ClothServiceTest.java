@@ -16,6 +16,8 @@ import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
+import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.ClothNotFoundException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
@@ -137,8 +139,8 @@ public class ClothServiceTest {
 
             // when & then
             assertThatThrownBy(() -> sut.create(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("존재하지 않는 속성");
+                .isInstanceOf(AttributeNotFoundException.class)
+                .hasMessageContaining("속성 확인 실패");
 
             verify(clothRepository, never()).save(any());
         }
@@ -182,8 +184,8 @@ public class ClothServiceTest {
 
             // when & then
             assertThatThrownBy(() -> sut.delete(id))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("의상을 찾을 수 없습니다");
+                .isInstanceOf(ClothNotFoundException.class)
+                .hasMessageContaining("옷 확인 실패");
             verify(clothRepository, times(1)).findById(id);
             verify(clothRepository, never()).delete(any());
         }

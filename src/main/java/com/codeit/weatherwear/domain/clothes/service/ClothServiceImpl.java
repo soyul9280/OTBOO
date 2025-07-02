@@ -10,6 +10,8 @@ import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
+import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.ClothNotFoundException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
@@ -85,8 +87,8 @@ public class ClothServiceImpl implements ClothService {
      */
     @Override
     public ClothesDto update(UUID clothesId,ClothesUpdateRequest request) {
-        Cloth cloth = clothRepository.findByIdWithAttributes(clothesId)
-            .orElseThrow(() -> new IllegalArgumentException("의상을 찾을 수 없습니다"));
+        Cloth cloth = clothRepository.findById(clothesId)
+            .orElseThrow(ClothNotFoundException::new);
 
         List<UUID> attrIds = request.attributes().stream()
             .map(ClothesAttributeDto::definitionId)
@@ -161,7 +163,7 @@ public class ClothServiceImpl implements ClothService {
     @Override
     public void delete(UUID clothesId) {
         Cloth cloth = clothRepository.findById(clothesId)
-            .orElseThrow(()->new IllegalArgumentException("의상을 찾을 수 없습니다"));
+            .orElseThrow(ClothNotFoundException::new);
         clothRepository.delete(cloth);
     }
 
@@ -171,7 +173,7 @@ public class ClothServiceImpl implements ClothService {
         for (ClothesAttributeDto dto : attributeDtos) {
             Attribute attribute = attrMap.get(dto.definitionId());
             if (attribute == null) {
-                throw new IllegalArgumentException("존재하지 않는 속성입니다.");
+                throw new AttributeNotFoundException();
             }
             if(!attribute.getSelectableValues().contains(dto.value())) {
                 throw new IllegalArgumentException("선택한 속성 값이 존재하지 않습니다.");

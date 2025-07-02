@@ -5,6 +5,10 @@ import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCrea
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.domain.clothes.exception.AttributeAlreadyExistsException;
+import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameException;
+import com.codeit.weatherwear.domain.clothes.exception.SelectableDuplicateException;
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.global.request.SortDirection;
@@ -36,11 +40,11 @@ public class AttributeServiceImpl implements AttributeService {
     @Transactional
     public ClothesAttributeDefDto create(ClothesAttributeDefCreateRequest request) {
         if (attributeRepository.existsByName(request.name())) {
-            throw new IllegalArgumentException("이미 등록된 속성입니다.");
+            throw new AttributeAlreadyExistsException();
         }
         Set<String> uniqueValues = new HashSet<>(request.selectValues());
         if (uniqueValues.size() != request.selectValues().size()) {
-            throw new IllegalArgumentException("중복된 값이 입력되었습니다.");
+            throw new SelectableDuplicateException();
         }
 
         Attribute attributes = Attribute.builder()
@@ -62,10 +66,19 @@ public class AttributeServiceImpl implements AttributeService {
     @Override
     @Transactional
     public ClothesAttributeDefDto update(UUID id, ClothesAttributeDefUpdateRequest request) {
-        Attribute attributes = attributeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 속성입니다"));
-        attributes.update(request.name(), request.selectValues());
-        return attributeMapper.toDto(attributes);
+        Attribute attribute = attributeRepository.findById(id)
+            .orElseThrow(AttributeNotFoundException::new);
+        if(!attribute.getName().equals(request.name())) {
+            throw new InvalidAttributeNameException();
+        }
+
+        List<String> values = request.selectValues();
+        if(values.size() != values.stream().distinct().count()) {
+            throw new SelectableDuplicateException();
+        }
+
+        attribute.update(request.name(), values);
+        return attributeMapper.toDto(attribute);
     }
 
     /**
@@ -77,7 +90,7 @@ public class AttributeServiceImpl implements AttributeService {
     @Transactional
     public void delete(UUID id) {
         Attribute attributes = attributeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 속성입니다"));
+            .orElseThrow(AttributeNotFoundException::new);
         attributeRepository.deleteById(attributes.getId());
     }
 

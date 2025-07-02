@@ -12,6 +12,8 @@ import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.domain.clothes.exception.AttributeAlreadyExistsException;
+import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameException;
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import java.time.Instant;
@@ -79,8 +81,8 @@ public class AttributeDefServiceTest {
             //when
             //then
             assertThatThrownBy(() -> sut.create(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("이미 등록된 속성입니다.");
+                .isInstanceOf(AttributeAlreadyExistsException.class)
+                .hasMessage("속성 등록 실패");
         }
     }
 
@@ -131,8 +133,8 @@ public class AttributeDefServiceTest {
             //when
             //then
             assertThatThrownBy(() -> sut.update(id, request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당 속성명이 일치하지 않습니다.");
+                .isInstanceOf(InvalidAttributeNameException.class)
+                .hasMessage("잘못된 속성명입니다.");
             verify(attributeRepository, times(1)).findById(id);
         }
     }
