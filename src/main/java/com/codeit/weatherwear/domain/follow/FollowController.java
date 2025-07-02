@@ -7,6 +7,7 @@ import com.codeit.weatherwear.global.response.PageResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,8 +49,9 @@ public class FollowController {
       @RequestParam int limit,
       @RequestParam(required = false) String nameLike
   ) {
+    PageRequest pageable = PageRequest.of(0, limit);
     return ResponseEntity
-        .ok(followService.getFollowings(followerId, cursor, idAfter, limit, nameLike));
+        .ok(followService.getFollowings(followerId, cursor, idAfter, nameLike, pageable));
   }
 
   @GetMapping("/followers")
@@ -60,8 +62,9 @@ public class FollowController {
       @RequestParam int limit,
       @RequestParam(required = false) String nameLike
   ) {
+    PageRequest pageable = PageRequest.of(0, limit);
     return ResponseEntity
-        .ok(followService.getFollowers(followeeId, cursor, idAfter, limit, nameLike));
+        .ok(followService.getFollowers(followeeId, cursor, idAfter, nameLike, pageable));
   }
 
   @DeleteMapping("/{id}")

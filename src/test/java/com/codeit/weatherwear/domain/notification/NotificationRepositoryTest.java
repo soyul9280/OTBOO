@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
@@ -82,10 +84,12 @@ class NotificationRepositoryTest {
   @DisplayName("알림 조회")
   void find() {
     int limit = 20;
-    List<NotificationDto> notifications = notificationRepository
-        .findNotification(alice.getId(), null, null, limit);
+    Slice<NotificationDto> notifications = notificationRepository
+        .findNotification(alice.getId(), null, null, PageRequest.of(0, limit));
+    List<NotificationDto> content = notifications.getContent();
 
-    assertThat(notifications)
+    assertThat(notifications.hasNext()).isFalse();
+    assertThat(content)
         .hasSize(4)
         .allSatisfy(notification -> assertThat(notification.receiverId()).isEqualTo(alice.getId()))
         .satisfiesExactly(
@@ -100,16 +104,17 @@ class NotificationRepositoryTest {
   @DisplayName("알림 조회 - hasNext true인 경우")
   void hasNext() {
     int limit = 2;
-    List<NotificationDto> notifications = notificationRepository
-        .findNotification(alice.getId(), null, null, limit);
+    Slice<NotificationDto> notifications = notificationRepository
+        .findNotification(alice.getId(), null, null, PageRequest.of(0, limit));
+    List<NotificationDto> content = notifications.getContent();
 
-    assertThat(notifications)
-        .hasSize(3)
+    assertThat(notifications.hasNext()).isTrue();
+    assertThat(content)
+        .hasSize(2)
         .allSatisfy(notification -> assertThat(notification.receiverId()).isEqualTo(alice.getId()))
         .satisfiesExactly(
             notification -> assertThat(notification.id()).isEqualTo(notification5.getId()),
-            notification -> assertThat(notification.id()).isEqualTo(notification4.getId()),
-            notification -> assertThat(notification.id()).isEqualTo(notification3.getId())
+            notification -> assertThat(notification.id()).isEqualTo(notification4.getId())
         );
   }
 
@@ -118,10 +123,12 @@ class NotificationRepositoryTest {
   void findWithCursor() {
     int limit = 2;
     Instant cursor = notification4.getCreatedAt().truncatedTo(ChronoUnit.MICROS);
-    List<NotificationDto> notifications = notificationRepository
-        .findNotification(alice.getId(), cursor.toString(), notification4.getId(), limit);
+    Slice<NotificationDto> notifications = notificationRepository
+        .findNotification(alice.getId(), cursor.toString(), notification4.getId(), PageRequest.of(0, limit));
+    List<NotificationDto> content = notifications.getContent();
 
-    assertThat(notifications)
+    assertThat(notifications.hasNext()).isFalse();
+    assertThat(content)
         .hasSize(2)
         .allSatisfy(notification -> assertThat(notification.receiverId()).isEqualTo(alice.getId()))
         .satisfiesExactly(

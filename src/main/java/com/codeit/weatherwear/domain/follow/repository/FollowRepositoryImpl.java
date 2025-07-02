@@ -12,6 +12,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
 @RequiredArgsConstructor
 public class FollowRepositoryImpl implements FollowRepositoryCustom {
@@ -64,10 +67,10 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
   }
 
   @Override
-  public List<FollowDto> getFollowings(UUID followerId, String cursor,
-      UUID idAfter, int limit, String nameLike
+  public Slice<FollowDto> getFollowings(UUID followerId, String cursor,
+      UUID idAfter, String nameLike, Pageable pageable
   ) {
-    return queryFactory
+    List<FollowDto> data = queryFactory
         .select(Projections.constructor(FollowDto.class,
             follow.id,
             follow.createdAt,
@@ -92,15 +95,21 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
             follow.createdAt.desc(),
             follow.id.desc()
         )
-        .limit(limit + 1)
+        .limit(pageable.getPageSize() + 1)
         .fetch();
+
+    boolean hasNext = data.size() > pageable.getPageSize();
+    if (hasNext) {
+      data.remove(data.size() - 1);
+    }
+    return new SliceImpl<>(data, pageable, hasNext);
   }
 
   @Override
-  public List<FollowDto> getFollowers(UUID followeeId, String cursor,
-      UUID idAfter, int limit, String nameLike
+  public Slice<FollowDto> getFollowers(UUID followeeId, String cursor,
+      UUID idAfter, String nameLike, Pageable pageable
   ) {
-    return queryFactory
+    List<FollowDto> data = queryFactory
         .select(Projections.constructor(FollowDto.class,
             follow.id,
             follow.createdAt,
@@ -125,8 +134,15 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
             follow.createdAt.desc(),
             follow.id.desc()
         )
-        .limit(limit + 1)
+        .limit(pageable.getPageSize() + 1)
         .fetch();
+
+    boolean hasNext = data.size() > pageable.getPageSize();
+    if (hasNext) {
+      data.remove(data.size() - 1);
+    }
+
+    return new SliceImpl<>(data, pageable, hasNext);
   }
 
   private BooleanExpression followerNameLike(String nameLike) {

@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.notification;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +27,8 @@ public class NotificationController {
   ) {
     //인증 기능이 완료되면 유저의 id를 가져오는 것으로 변경
     UUID tempId = UUID.randomUUID();
-    return ResponseEntity.ok(notificationService.findNotification(tempId, cursor, idAfter, limit));
+    PageRequest pageable = PageRequest.of(0, limit);
+    return ResponseEntity.ok(notificationService.findNotification(tempId, cursor, idAfter, pageable));
   }
 
   @DeleteMapping("/{id}")
