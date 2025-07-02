@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,11 +37,11 @@ public class NotificationService {
     return NotificationDto.from(notification);
   }
 
-  public PageResponse<NotificationDto> findNotification(UUID receiverId, String cursor, UUID idAfter, int limit) {
-    List<NotificationDto> dtos = notificationRepository
-        .findNotification(receiverId, cursor, idAfter, limit);
+  public PageResponse<NotificationDto> findNotification(UUID receiverId, String cursor, UUID idAfter, Pageable pageable) {
+    Slice<NotificationDto> dtos = notificationRepository
+        .findNotification(receiverId, cursor, idAfter, pageable);
     long totalCount = notificationRepository.countByReceiverId(receiverId);
-    return toPageResponse(dtos, limit, totalCount);
+    return toPageResponse(dtos, totalCount);
   }
 
   @Transactional
@@ -50,14 +52,14 @@ public class NotificationService {
     });
   }
 
-  private PageResponse<NotificationDto> toPageResponse(List<NotificationDto> notifications, int limit, long totalCount) {
-    boolean hasNext = notifications.size() > limit;
+  private PageResponse<NotificationDto> toPageResponse(Slice<NotificationDto> notifications, long totalCount) {
+    List<NotificationDto> content = notifications.getContent();
+    boolean hasNext = notifications.hasNext();
     Instant nextCursor = null;
     UUID nextIdAfter = null;
 
     if (hasNext) {
-      notifications.remove(notifications.size() - 1);
-      NotificationDto notification = notifications.get(notifications.size() - 1);
+      NotificationDto notification = content.get(content.size() - 1);
 
       nextCursor = notification.createdAt();
       nextIdAfter = notification.id();
@@ -65,7 +67,7 @@ public class NotificationService {
     String sortBy = "createdAt";
 
     return new PageResponse<>(
-        notifications,
+        content,
         nextCursor,
         nextIdAfter,
         hasNext,
