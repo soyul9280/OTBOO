@@ -56,8 +56,7 @@ public class Attribute {
         this.selectableValues = selectableValues;
     }
 
-    public void update(String name, List<String> selectableValues) {
-        this.selectableValues.clear();
-        this.selectableValues=new ArrayList<>(selectableValues);
+    public void update(List<String> selectableValues) {
+        this.selectableValues.add(selectableValues.get(0));
     }
 }

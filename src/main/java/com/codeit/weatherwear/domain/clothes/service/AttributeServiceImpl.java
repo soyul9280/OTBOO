@@ -84,7 +84,7 @@ public class AttributeServiceImpl implements AttributeService {
         }}
 
         log.debug("[속성 정의 수정] name: {}, 변경 전 values: {}", attribute.getName(), attribute.getSelectableValues());
-        attribute.update(request.name(), request.selectValues());
+        attribute.update(request.selectValues());
 
         log.info("[속성 정의 수정 완료] ID : {}, name: {}, values: {}", id, attribute.getName(), attribute.getSelectableValues());
         return attributeMapper.toDto(attribute);
