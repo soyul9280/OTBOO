@@ -13,9 +13,7 @@ import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,14 +39,10 @@ public class AttributeServiceImpl implements AttributeService {
     @Override
     @Transactional
     public ClothesAttributeDefDto create(ClothesAttributeDefCreateRequest request) {
+
         if (attributeRepository.existsByName(request.name())) {
             log.warn("[속성 정의 등록 실패] 이미 존재하는 속성명 : {}", request.name());
             throw new AttributeAlreadyExistsException();
-        }
-        Set<String> uniqueValues = new HashSet<>(request.selectValues());
-        if (uniqueValues.size() != request.selectValues().size()) {
-            log.warn("[속성 정의 등록 실패] 중복된 속성값: {}", request.selectValues());
-            throw new SelectableDuplicateException();
         }
 
         Attribute attribute = Attribute.builder()
@@ -81,15 +75,13 @@ public class AttributeServiceImpl implements AttributeService {
             log.warn("[속성 정의 수정 실패] 존재하지 않는 속성명이거나 속성명 요청이 잘못되었습니다. ID : {}", id);
             throw new InvalidAttributeNameException();
         }
-
-        List<String> values = request.selectValues();
-        if(values.size() != values.stream().distinct().count()) {
-            log.warn("[속성 정의 수정 실패] 중복된 속성 값들을 입력하였습니다. ID : {}", id);
+        if(attribute.getSelectableValues().contains(request.selectValues())) {
+            log.warn("[속성 정의 수정 실패] 중복된 속성 값을 입력하였습니다. ID : {}", id);
             throw new SelectableDuplicateException();
         }
 
         log.debug("[속성 정의 수정] name: {}, 변경 전 values: {}", attribute.getName(), attribute.getSelectableValues());
-        attribute.update(request.name(), values);
+        attribute.update(request.name(), request.selectValues());
 
         log.info("[속성 정의 수정 완료] ID : {}, name: {}, values: {}", id, attribute.getName(), attribute.getSelectableValues());
         return attributeMapper.toDto(attribute);
