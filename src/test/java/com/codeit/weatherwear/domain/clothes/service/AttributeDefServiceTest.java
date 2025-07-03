@@ -100,11 +100,11 @@ public class AttributeDefServiceTest {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .name("색상")
-                .selectableValues(new ArrayList<>(List.of("빨강", "파랑"))).build();
+                .selectableValues(new ArrayList<>(List.of("빨강"))).build();
             given(attributeRepository.findById(id)).willReturn(Optional.of(attributes));
 
             ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("색상",
-                List.of("빨강", "노랑"));
+                List.of("노랑"));
             given(attributeMapper.toDto(attributes))
                 .willReturn(new ClothesAttributeDefDto(id, "색상", List.of("빨강", "노랑")));
             //when
