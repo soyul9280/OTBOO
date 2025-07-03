@@ -60,6 +60,7 @@ public class FeedController {
   }
 
   // 피드 삭제
+  @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isFeedAuthor(#feedId, authentication.principal.userId)")
   @DeleteMapping("/{feedId}")
   public ResponseEntity<FeedDto> deleteFeed(@PathVariable UUID feedId,
       @AuthenticationPrincipal CustomUserDetails userDetails) {

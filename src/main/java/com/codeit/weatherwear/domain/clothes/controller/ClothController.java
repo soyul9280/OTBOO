@@ -97,6 +97,7 @@ public class ClothController implements ClothApi {
    * @return
    */
   @Override
+  @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isClothOwner(#clothesId, authentication.principal.userId)")
   @DeleteMapping("/{clothesId}")
   public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {
     log.info("[옷 삭제 요청] ID: {}", clothesId);
