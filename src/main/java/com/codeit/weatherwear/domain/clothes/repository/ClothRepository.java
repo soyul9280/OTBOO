@@ -14,10 +14,13 @@ public interface ClothRepository extends JpaRepository<Cloth, UUID>, ClothReposi
 
   @EntityGraph(attributePaths = {"clothesWithAttributes", "clothesWithAttributes.attribute"})
   @Query("SELECT c FROM Cloth c WHERE c.id = :id")
-  Optional<Cloth> findByIdWithAttributes(UUID id);
+  Optional<Cloth> findByIdWithAttributes(UUID clothId);
 
   @EntityGraph(attributePaths = {"clothesWithAttributes", "clothesWithAttributes.attribute"})
   @Query("SELECT c FROM Cloth c WHERE c.id IN :ids")
-  List<Cloth> findAllByIdWithAttributes(List<UUID> ids);
+  List<Cloth> findAllByIdWithAttributes(List<UUID> clothIds);
 
+  @EntityGraph(attributePaths = {"clothesWithAttributes", "clothesWithAttributes.attribute"})
+  @Query("SELECT c FROM Cloth c WHERE c.user.id IN :userId")
+  List<Cloth> findAllWithAttributesByUserId(UUID userId);
 }
