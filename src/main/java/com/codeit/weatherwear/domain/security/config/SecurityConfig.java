@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.security.config;
 
+import com.codeit.weatherwear.domain.security.SecurityRequestMatcher;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationFailureHandler;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationFilter;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationSuccessHandler;
@@ -11,7 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,9 +43,9 @@ public class SecurityConfig {
 
     httpSecurity
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.POST, "/api/users").permitAll() //회원가입
+            .requestMatchers(SecurityRequestMatcher.PUBLIC_MATCHERS).permitAll()
             .requestMatchers("/api/**").hasRole("USER")
-            .anyRequest().permitAll()
+            .anyRequest().authenticated()
         )
         .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(jwtAuthenticationFilter, CustomAuthenticationFilter.class)
