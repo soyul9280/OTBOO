@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -30,78 +31,79 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/clothes")
 public class ClothController implements ClothApi {
 
-    private final ClothService clothService;
+  private final ClothService clothService;
 
-    /**
-     * 의상을 등록합니다.
-     *
-     * @param request 등록 의상 정보
-     * @return
-     */
-    @Override
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<ClothesDto> create(
-        @Valid @RequestPart("request") ClothesCreateRequest request,
-        @RequestPart(value="image",required = false) MultipartFile image) {
-        log.info("[옷 등록 요청] 옷 이름: {}, 의상 타입: {}", request.name(), request.type());
+  /**
+   * 의상을 등록합니다.
+   *
+   * @param request 등록 의상 정보
+   * @return
+   */
+  @Override
+  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public ResponseEntity<ClothesDto> create(
+      @Valid @RequestPart("request") ClothesCreateRequest request,
+      @RequestPart(value = "image", required = false) MultipartFile image) {
+    log.info("[옷 등록 요청] 옷 이름: {}, 의상 타입: {}", request.name(), request.type());
 
-        ClothesDto createClothes = clothService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createClothes);
-    }
+    ClothesDto createClothes = clothService.create(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(createClothes);
+  }
 
-    /**
-     * 의상을 조회합니다.
-     *
-     * @param request 조회조건
-     * @return
-     */
-    @Override
-    public ResponseEntity<PageResponse<ClothesDto>> searchClothes(
-        @ModelAttribute @Valid ClothesSearchRequest request) {
-        log.info("[옷 목록 조회 요청] ownerId: {}, typeEqual: {}, limit: {}",
-            request.ownerId(),request.typeEqual(), request.limit());
+  /**
+   * 의상을 조회합니다.
+   *
+   * @param request 조회조건
+   * @return
+   */
+  @Override
+  public ResponseEntity<PageResponse<ClothesDto>> searchClothes(
+      @ModelAttribute @Valid ClothesSearchRequest request) {
+    log.info("[옷 목록 조회 요청] ownerId: {}, typeEqual: {}, limit: {}",
+        request.ownerId(), request.typeEqual(), request.limit());
 
-        PageResponse<ClothesDto> result = clothService.searchClothes(request);
-        return ResponseEntity.ok(result);
-    }
+    PageResponse<ClothesDto> result = clothService.searchClothes(request);
+    return ResponseEntity.ok(result);
+  }
 
 
-    /**
-     * 의상을 수정합니다.
-     *
-     * @param clothesId 수정 요청 ID
-     * @param request 수정 요청 DTO
-     * @param image 수정 요청 이미지
-     * @return
-     */
-    @Override
-    @PatchMapping(
-        value = "/{clothesId}"
-        ,consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<ClothesDto> update(
-        @PathVariable("clothesId") UUID clothesId,
-        @Valid @RequestPart("request") ClothesUpdateRequest request,
-        @RequestPart(value = "image",required = false) MultipartFile image) {
-        log.info("[옷 수정 요청] ID: {}, 옷 이름: {}", clothesId, request.name());
+  /**
+   * 의상을 수정합니다.
+   *
+   * @param clothesId 수정 요청 ID
+   * @param request   수정 요청 DTO
+   * @param image     수정 요청 이미지
+   * @return
+   */
+  @Override
+  @PreAuthorize("@authorizationEvaluator.isClothOwner(#clothesId, authentication.principal.userId)")
+  @PatchMapping(
+      value = "/{clothesId}"
+      , consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public ResponseEntity<ClothesDto> update(
+      @PathVariable("clothesId") UUID clothesId,
+      @Valid @RequestPart("request") ClothesUpdateRequest request,
+      @RequestPart(value = "image", required = false) MultipartFile image) {
+    log.info("[옷 수정 요청] ID: {}, 옷 이름: {}", clothesId, request.name());
 
-        ClothesDto update = clothService.update(clothesId, request);
-        return ResponseEntity.ok(update);
-    }
+    ClothesDto update = clothService.update(clothesId, request);
+    return ResponseEntity.ok(update);
+  }
 
-    /**
-     * 의상을 삭제합니다.
-     *
-     * @param clothesId 의상 ID
-     * @return
-     */
-    @Override
-    @DeleteMapping("/{clothesId}")
-    public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {
-        log.info("[옷 삭제 요청] ID: {}", clothesId);
+  /**
+   * 의상을 삭제합니다.
+   *
+   * @param clothesId 의상 ID
+   * @return
+   */
+  @Override
+  @DeleteMapping("/{clothesId}")
+  public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {
+    log.info("[옷 삭제 요청] ID: {}", clothesId);
 
-        clothService.delete(clothesId);
-        return ResponseEntity.noContent().build();
-    }
+    clothService.delete(clothesId);
+    return ResponseEntity.noContent().build();
+  }
 
 
 }

@@ -48,7 +48,7 @@ public class UserController {
     ProfileDto result = userService.findProfile(userId);
     return ResponseEntity.ok(result);
   }
-  
+
   @GetMapping("")
   public ResponseEntity<PageResponse> searchUsers(
       @ModelAttribute @Valid UserSearchRequest userSearchRequest) {
@@ -56,6 +56,7 @@ public class UserController {
     return ResponseEntity.ok(result);
   }
 
+  @PreAuthorize("#userId == principal.userId")
   @PatchMapping(value = "/{userId}/profiles", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ProfileDto> updateProfile(
       @PathVariable UUID userId,
@@ -74,6 +75,7 @@ public class UserController {
     return ResponseEntity.ok(result);
   }
 
+  @PreAuthorize("#userId == principal.userId")
   @PatchMapping("/{userId}/password")
   public ResponseEntity<Void> updatePassword(@PathVariable UUID userId,
       @Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
