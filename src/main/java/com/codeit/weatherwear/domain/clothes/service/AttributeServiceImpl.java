@@ -75,10 +75,13 @@ public class AttributeServiceImpl implements AttributeService {
             log.warn("[속성 정의 수정 실패] 존재하지 않는 속성명이거나 속성명 요청이 잘못되었습니다. ID : {}", id);
             throw new InvalidAttributeNameException();
         }
-        if(attribute.getSelectableValues().contains(request.selectValues())) {
+        boolean hasDuplicates = request.selectValues().stream()
+            .anyMatch(attribute.getSelectableValues()::contains);
+
+        if(hasDuplicates) { {
             log.warn("[속성 정의 수정 실패] 중복된 속성 값을 입력하였습니다. ID : {}", id);
             throw new SelectableDuplicateException();
-        }
+        }}
 
         log.debug("[속성 정의 수정] name: {}, 변경 전 values: {}", attribute.getName(), attribute.getSelectableValues());
         attribute.update(request.name(), request.selectValues());
@@ -86,6 +89,7 @@ public class AttributeServiceImpl implements AttributeService {
         log.info("[속성 정의 수정 완료] ID : {}, name: {}, values: {}", id, attribute.getName(), attribute.getSelectableValues());
         return attributeMapper.toDto(attribute);
     }
+
 
     /**
      * 속성 삭제
