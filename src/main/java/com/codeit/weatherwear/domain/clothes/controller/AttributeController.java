@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -28,68 +29,71 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/clothes/attribute-defs")
 public class AttributeController implements AttributeApi {
-    private final AttributeService service;
 
-    /**
-     * 새로운 의상 속성을 등록합니다.
-     *
-     * @param request 속성 정보(이름, 후보값들)
-     * @return 201 400
-     */
-    @Override
-    @PostMapping
-    public ResponseEntity<ClothesAttributeDefDto> create(@Valid @RequestBody ClothesAttributeDefCreateRequest request) {
-        log.info("[속성 정의 등록 요청] 속성명: {}", request.name());
+  private final AttributeService service;
 
-        ClothesAttributeDefDto createAttribute = service.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createAttribute);
-    }
+  /**
+   * 새로운 의상 속성을 등록합니다.
+   *
+   * @param request 속성 정보(이름, 후보값들)
+   * @return 201 400
+   */
+  @Override
+  @PreAuthorize("hasRole('ADMIN')")
+  @PostMapping
+  public ResponseEntity<ClothesAttributeDefDto> create(
+      @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
+    log.info("[속성 정의 등록 요청] 속성명: {}", request.name());
 
-    /**
-     * 의상 속성을 수정합니다.
-     *
-     * @param definitionId,request 속성 정보(이름, 후보값들)
-     * @return 200 400
-     */
-    @Override
-    @PatchMapping("/{definitionId}")
-    public ResponseEntity<ClothesAttributeDefDto> update(
-        @PathVariable UUID definitionId,
-        @Valid @RequestBody ClothesAttributeDefUpdateRequest request) {
-        log.info("[속성 정의 수정 요청] ID: {}, 속성명: {}", definitionId, request.name());
+    ClothesAttributeDefDto createAttribute = service.create(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(createAttribute);
+  }
 
-        ClothesAttributeDefDto updateAttribute = service.update(definitionId, request);
-        return ResponseEntity.status(HttpStatus.OK).body(updateAttribute);
-    }
+  /**
+   * 의상 속성을 수정합니다.
+   *
+   * @param definitionId,request 속성 정보(이름, 후보값들)
+   * @return 200 400
+   */
+  @Override
+  @PatchMapping("/{definitionId}")
+  public ResponseEntity<ClothesAttributeDefDto> update(
+      @PathVariable UUID definitionId,
+      @Valid @RequestBody ClothesAttributeDefUpdateRequest request) {
+    log.info("[속성 정의 수정 요청] ID: {}, 속성명: {}", definitionId, request.name());
 
-    /**
-     * 의상 속성을 삭제합니다.
-     *
-     * @param definitionId
-     * @return 204 400
-     */
-    @Override
-    @DeleteMapping("/{definitionId}")
-    public ResponseEntity<Void> delete(@PathVariable UUID definitionId) {
-        log.info("[속성 정의 삭제 요청] ID: {}", definitionId);
-        service.delete(definitionId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
+    ClothesAttributeDefDto updateAttribute = service.update(definitionId, request);
+    return ResponseEntity.status(HttpStatus.OK).body(updateAttribute);
+  }
 
-    /**
-     * 의상 속성을 조회합니다.
-     *
-     * @param request 조회 조건
-     * @return 200 400
-     */
-    @Override
-    @GetMapping
-    public ResponseEntity<PageResponse<ClothesAttributeDefDto>> searchAttributes(
-        @ModelAttribute @Valid AttributesSearchRequest request) {
-        log.info("[속성 정의 목록 조회 요청] keyword: {}, sortBy: {}, direction: {}, limit: {}",
-            request.keywordLike(), request.sortBy(), request.sortDirection(), request.limit());
+  /**
+   * 의상 속성을 삭제합니다.
+   *
+   * @param definitionId
+   * @return 204 400
+   */
+  @Override
+  @DeleteMapping("/{definitionId}")
+  public ResponseEntity<Void> delete(@PathVariable UUID definitionId) {
+    log.info("[속성 정의 삭제 요청] ID: {}", definitionId);
+    service.delete(definitionId);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
 
-        PageResponse<ClothesAttributeDefDto> result = service.searchAttributes(request);
-        return ResponseEntity.ok(result);
-    }
+  /**
+   * 의상 속성을 조회합니다.
+   *
+   * @param request 조회 조건
+   * @return 200 400
+   */
+  @Override
+  @GetMapping
+  public ResponseEntity<PageResponse<ClothesAttributeDefDto>> searchAttributes(
+      @ModelAttribute @Valid AttributesSearchRequest request) {
+    log.info("[속성 정의 목록 조회 요청] keyword: {}, sortBy: {}, direction: {}, limit: {}",
+        request.keywordLike(), request.sortBy(), request.sortDirection(), request.limit());
+
+    PageResponse<ClothesAttributeDefDto> result = service.searchAttributes(request);
+    return ResponseEntity.ok(result);
+  }
 }

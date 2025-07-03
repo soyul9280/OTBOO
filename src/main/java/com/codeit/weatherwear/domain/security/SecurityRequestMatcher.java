@@ -30,11 +30,10 @@ public class SecurityRequestMatcher {
   public static final RequestMatcher RESET_PASSWORD = new AntPathRequestMatcher(
       "/api/auth/reset-password", HttpMethod.POST.name());
 
-
   // 토큰 재발급
   public static final RequestMatcher REFRESH = new AntPathRequestMatcher("/api/auth/refresh",
       HttpMethod.POST.name());
-
+  
   public static final RequestMatcher[] PUBLIC_MATCHERS = new RequestMatcher[]{
       NON_API, SIGN_UP, SIGN_IN, SIGN_OUT, RESET_PASSWORD, REFRESH
   };
