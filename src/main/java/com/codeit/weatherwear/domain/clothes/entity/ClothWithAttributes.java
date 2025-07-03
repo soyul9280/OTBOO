@@ -38,6 +38,7 @@ public class ClothWithAttributes {
     @Column(updatable = true)
     private Instant updatedAt;
 
+    @Column(name = "\"value\"")
     private String value;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,3 +65,4 @@ public class ClothWithAttributes {
         this.cloth = cloth;
     }
 }
+
