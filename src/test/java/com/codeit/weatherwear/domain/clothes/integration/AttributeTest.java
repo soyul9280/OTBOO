@@ -1,14 +1,17 @@
 package com.codeit.weatherwear.domain.clothes.integration;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.global.config.JpaConfig;
+import com.codeit.weatherwear.global.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,41 +28,47 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(JpaConfig.class)
+@Import({JpaConfig.class, TestSecurityConfig.class})
 public class AttributeTest {
 
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-    @Autowired
-    private AttributeRepository repository;
+  @Autowired
+  private ObjectMapper objectMapper;
+  @Autowired
+  private TestRestTemplate restTemplate;
+  @Autowired
+  private AttributeRepository repository;
 
-    @Autowired
-    private EntityManager em;
+  @Autowired
+  private EntityManager em;
 
-    @Test
-    @DisplayName("속성 생성 - 성공")
-    @Transactional
-    void create_success() throws Exception {
-        //given
-        ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(
-            "색상",
-            List.of("빨강", "파랑"));
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        String json = objectMapper.writeValueAsString(request);
-        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+  @BeforeEach
+  void setUp() {
+    restTemplate = restTemplate.withBasicAuth("user", "password");
+  }
 
-        //when
-        ResponseEntity<ClothesAttributeDefDto> response = restTemplate.postForEntity(
-            "/api/clothes/attribute-defs", requestEntity, ClothesAttributeDefDto.class);
-        //then
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody().id());
-        assertEquals("색상", response.getBody().name());
-        assertEquals(List.of("빨강","파랑"), response.getBody().selectableValues());
-    }
+
+  @Test
+  @DisplayName("속성 생성 - 성공")
+  @Transactional
+  void create_success() throws Exception {
+    //given
+    ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(
+        "색상",
+        List.of("빨강", "파랑"));
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String json = objectMapper.writeValueAsString(request);
+    HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+
+    //when
+    ResponseEntity<ClothesAttributeDefDto> response = restTemplate.postForEntity(
+        "/api/clothes/attribute-defs", requestEntity, ClothesAttributeDefDto.class);
+    //then
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertNotNull(response.getBody().id());
+    assertEquals("색상", response.getBody().name());
+    assertEquals(List.of("빨강", "파랑"), response.getBody().selectableValues());
+  }
 
 
     /* TODO : 트랜잭션 문제 해결방법 고민하기

@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.security.config;
 
+import com.codeit.weatherwear.domain.security.SecurityRequestMatcher;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationFailureHandler;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationFilter;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthenticationSuccessHandler;
@@ -11,7 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -25,85 +27,88 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@Profile("!test")
 public class SecurityConfig {
 
-    @Bean
-    @Profile("!test")
-    SecurityFilterChain chain(HttpSecurity httpSecurity,
-        CustomAuthenticationFilter customAuthenticationFilter,
-        JwtAuthenticationFilter jwtAuthenticationFilter,
-        JwtLogoutHandler jwtLogoutHandler) throws Exception {
+  @Bean
+  SecurityFilterChain chain(HttpSecurity httpSecurity,
+      CustomAuthenticationFilter customAuthenticationFilter,
+      JwtAuthenticationFilter jwtAuthenticationFilter,
+      JwtLogoutHandler jwtLogoutHandler) throws Exception {
 
-        httpSecurity
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/api/users").permitAll() //회원가입
-                // TODO: 일단은 모든 요청 허용
-                .anyRequest().permitAll()
-            )
-            .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(jwtAuthenticationFilter, CustomAuthenticationFilter.class)
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            // TODO: csrf 활성화
-            .csrf(csrf -> csrf.disable())
-            .logout(logout -> logout
-                .logoutRequestMatcher(
-                    new AntPathRequestMatcher("/api/auth/sign-out"))
-                .logoutSuccessUrl("/") // 홈으로
-                .deleteCookies("refresh_token")    // 쿠키 삭제
-                .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
-            );
-        ;
-        return httpSecurity.build();
-    }
+    httpSecurity
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(SecurityRequestMatcher.PUBLIC_MATCHERS).permitAll()
+            .requestMatchers("/api/**").hasRole("USER")
+            .anyRequest().authenticated()
+        )
+        .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterAfter(jwtAuthenticationFilter, CustomAuthenticationFilter.class)
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        // TODO: csrf 활성화
+        .csrf(csrf -> csrf.disable())
+        .logout(logout -> logout
+            .logoutRequestMatcher(SecurityRequestMatcher.SIGN_OUT)
+            .logoutSuccessUrl("/") // 홈으로
+            .deleteCookies("refresh_token")    // 쿠키 삭제
+            .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
+        );
+    ;
+    return httpSecurity.build();
+  }
 
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-        CustomUserDetailsService customUserDetailsService) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(customUserDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return new ProviderManager(provider);
-    }
+  @Bean
+  public AuthenticationManager authenticationManager(
+      CustomUserDetailsService customUserDetailsService) {
+    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+    provider.setUserDetailsService(customUserDetailsService);
+    provider.setPasswordEncoder(passwordEncoder());
+    return new ProviderManager(provider);
+  }
 
-    @Bean
-    public CustomAuthenticationFilter customAuthenticationFilter(
-        ObjectMapper objectMapper,
-        AuthenticationSuccessHandler authenticationSuccessHandler,
-        AuthenticationFailureHandler authenticationFailureHandler,
-        AuthenticationManager authenticationManager) {
+  @Bean
+  public CustomAuthenticationFilter customAuthenticationFilter(
+      ObjectMapper objectMapper,
+      AuthenticationSuccessHandler authenticationSuccessHandler,
+      AuthenticationFailureHandler authenticationFailureHandler,
+      AuthenticationManager authenticationManager) {
 
-        CustomAuthenticationFilter filter = new CustomAuthenticationFilter(objectMapper);
-        // handler 설정
-        filter.setAuthenticationSuccessHandler(authenticationSuccessHandler);
-        filter.setAuthenticationFailureHandler(authenticationFailureHandler);
-        // /api/auth/sign-in 경로에 적용
-        filter.setFilterProcessesUrl("/api/auth/sign-in");
-        // authenticationManager 지정
-        filter.setAuthenticationManager(authenticationManager);
-        return filter;
-    }
+    CustomAuthenticationFilter filter = new CustomAuthenticationFilter(objectMapper);
+    // handler 설정
+    filter.setAuthenticationSuccessHandler(authenticationSuccessHandler);
+    filter.setAuthenticationFailureHandler(authenticationFailureHandler);
+    // /api/auth/sign-in 경로에 적용
+    filter.setFilterProcessesUrl("/api/auth/sign-in");
+    // authenticationManager 지정
+    filter.setAuthenticationManager(authenticationManager);
+    return filter;
+  }
 
-    @Bean
-    public AuthenticationSuccessHandler customAuthenticationSuccessHandler(
-        ObjectMapper objectMapper, JwtSessionService jwtSessionService) {
-        return new CustomAuthenticationSuccessHandler(objectMapper, jwtSessionService);
-    }
+  @Bean
+  public AuthenticationSuccessHandler customAuthenticationSuccessHandler(
+      ObjectMapper objectMapper, JwtSessionService jwtSessionService) {
+    return new CustomAuthenticationSuccessHandler(objectMapper, jwtSessionService);
+  }
 
-    @Bean
-    public AuthenticationFailureHandler customAuthenticationFailureHandler(
-        ObjectMapper objectMapper) {
-        return new CustomAuthenticationFailureHandler(objectMapper);
-    }
+  @Bean
+  public AuthenticationFailureHandler customAuthenticationFailureHandler(
+      ObjectMapper objectMapper) {
+    return new CustomAuthenticationFailureHandler(objectMapper);
+  }
+
+  @Bean
+  public RoleHierarchy roleHierarchy() {
+    return RoleHierarchyImpl.fromHierarchy("ROLE_ADMIN > ROLE_USER");
+  }
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -32,7 +33,8 @@ public class GlobalExceptionHandler {
     log.error("GlobalExceptionHandler catch NoHandlerFoundException : ", e);
     return ResponseEntity
         .status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus())
-        .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, e,Map.of("reason", "No handler or unsupported method")));
+        .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, e,
+            Map.of("reason", "No handler or unsupported method")));
   }
 
   /**
@@ -45,7 +47,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<?> handleCustomException(CustomException e) {
     log.error("handleCustomException() in GlobalExceptionHandler throw CustomException : {}",
         e.getMessage());
-    ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode(),e,
+    ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode(), e,
         e.getDetails());
     return ResponseEntity
         .status(e.getErrorCode().getStatus())
@@ -64,7 +66,8 @@ public class GlobalExceptionHandler {
     log.error("handleCustomException() in GlobalExceptionHandler throw Exception : ", e);
     return ResponseEntity
         .status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus())
-        .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, e,Map.of("reason", "Unexpected error")));
+        .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, e,
+            Map.of("reason", "Unexpected error")));
   }
 
   // Validation 예외
@@ -83,8 +86,19 @@ public class GlobalExceptionHandler {
     log.warn("Validation Failed: {}", errors);
     return ResponseEntity
         .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
-        .body(ErrorResponse.of(ErrorCode.INVALID_INPUT_VALUE,e, Map.of("validationError", errors)));
+        .body(
+            ErrorResponse.of(ErrorCode.INVALID_INPUT_VALUE, e, Map.of("validationError", errors)));
   }
 
+  /**
+   * 권한 거부 예외
+   */
+  @ExceptionHandler
+  public ResponseEntity<?> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+    return ResponseEntity
+        .status(ErrorCode.AUTHORIZATION_DENIED.getStatus())
+        .body(ErrorResponse.of(ErrorCode.AUTHORIZATION_DENIED, e,
+            Map.of("reason", "Authorization Denied")));
+  }
 
 }
