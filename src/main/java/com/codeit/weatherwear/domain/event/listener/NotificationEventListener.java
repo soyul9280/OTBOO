@@ -87,7 +87,7 @@ public class NotificationEventListener {
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleNewFeedCommentEvent(NewFeedCommentEvent event) {
-    String title = String.format("%s님이 댓글을 달앗어요.", event.authorName());
+    String title = String.format("%s님이 댓글을 달았어요.", event.authorName());
     String content = event.commentContent();
 
     notificationService.create(
