@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Repository;
@@ -23,14 +21,6 @@ public class SseEmitterRepository {
 
   public List<SseEmitter> findByReceiverId(UUID receiverId) {
     return data.getOrDefault(receiverId, Collections.emptyList());
-  }
-
-  public List<SseEmitter> findAllByReceiverIds(Set<UUID> receiverIds) {
-    return data.entrySet().stream()
-        .filter(entry -> receiverIds.contains(entry.getKey()))
-        .map(Entry::getValue)
-        .flatMap(List::stream)
-        .toList();
   }
 
   public List<SseEmitter> findAll() {

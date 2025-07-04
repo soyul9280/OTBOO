@@ -64,32 +64,6 @@ public class SseService {
         });
   }
 
-  public void send(Set<UUID> receiverIds, NotificationDto data) {
-    SseMessage sseMessage = sseMessageRepository.save(SseMessage.createBroadcast(receiverIds, data));
-    Set<DataWithMediaType> event = sseMessage.toEvent();
-    sseEmitterRepository.findAllByReceiverIds(receiverIds)
-        .forEach(sseEmitter -> {
-          try {
-            sseEmitter.send(event);
-          } catch (IOException e) {
-            log.error(e.getMessage(), e);
-          }
-        });
-  }
-
-  public void broadcast(NotificationDto data) {
-    SseMessage sseMessage = sseMessageRepository.save(SseMessage.createBroadcast(data));
-    Set<DataWithMediaType> event = sseMessage.toEvent();
-    sseEmitterRepository.findAll()
-        .forEach(sseEmitter -> {
-          try {
-            sseEmitter.send(event);
-          } catch (IOException e) {
-            log.error(e.getMessage(), e);
-          }
-        });
-  }
-
   @Scheduled(cron = "0 */30 * * * *")
   public void clean() {
     Set<DataWithMediaType> ping = SseEmitter.event()

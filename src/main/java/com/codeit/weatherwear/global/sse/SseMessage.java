@@ -29,24 +29,6 @@ public class SseMessage {
     );
   }
 
-  public static SseMessage createBroadcast(Set<UUID> receiverIds, NotificationDto eventData) {
-    return new SseMessage(
-        UUID.randomUUID(),
-        receiverIds,
-        false,
-        eventData
-    );
-  }
-
-  public static SseMessage createBroadcast(NotificationDto eventData) {
-    return new SseMessage(
-        UUID.randomUUID(),
-        Set.of(),
-        true,
-        eventData
-    );
-  }
-
   public boolean isReceivable(UUID receiverId) {
     return isBroadcast || receiverIds.contains(receiverId);
   }
