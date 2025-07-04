@@ -37,6 +37,18 @@ public class NotificationService {
     return NotificationDto.from(notification);
   }
 
+  @Transactional
+  public List<NotificationDto> create(List<UUID> receiverIds, String title, String content, Level level) {
+    List<Notification> notifications = receiverIds.stream()
+        .map(receiverId -> Notification.create(receiverId, title, content, level))
+        .toList();
+
+    notificationRepository.saveAll(notifications);
+    return notifications.stream()
+        .map(NotificationDto::from)
+        .toList();
+  }
+
   public PageResponse<NotificationDto> findNotification(UUID receiverId, String cursor, UUID idAfter, Pageable pageable) {
     Slice<NotificationDto> dtos = notificationRepository
         .findNotification(receiverId, cursor, idAfter, pageable);

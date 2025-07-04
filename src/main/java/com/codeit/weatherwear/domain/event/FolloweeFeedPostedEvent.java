@@ -1,9 +1,10 @@
 package com.codeit.weatherwear.domain.event;
 
+import java.util.List;
 import java.util.UUID;
 
 public record FolloweeFeedPostedEvent(
-    UUID receiverId,
+    List<UUID> receiverIds,
     String followeeName,
     String content
 ) {
