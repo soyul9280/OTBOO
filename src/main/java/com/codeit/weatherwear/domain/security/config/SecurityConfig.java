@@ -32,10 +32,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@Profile("!test")
 public class SecurityConfig {
 
   @Bean
-  @Profile("!test")
   SecurityFilterChain chain(HttpSecurity httpSecurity,
       CustomAuthenticationFilter customAuthenticationFilter,
       JwtAuthenticationFilter jwtAuthenticationFilter,
