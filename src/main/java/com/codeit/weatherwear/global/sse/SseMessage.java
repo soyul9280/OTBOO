@@ -17,20 +17,18 @@ public class SseMessage {
 
   private UUID eventId;
   private Set<UUID> receiverIds;
-  private boolean isBroadcast;
   private NotificationDto eventData;
 
-  public static SseMessage createBroadcast(UUID receiverId, NotificationDto eventData) {
+  public static SseMessage create(UUID receiverId, NotificationDto eventData) {
     return new SseMessage(
         UUID.randomUUID(),
         Set.of(receiverId),
-        false,
         eventData
     );
   }
 
   public boolean isReceivable(UUID receiverId) {
-    return isBroadcast || receiverIds.contains(receiverId);
+    return receiverIds.contains(receiverId);
   }
 
   public Set<DataWithMediaType> toEvent() {

@@ -53,7 +53,7 @@ public class SseService {
   }
 
   public void send(UUID receiverId, NotificationDto data) {
-    SseMessage message = sseMessageRepository.save(SseMessage.createBroadcast(receiverId, data));
+    SseMessage message = sseMessageRepository.save(SseMessage.create(receiverId, data));
     sseEmitterRepository.findByReceiverId(receiverId)
         .forEach(sseEmitter -> {
           try {
