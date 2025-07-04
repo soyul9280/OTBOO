@@ -24,7 +24,8 @@ public class SecurityRequestMatcher {
       HttpMethod.POST.name());
 
   // 로그아웃
-  public static final RequestMatcher SIGN_OUT = new AntPathRequestMatcher("/api/auth/sign-out");
+  public static final RequestMatcher SIGN_OUT = new AntPathRequestMatcher("/api/auth/sign-out",
+      HttpMethod.POST.name());
 
   // 비밀번호 초기화
   public static final RequestMatcher RESET_PASSWORD = new AntPathRequestMatcher(
@@ -33,7 +34,7 @@ public class SecurityRequestMatcher {
   // 토큰 재발급
   public static final RequestMatcher REFRESH = new AntPathRequestMatcher("/api/auth/refresh",
       HttpMethod.POST.name());
-  
+
   public static final RequestMatcher[] PUBLIC_MATCHERS = new RequestMatcher[]{
       NON_API, SIGN_UP, SIGN_IN, SIGN_OUT, RESET_PASSWORD, REFRESH
   };

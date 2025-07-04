@@ -27,7 +27,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -55,8 +54,7 @@ public class SecurityConfig {
         // TODO: csrf 활성화
         .csrf(csrf -> csrf.disable())
         .logout(logout -> logout
-            .logoutRequestMatcher(
-                new AntPathRequestMatcher("/api/auth/sign-out"))
+            .logoutRequestMatcher(SecurityRequestMatcher.SIGN_OUT)
             .logoutSuccessUrl("/") // 홈으로
             .deleteCookies("refresh_token")    // 쿠키 삭제
             .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
