@@ -1,10 +1,12 @@
 package com.codeit.weatherwear.domain.notification;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.codeit.weatherwear.domain.event.NotificationCreatedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.repository.NotificationRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
@@ -82,6 +84,7 @@ class NotificationServiceTest {
 
     then(userRepository).should().existsById(alice.getId());
     then(notificationRepository).should().save(any());
+    then(eventPublisher).should().publishEvent(any(NotificationCreatedEvent.class));
   }
 
   @Test
