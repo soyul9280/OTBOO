@@ -27,6 +27,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -51,8 +54,15 @@ public class SecurityConfig {
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
-        // TODO: csrf 활성화
-        .csrf(csrf -> csrf.disable())
+        .csrf(csrf -> csrf
+            .csrfTokenRepository(cookieCsrfTokenRepository()) // CSRF 토큰을 쿠키에 저장
+            // CSRF 보호 미적용 경로
+            .ignoringRequestMatchers(SecurityRequestMatcher.NON_API, SecurityRequestMatcher.SIGN_UP,
+                SecurityRequestMatcher.SIGN_IN)
+            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())  // 요청에서 CSRF 토큰을 읽어 저장
+            // 세션 방식 인증 시스템이 아니므로 세션 전략 null로 설정
+            .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
+        )
         .logout(logout -> logout
             .logoutRequestMatcher(SecurityRequestMatcher.SIGN_OUT)
             .logoutSuccessUrl("/") // 홈으로
@@ -110,5 +120,13 @@ public class SecurityConfig {
   @Bean
   public RoleHierarchy roleHierarchy() {
     return RoleHierarchyImpl.fromHierarchy("ROLE_ADMIN > ROLE_USER");
+  }
+
+  @Bean
+  CookieCsrfTokenRepository cookieCsrfTokenRepository() {
+    CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+    csrfTokenRepository.setCookieName("XSRF-TOKEN");
+    csrfTokenRepository.setHeaderName("X-XSRF-TOKEN");
+    return csrfTokenRepository;
   }
 }
