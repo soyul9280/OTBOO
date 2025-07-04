@@ -85,6 +85,17 @@ public class ClothServiceImpl implements ClothService {
     }
 
     /**
+     * 구매링크로 의상 등록
+     *
+     * @param url 구매 링크
+     * @return 의상 DTO
+     */
+    @Override
+    public ClothesDto createFromUrl(String url) {
+
+    }
+
+    /**
      * 의상 수정
      *
      * @param clothesId 수정 요청 ID
