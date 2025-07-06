@@ -1,5 +1,8 @@
 package com.codeit.weatherwear.domain.event;
 
-public record ClothAttributeAddedEvent() {
+import java.util.UUID;
 
+public record ClothAttributeAddedEvent(
+    String attributeName
+) {
 }

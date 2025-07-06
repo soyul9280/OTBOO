@@ -1,11 +1,12 @@
 package com.codeit.weatherwear.domain.event;
 
-import com.codeit.weatherwear.domain.feed.dto.response.FeedDto;
-import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
+import java.util.List;
+import java.util.UUID;
 
 public record FolloweeFeedPostedEvent(
-    UserSummaryDto receiver,
-    FeedDto feedDto
+    List<UUID> receiverIds,
+    String followeeName,
+    String content
 ) {
 
 }

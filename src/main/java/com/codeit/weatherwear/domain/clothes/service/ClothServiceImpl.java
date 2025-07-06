@@ -10,6 +10,9 @@ import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
+import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.ClothNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
@@ -27,10 +30,12 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -51,7 +56,10 @@ public class ClothServiceImpl implements ClothService {
     public ClothesDto create(ClothesCreateRequest request) {
         //사용자 찾기
         User user = userRepository.findById(request.ownerId())
-            .orElseThrow(UserNotFoundException::new);
+            .orElseThrow(()-> {
+                log.warn("[옷 등록 실패] 존재하지 않는 사용자 : {}", request.ownerId());
+              return new UserNotFoundException();
+            });
 
         List<UUID> attributesIds = request.attributes().stream()
             .map(ClothesAttributeDto::definitionId).toList();
@@ -72,7 +80,7 @@ public class ClothServiceImpl implements ClothService {
         applyAttributesToCloth(request.attributes(), attrMap, cloth);
 
         Cloth saveCloth = clothRepository.save(cloth);
-
+        log.info("[옷 등록 완료] id: {}, 옷 이름: {}", saveCloth.getId(), saveCloth.getName());
         return clothMapper.toDto(saveCloth);
     }
 
@@ -86,7 +94,10 @@ public class ClothServiceImpl implements ClothService {
     @Override
     public ClothesDto update(UUID clothesId,ClothesUpdateRequest request) {
         Cloth cloth = clothRepository.findByIdWithAttributes(clothesId)
-            .orElseThrow(() -> new IllegalArgumentException("의상을 찾을 수 없습니다"));
+            .orElseThrow(()->{
+                log.warn("[옷 수정 실패] id: {}, 수정 요청한 옷 이름: {}", clothesId, request.name());
+                return new ClothNotFoundException();
+            });
 
         List<UUID> attrIds = request.attributes().stream()
             .map(ClothesAttributeDto::definitionId)
@@ -100,6 +111,8 @@ public class ClothServiceImpl implements ClothService {
             .collect(Collectors.toMap(Attribute::getId, Function.identity()));
 
         applyAttributesToCloth(request.attributes(), attributeMap, cloth);
+
+        log.info("[옷 수정 완료] ID : {}, name: {}", clothesId, cloth.getName());
         return clothMapper.toDto(cloth);
     }
 
@@ -121,17 +134,19 @@ public class ClothServiceImpl implements ClothService {
         UUID ownerId=request.ownerId();
 
         Slice<Cloth> clothes = clothRepository.searchCloths(cursor,idAfter,limit,typeEqual,ownerId);
-
         List<Cloth> clothesList = clothes.getContent();
+        log.debug("[쿼리 실행 결과] 전체 개수: {}, hasNext: {}", clothesList.size(), clothes.hasNext());
 
-        //toDto : N+1문제위해 한번에 갖고오기
+        //toDto : N+1문제 해결위해 한번에 갖고오기
         List<UUID> ids = clothesList.stream()
             .map(Cloth::getId)
             .toList();
         List<Cloth> clothesWithAttrs=clothRepository.findAllByIdWithAttributes(ids);
+
         List<ClothesDto> data=clothesWithAttrs.stream()
             .map(clothMapper::toDto)
             .toList();
+        log.debug("[응답 변환] 변환된 ClothesDto 개수: {}", data.size());
 
         Cloth last =
             (clothesList.size() > 0) ? clothesList.get(clothesList.size() - 1) : null;
@@ -161,8 +176,12 @@ public class ClothServiceImpl implements ClothService {
     @Override
     public void delete(UUID clothesId) {
         Cloth cloth = clothRepository.findById(clothesId)
-            .orElseThrow(()->new IllegalArgumentException("의상을 찾을 수 없습니다"));
+            .orElseThrow(()->{
+                log.warn("[옷 삭제 실패] 존재하지 않는 옷 ID: {}", clothesId);
+                return new ClothNotFoundException();
+            });
         clothRepository.delete(cloth);
+        log.info("[옷 삭제 완료] ID: {}", clothesId);
     }
 
 
@@ -171,10 +190,12 @@ public class ClothServiceImpl implements ClothService {
         for (ClothesAttributeDto dto : attributeDtos) {
             Attribute attribute = attrMap.get(dto.definitionId());
             if (attribute == null) {
-                throw new IllegalArgumentException("존재하지 않는 속성입니다.");
+                log.warn("[옷의 속성 값 적용 실패] 존재하지 않는 속성입니다. ID : {}", dto.definitionId());
+                throw new AttributeNotFoundException();
             }
             if(!attribute.getSelectableValues().contains(dto.value())) {
-                throw new IllegalArgumentException("선택한 속성 값이 존재하지 않습니다.");
+                log.warn("[옷의 속성 값 적용 실패] 존재하지 않는 속성 값입니다. ID : {}", dto.definitionId());
+                throw new InvalidAttributeNameException();
             }
 
             ClothWithAttributes attr = ClothWithAttributes.builder()
@@ -184,6 +205,7 @@ public class ClothServiceImpl implements ClothService {
                 .build();
 
             cloth.addAttribute(attr);
+            log.debug("[옷 속성 값 적용 완료]");
         }
     }
 

@@ -1,5 +1,7 @@
 package com.codeit.weatherwear.domain.clothes.entity;
 
+import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameException;
+import com.codeit.weatherwear.domain.clothes.exception.SelectableDuplicateException;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -54,16 +56,7 @@ public class Attribute {
         this.selectableValues = selectableValues;
     }
 
-    public void update(String name, List<String> selectableValues) {
-        if (!this.name.equals(name)) {
-            throw new IllegalArgumentException("해당 속성명이 일치하지 않습니다.");
-        }
-        List<String> values = selectableValues;
-        if(values.size() != values.stream().distinct().count()) {
-            throw new IllegalArgumentException("중복 선택값이 존재합니다.");
-        }
-
-        this.selectableValues.clear();
-        this.selectableValues=new ArrayList<>(values);
+    public void update(List<String> selectableValues) {
+        this.selectableValues.add(selectableValues.get(0));
     }
 }

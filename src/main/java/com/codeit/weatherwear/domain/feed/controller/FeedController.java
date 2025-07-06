@@ -12,6 +12,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +49,7 @@ public class FeedController {
   }
 
   // 피드 갱신 (정보 업데이트)
+  @PreAuthorize("@authorizationEvaluator.isFeedAuthor(#feedId, authentication.principal.userId)")
   @PatchMapping("/{feedId}")
   public ResponseEntity<FeedDto> updateFeed(
       @PathVariable UUID feedId,
@@ -58,6 +60,7 @@ public class FeedController {
   }
 
   // 피드 삭제
+  @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isFeedAuthor(#feedId, authentication.principal.userId)")
   @DeleteMapping("/{feedId}")
   public ResponseEntity<FeedDto> deleteFeed(@PathVariable UUID feedId,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
