@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.global.sse;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -13,20 +14,22 @@ public class SseMessageRepository {
 
   private final ConcurrentLinkedDeque<UUID> eventIdQueue = new ConcurrentLinkedDeque<>();
   private final Map<UUID, SseMessage> messages = new ConcurrentHashMap<>();
+  private final Object saveLock = new Object();
 
   @Value("${sse.event-queue-capacity}")
   private int eventQueueCapacity;
 
   public SseMessage save(SseMessage message) {
-    makeAvailableCapacity();
-
-    eventIdQueue.addLast(message.getEventId());
-    messages.put(message.getEventId(), message);
-    return message;
+    synchronized (saveLock) {
+      makeAvailableCapacity();
+      eventIdQueue.addLast(message.getEventId());
+      messages.put(message.getEventId(), message);
+      return message;
+    }
   }
 
   public List<SseMessage> findAllByEventIdAfterAndReceiverId(UUID eventId, UUID receiverId) {
-    return eventIdQueue.stream()
+    return new ArrayList<>(eventIdQueue).stream()
         .dropWhile(id -> !id.equals(eventId))
         .skip(1)
         .map(messages::get)
