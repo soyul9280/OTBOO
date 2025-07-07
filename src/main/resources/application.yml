@@ -51,3 +51,7 @@ time:
 
 resetpassword:
   validity-seconds: 600 # 10분
+
+sse:
+  event-queue-capacity: ${SSE_EVENT_QUEUE_CAPACITY:1000}
+  timeout: ${SSE_TIMEOUT:300000}

@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter.DataWithMediaType;
@@ -19,9 +20,11 @@ public class SseService {
   private final SseEmitterRepository sseEmitterRepository;
   private final SseMessageRepository sseMessageRepository;
 
+  @Value("${sse.timeout}")
+  private long timeout;
+
   public SseEmitter connect(UUID receiverId, UUID lastEventId) {
-    long TIME_OUT = 180000L;
-    SseEmitter sseEmitter = new SseEmitter(TIME_OUT);
+    SseEmitter sseEmitter = new SseEmitter(timeout);
 
     sseEmitter.onCompletion(() -> {
       log.debug("SseEmitter onCompletion");
@@ -44,7 +47,7 @@ public class SseService {
             try {
               sseEmitter.send(sseMessage.toEvent());
             } catch (IOException e) {
-              log.error(e.getMessage(), e);
+              log.error("SSE 전송 실패. receiverId={}, lastEventId={}", receiverId, lastEventId, e);
             }
           });
     }
@@ -59,7 +62,7 @@ public class SseService {
           try {
             sseEmitter.send(message.toEvent());
           } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.error("SSE 전송 실패. receiverId={}, notificationId={}", receiverId, data.id(), e);
           }
         });
   }
