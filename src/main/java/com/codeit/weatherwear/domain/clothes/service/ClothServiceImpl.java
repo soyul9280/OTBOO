@@ -108,10 +108,10 @@ public class ClothServiceImpl implements ClothService {
         chromeOptions.addArguments("--no-sandbox");
         chromeOptions.addArguments("--disable-gpu");
         chromeOptions.addArguments("--user-agent=Mozilla/5.0 (Linux; Android 10) Chrome/90.0.4430.85 Mobile Safari/537.36");
-        chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
+        chromeOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
 
         WebDriver driver = new ChromeDriver(chromeOptions);
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(6));
         try {
             driver.get(url);
             SiteParser parser = siteParsers.stream()

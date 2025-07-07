@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.clothes.service.parser;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import java.time.Duration;
 import java.util.NoSuchElementException;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -11,6 +12,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class TwentyNineCmParser implements SiteParser{
 
   @Override
@@ -20,9 +22,13 @@ public class TwentyNineCmParser implements SiteParser{
 
   @Override
   public void waitUntilReady(WebDriver driver) {
+    log.info("[29cm 옷 정보 추출 시작]");
     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     wait.until(ExpectedConditions.presenceOfElementLocated(
         By.id("pdp_product_name")
+    ));
+    wait.until(ExpectedConditions.presenceOfElementLocated(
+        By.cssSelector("img[src*='img.29cm.co.kr/item']")
     ));
   }
 
@@ -41,6 +47,7 @@ public class TwentyNineCmParser implements SiteParser{
       imageUrl = imageElement.getAttribute("src");
     } catch (NoSuchElementException ignored) {}
 
+    log.info("[옷 정보 추출 완료 : {}, 상품명: {}","29cm", productName);
     return ClothesDto.builder()
         .name(productName)
         .imageUrl(imageUrl)
