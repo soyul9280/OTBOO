@@ -23,7 +23,7 @@ public class TwentyNineCmParser implements SiteParser{
   @Override
   public void waitUntilReady(WebDriver driver) {
     log.info("[29cm 옷 정보 추출 시작]");
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     wait.until(ExpectedConditions.presenceOfElementLocated(
         By.id("pdp_product_name")
     ));

@@ -23,7 +23,7 @@ public class ZigZagParser implements SiteParser{
   @Override
   public void waitUntilReady(WebDriver driver) {
     log.info("[지그재그 옷 정보 추출 시작]");
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     wait.until(ExpectedConditions.presenceOfElementLocated(
         By.cssSelector("h1[class*='BODY_15']")
     ));
