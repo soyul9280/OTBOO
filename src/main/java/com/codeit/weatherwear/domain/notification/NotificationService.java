@@ -63,6 +63,21 @@ public class NotificationService {
     return dtos;
   }
 
+  @Transactional
+  public List<NotificationDto> createAllUser(String title, String content, Level level) {
+    List<Notification> notifications = userRepository.findAllId().stream()
+        .map(receiverId -> Notification.create(receiverId, title, content, level))
+        .toList();
+
+    notificationRepository.saveAll(notifications);
+    List<NotificationDto> dtos = notifications.stream()
+        .map(NotificationDto::from)
+        .toList();
+
+    eventPublisher.publishEvent(new MultipleNotificationCreatedEvent(dtos));
+    return dtos;
+  }
+
   public PageResponse<NotificationDto> findNotification(UUID receiverId, String cursor, UUID idAfter, Pageable pageable) {
     Slice<NotificationDto> dtos = notificationRepository
         .findNotification(receiverId, cursor, idAfter, pageable);

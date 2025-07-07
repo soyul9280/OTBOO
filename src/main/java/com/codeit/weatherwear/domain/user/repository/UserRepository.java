@@ -17,6 +17,9 @@ public interface UserRepository extends JpaRepository<User, UUID>, UserCustomRep
 
     Optional<User> findByEmail(String email);
 
+    @Query("SELECT u.id FROM User u")
+    List<UUID> findAllId();
+
     @Query("SELECT u.id FROM User u WHERE u.id IN :ids")
     List<UUID> findExistingIds(List<UUID> ids);
 }

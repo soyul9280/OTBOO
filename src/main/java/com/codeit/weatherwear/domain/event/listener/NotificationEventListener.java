@@ -9,10 +9,7 @@ import com.codeit.weatherwear.domain.event.NewFollowerEvent;
 import com.codeit.weatherwear.domain.event.PermissionChangedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.NotificationService;
-import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -51,17 +48,11 @@ public class NotificationEventListener {
     String title = "새로운 의상 속상이 추가되었어요.";
     String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", attributeName);
 
-    List<UUID> userIds = userRepository.findAll().stream()
-        .map(User::getId)
-        .toList();
-
-    notificationService.create(
-        userIds,
+    notificationService.createAllUser(
         title,
         content,
         Level.INFO
     );
-
   }
 
   @Async("eventExecutor")
