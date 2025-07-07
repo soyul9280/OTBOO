@@ -71,9 +71,6 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
 
     LocalTime localTime = LocalDateTime.ofInstant(base, ZoneId.of(ZONE_ID)).toLocalTime();
 
-    /** todo
-     * 만약 baseDate 조정도 필요하면 "2300"일 때는 전날 날짜를 쓰도록 보정해줄 수도 있습니다. 필요하시면 그것도 도와드릴게요.
-     */
     return ALLOWED_BASE_TIME.stream()
         .map(t -> LocalTime.parse(t, TIME_FORMATTER))
         .filter(t -> !t.isAfter(localTime))

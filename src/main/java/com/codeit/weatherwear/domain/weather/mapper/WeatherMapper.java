@@ -5,6 +5,7 @@ import com.codeit.weatherwear.domain.weather.dto.response.HumidityDto;
 import com.codeit.weatherwear.domain.weather.dto.response.PrecipitationDto;
 import com.codeit.weatherwear.domain.weather.dto.response.TemperatureDto;
 import com.codeit.weatherwear.domain.weather.dto.response.WeatherDto;
+import com.codeit.weatherwear.domain.weather.dto.response.WeatherSummaryDto;
 import com.codeit.weatherwear.domain.weather.dto.response.WindSpeedDto;
 import com.codeit.weatherwear.domain.weather.entity.Humidity;
 import com.codeit.weatherwear.domain.weather.entity.Precipitation;
@@ -49,6 +50,27 @@ public class WeatherMapper {
         .windSpeed(WindSpeedDto.builder()
             .speed(windSpeed.getSpeed())
             .asWord(windSpeed.getSpeedAsWord())
+            .build())
+        .build();
+  }
+
+  public WeatherSummaryDto toSummaryDto(Weather weather) {
+    Precipitation precipitation = weather.getPrecipitation();
+    Temperature temperature = weather.getTemperature();
+
+    return WeatherSummaryDto.builder()
+        .weatherId(weather.getId())
+        .skyStatus(weather.getSkyStatus())
+        .temperature(TemperatureDto.builder()
+            .current(temperature.getCurrent())
+            .comparedToDayBefore(temperature.getComparedToDayBefore())
+            .max(temperature.getMax())
+            .min(temperature.getMin())
+            .build())
+        .precipitation(PrecipitationDto.builder()
+            .probability(precipitation.getProbability())
+            .amount(precipitation.getAmount())
+            .type(precipitation.getType())
             .build())
         .build();
   }
