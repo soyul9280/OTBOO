@@ -45,6 +45,11 @@ public class NotificationService {
 
   @Transactional
   public List<NotificationDto> create(List<UUID> receiverIds, String title, String content, Level level) {
+    List<UUID> existingIds = userRepository.findExistingIds(receiverIds);
+    if (existingIds.size() != receiverIds.size()) {
+      throw new UserNotFoundException();
+    }
+
     List<Notification> notifications = receiverIds.stream()
         .map(receiverId -> Notification.create(receiverId, title, content, level))
         .toList();
