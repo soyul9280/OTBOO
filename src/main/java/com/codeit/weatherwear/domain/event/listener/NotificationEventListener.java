@@ -1,18 +1,15 @@
 package com.codeit.weatherwear.domain.event.listener;
 
-import com.codeit.weatherwear.domain.event.ClothAttributeAddedEvent;
-import com.codeit.weatherwear.domain.event.DirectMessageReceivedEvent;
-import com.codeit.weatherwear.domain.event.FeedLikeEvent;
-import com.codeit.weatherwear.domain.event.FolloweeFeedPostedEvent;
-import com.codeit.weatherwear.domain.event.NewFeedCommentEvent;
-import com.codeit.weatherwear.domain.event.NewFollowerEvent;
-import com.codeit.weatherwear.domain.event.PermissionChangedEvent;
+import com.codeit.weatherwear.domain.event.dto.ClothAttributeAddedEvent;
+import com.codeit.weatherwear.domain.event.dto.DirectMessageReceivedEvent;
+import com.codeit.weatherwear.domain.event.dto.FeedLikeEvent;
+import com.codeit.weatherwear.domain.event.dto.FolloweeFeedPostedEvent;
+import com.codeit.weatherwear.domain.event.dto.NewFeedCommentEvent;
+import com.codeit.weatherwear.domain.event.dto.NewFollowerEvent;
+import com.codeit.weatherwear.domain.event.dto.PermissionChangedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.NotificationService;
-import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -51,17 +48,11 @@ public class NotificationEventListener {
     String title = "새로운 의상 속상이 추가되었어요.";
     String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", attributeName);
 
-    List<UUID> userIds = userRepository.findAll().stream()
-        .map(User::getId)
-        .toList();
-
-    notificationService.create(
-        userIds,
+    notificationService.createAllUser(
         title,
         content,
         Level.INFO
     );
-
   }
 
   @Async("eventExecutor")
@@ -87,7 +78,7 @@ public class NotificationEventListener {
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleNewFeedCommentEvent(NewFeedCommentEvent event) {
-    String title = String.format("%s님이 댓글을 달앗어요.", event.authorName());
+    String title = String.format("%s님이 댓글을 달았어요.", event.authorName());
     String content = event.commentContent();
 
     notificationService.create(
