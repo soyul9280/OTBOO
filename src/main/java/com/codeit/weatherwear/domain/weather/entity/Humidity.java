@@ -15,6 +15,8 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Humidity {
 
+  // 관련 코드: REH
+
   @Comment("습도 (%)")
   @Min(value = 0, message = "현재 습도는 음수가 될 수 없습니다.")
   @Max(value = 100, message = "현재 습도는 100%를 초과할 수 없습니다.")

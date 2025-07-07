@@ -2,7 +2,8 @@ package com.codeit.weatherwear.domain.weather.controller;
 
 import com.codeit.weatherwear.domain.location.dto.LocationDto;
 import com.codeit.weatherwear.domain.weather.dto.response.WeatherDto;
-import com.codeit.weatherwear.domain.weather.external.WeatherApiClient;
+import com.codeit.weatherwear.domain.weather.service.WeatherService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,29 +16,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class WeatherController {
 
-  private final WeatherApiClient weatherApiClient;
+  private final WeatherService weatherService;
 
   @GetMapping
-  public ResponseEntity<WeatherDto> getWeatherInfo(
-      @RequestParam double longitude,
-      @RequestParam double latitude
+  public ResponseEntity<List<WeatherDto>> getWeatherInfo(
+      @RequestParam(name = "latitude") double latitude,
+      @RequestParam(name = "longitude") double longitude
   ) {
-
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(
+        weatherService.getWeatherInfo(latitude, longitude));
   }
 
   @GetMapping("/location")
   public ResponseEntity<LocationDto> getLocationInfo(
-      @RequestParam double longitude,
-      @RequestParam double latitude
+      @RequestParam(name = "latitude") double latitude,
+      @RequestParam(name = "longitude") double longitude
   ) {
-
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(weatherService.getLocationInfo(latitude, longitude));
   }
-
-  @GetMapping("/test")
-  public void test() {
-    weatherApiClient.fetchAndSaveWeatherApiData();
-  }
-
 }

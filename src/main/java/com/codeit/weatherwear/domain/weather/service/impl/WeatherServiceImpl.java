@@ -1,0 +1,68 @@
+package com.codeit.weatherwear.domain.weather.service.impl;
+
+import com.codeit.weatherwear.domain.location.dto.LocationDto;
+import com.codeit.weatherwear.domain.location.entity.Location;
+import com.codeit.weatherwear.domain.location.mapper.LocationMapper;
+import com.codeit.weatherwear.domain.location.repository.LocationRepository;
+import com.codeit.weatherwear.domain.location.service.LocationService;
+import com.codeit.weatherwear.domain.weather.dto.response.WeatherDto;
+import com.codeit.weatherwear.domain.weather.entity.Weather;
+import com.codeit.weatherwear.domain.weather.mapper.WeatherMapper;
+import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
+import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
+import com.codeit.weatherwear.domain.weather.service.WeatherService;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class WeatherServiceImpl implements WeatherService {
+
+  private final LocationService locationService;
+  private final LocationRepository locationRepository;
+  private final LocationMapper locationMapper;
+  private final WeatherFetchService weatherFetchService;
+  private final WeatherRepository weatherRepository;
+  private final WeatherMapper weatherMapper;
+
+  private static final String KST = "Asia/Seoul";
+
+  @Override
+  public List<WeatherDto> getWeatherInfo(double latitude, double longitude) {
+    Location location = locationService.getLocation(latitude, longitude);
+    LocationDto locationDto = locationMapper.toDto(location);
+    // 있다면 그냥 가져오기
+    LocalDate today = LocalDate.now(ZoneId.of(KST));
+    Instant start = today.atStartOfDay(ZoneId.of(KST)).toInstant();
+    Instant end = today.plusDays(4).atTime(LocalTime.MAX).atZone(ZoneId.of(KST)).toInstant();
+    List<Weather> weatherList = weatherRepository.findWeatherByLocationAndForecastRange(
+        location, start, end);
+
+    if (weatherList.isEmpty()) {
+      // 없다면 가져오기
+      weatherList = weatherFetchService.fetchAndStoreWeather(latitude, longitude);
+    }
+
+    return weatherList.stream().map(weather -> weatherMapper.toDto(weather, locationDto)).collect(
+        Collectors.toList());
+  }
+
+  @Override
+  public LocationDto getLocationInfo(double latitude, double longitude) {
+    boolean isExist = locationRepository.existsLocationByLatitudeAndLongitude(latitude, longitude);
+    if (isExist) {
+      return locationMapper.toDto(locationService.getLocation(latitude, longitude));
+    } else {
+      Location location = locationService.findOrCreateByGeoPoint(latitude, longitude);
+      return locationMapper.toDto(location);
+    }
+  }
+}

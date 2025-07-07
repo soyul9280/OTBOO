@@ -11,7 +11,7 @@ import lombok.Getter;
 @Getter
 public class WeatherDto {
 
-  private final UUID weatherId;
+  private final UUID id;
   private final Instant forecastedAt;
   private final Instant forecastAt;
   private final LocationDto location;

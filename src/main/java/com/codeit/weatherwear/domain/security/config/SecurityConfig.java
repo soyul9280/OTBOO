@@ -46,6 +46,7 @@ public class SecurityConfig {
     httpSecurity
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(SecurityRequestMatcher.PUBLIC_MATCHERS).permitAll()
+            .requestMatchers("/api/weathers/**").permitAll()  // todo: 테스트를 위함
             .requestMatchers("/api/**").hasRole("USER")
             .anyRequest().authenticated()
         )
