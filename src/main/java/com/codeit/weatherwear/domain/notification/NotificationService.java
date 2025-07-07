@@ -1,7 +1,7 @@
 package com.codeit.weatherwear.domain.notification;
 
-import com.codeit.weatherwear.domain.event.sse.dto.MultipleNotificationCreatedEvent;
-import com.codeit.weatherwear.domain.event.sse.dto.NotificationCreatedEvent;
+import com.codeit.weatherwear.domain.event.dto.MultipleNotificationCreatedEvent;
+import com.codeit.weatherwear.domain.event.dto.NotificationCreatedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.repository.NotificationRepository;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;

@@ -1,4 +1,4 @@
-package com.codeit.weatherwear.domain.event.notification.dto;
+package com.codeit.weatherwear.domain.event.dto;
 
 public record ClothAttributeAddedEvent(
     String attributeName
