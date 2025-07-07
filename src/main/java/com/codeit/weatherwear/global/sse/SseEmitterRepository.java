@@ -33,6 +33,9 @@ public class SseEmitterRepository {
     List<SseEmitter> sseEmitters = data.get(receiverId);
     if (sseEmitters != null) {
       sseEmitters.remove(sseEmitter);
+      if (sseEmitters.isEmpty()) {
+        data.remove(receiverId);
+      }
     }
   }
 }

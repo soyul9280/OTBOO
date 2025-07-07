@@ -48,6 +48,8 @@ public class SseService {
               sseEmitter.send(sseMessage.toEvent());
             } catch (IOException e) {
               log.error("SSE 전송 실패. receiverId={}, lastEventId={}", receiverId, lastEventId, e);
+              sseEmitter.completeWithError(e);
+              sseEmitterRepository.delete(receiverId, sseEmitter);
             }
           });
     }
@@ -63,6 +65,8 @@ public class SseService {
             sseEmitter.send(message.toEvent());
           } catch (IOException e) {
             log.error("SSE 전송 실패. receiverId={}, notificationId={}", receiverId, data.id(), e);
+            sseEmitter.completeWithError(e);
+            sseEmitterRepository.delete(receiverId, sseEmitter);
           }
         });
   }
