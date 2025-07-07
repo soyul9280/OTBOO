@@ -13,7 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SseMessage {
 
-  private static final String eventName = "notifications";
+  private static final String EVENT_NAME = "notifications";
 
   private UUID eventId;
   private Set<UUID> receiverIds;
@@ -34,7 +34,7 @@ public class SseMessage {
   public Set<DataWithMediaType> toEvent() {
     return SseEmitter.event()
         .id(eventId.toString())
-        .name(eventName)
+        .name(EVENT_NAME)
         .data(eventData)
         .build();
   }
