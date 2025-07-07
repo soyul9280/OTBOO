@@ -16,11 +16,13 @@ import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameExcep
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
+import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -31,6 +33,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +49,7 @@ public class ClothServiceImpl implements ClothService {
     private final AttributeRepository attributeRepository;
     private final UserRepository userRepository;
     private final ClothMapper clothMapper;
+    private final List<SiteParser> siteParsers;
 
     /**
      * 의상 등록
@@ -89,10 +94,23 @@ public class ClothServiceImpl implements ClothService {
      *
      * @param url 구매 링크
      * @return 의상 DTO
+     * @throws IOException
      */
     @Override
     public ClothesDto createFromUrl(String url) {
-
+      try {
+        Document doc = Jsoup.connect(url).get();
+          //알맞은 파서 찾기
+          SiteParser parser = siteParsers.stream()
+              .filter(p -> p.supports(url))
+              .findFirst()
+              //TODO: 추후 커스텀 예외 고민하기
+              .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 사이트입니다: " + url));
+          //추출 및 반환
+          return parser.extract(doc);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     /**

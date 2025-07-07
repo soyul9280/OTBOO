@@ -105,6 +105,9 @@ dependencies {
 
     // Java Mail Sender
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    //웹 크롤링 Jsoup
+    implementation 'org.jsoup:jsoup:1.16.1'
 }
 
 
