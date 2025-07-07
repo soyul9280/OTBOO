@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.codeit.weatherwear.domain.event.DomainEventPublisher;
 import com.codeit.weatherwear.domain.event.dto.NotificationCreatedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.repository.NotificationRepository;
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +35,7 @@ class NotificationServiceTest {
   UserRepository userRepository;
 
   @Mock
-  ApplicationEventPublisher eventPublisher;
+  DomainEventPublisher eventPublisher;
 
   @InjectMocks
   NotificationService notificationService;
@@ -84,7 +84,7 @@ class NotificationServiceTest {
 
     then(userRepository).should().existsById(alice.getId());
     then(notificationRepository).should().save(any());
-    then(eventPublisher).should().publishEvent(any(NotificationCreatedEvent.class));
+    then(eventPublisher).should().publish(any(NotificationCreatedEvent.class));
   }
 
   @Test

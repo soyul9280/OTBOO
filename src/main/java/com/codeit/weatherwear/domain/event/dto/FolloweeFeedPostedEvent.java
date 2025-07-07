@@ -7,6 +7,6 @@ public record FolloweeFeedPostedEvent(
     List<UUID> receiverIds,
     String followeeName,
     String content
-) {
+) implements DomainEvent {
 
 }

@@ -6,6 +6,6 @@ public record NewFeedCommentEvent(
     UUID receiverId,
     String authorName,
     String commentContent
-) {
+) implements DomainEvent {
 
 }

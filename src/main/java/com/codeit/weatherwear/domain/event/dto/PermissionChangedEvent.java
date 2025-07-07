@@ -7,6 +7,6 @@ public record PermissionChangedEvent(
     UUID receiverId,
     Role newRoles,
     Role previousRoles
-) {
+) implements DomainEvent {
 
 }

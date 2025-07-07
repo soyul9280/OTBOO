@@ -6,6 +6,6 @@ public record FeedLikeEvent(
     UUID receiverId,
     String likerName,
     String feedContent
-) {
+) implements DomainEvent {
 
 }

@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.notification;
 
+import com.codeit.weatherwear.domain.event.DomainEventPublisher;
 import com.codeit.weatherwear.domain.event.dto.MultipleNotificationCreatedEvent;
 import com.codeit.weatherwear.domain.event.dto.NotificationCreatedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ public class NotificationService {
 
   private final NotificationRepository notificationRepository;
   private final UserRepository userRepository;
-  private final ApplicationEventPublisher eventPublisher;
+  private final DomainEventPublisher eventPublisher;
 
   @Transactional
   public NotificationDto create(UUID receiverId, String title, String content, Level level) {
@@ -39,7 +39,7 @@ public class NotificationService {
         .save(Notification.create(receiverId, title, content, level));
     log.info("알림 생성. id={}", notification.getId());
     NotificationDto dto = NotificationDto.from(notification);
-    eventPublisher.publishEvent(new NotificationCreatedEvent(dto));
+    eventPublisher.publish(new NotificationCreatedEvent(dto));
     return dto;
   }
 
@@ -59,7 +59,7 @@ public class NotificationService {
         .map(NotificationDto::from)
         .toList();
 
-    eventPublisher.publishEvent(new MultipleNotificationCreatedEvent(dtos));
+    eventPublisher.publish(new MultipleNotificationCreatedEvent(dtos));
     return dtos;
   }
 
@@ -74,7 +74,7 @@ public class NotificationService {
         .map(NotificationDto::from)
         .toList();
 
-    eventPublisher.publishEvent(new MultipleNotificationCreatedEvent(dtos));
+    eventPublisher.publish(new MultipleNotificationCreatedEvent(dtos));
     return dtos;
   }
 

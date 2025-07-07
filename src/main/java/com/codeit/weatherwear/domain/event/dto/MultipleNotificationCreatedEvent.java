@@ -5,6 +5,6 @@ import java.util.List;
 
 public record MultipleNotificationCreatedEvent(
     List<NotificationDto> notificationDtos
-) {
+) implements DomainEvent {
 
 }

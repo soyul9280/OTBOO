@@ -5,6 +5,6 @@ import java.util.UUID;
 public record NewFollowerEvent(
     UUID receiverId,
     String followerName
-) {
+) implements DomainEvent {
 
 }
