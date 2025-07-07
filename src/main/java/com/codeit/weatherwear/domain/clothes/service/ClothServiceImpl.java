@@ -111,7 +111,7 @@ public class ClothServiceImpl implements ClothService {
         chromeOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
 
         WebDriver driver = new ChromeDriver(chromeOptions);
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(6));
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
         try {
             driver.get(url);
             SiteParser parser = siteParsers.stream()

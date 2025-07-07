@@ -23,9 +23,9 @@ public class MusinsaParser implements SiteParser {
   @Override
   public void waitUntilReady(WebDriver driver) {
     log.info("[무신사 옷 정보 추출 시작]");
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     wait.until(ExpectedConditions.presenceOfElementLocated(
-        By.cssSelector("div[data-content-name='대표이미지']")
+        By.cssSelector("div[data-content-name='대표이미지'] img[alt][src]")
     ));
   }
 
