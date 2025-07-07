@@ -105,6 +105,9 @@ dependencies {
 
     // Java Mail Sender
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // google oauth
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 
