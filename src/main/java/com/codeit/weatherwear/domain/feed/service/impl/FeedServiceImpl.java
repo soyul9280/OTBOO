@@ -18,11 +18,10 @@ import com.codeit.weatherwear.domain.ootd.service.OotdService;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
-import com.codeit.weatherwear.domain.weather.dto.response.PrecipitationDto;
-import com.codeit.weatherwear.domain.weather.dto.response.TemperatureDto;
 import com.codeit.weatherwear.domain.weather.dto.response.WeatherSummaryDto;
-import com.codeit.weatherwear.domain.weather.entity.PrecipitationsType;
-import com.codeit.weatherwear.domain.weather.entity.SkyStatus;
+import com.codeit.weatherwear.domain.weather.entity.Weather;
+import com.codeit.weatherwear.domain.weather.mapper.WeatherMapper;
+import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.List;
 import java.util.UUID;
@@ -43,6 +42,8 @@ public class FeedServiceImpl implements FeedService {
   private final OotdService ootdService;
   private final FeedCommentService feedCommentService;
   private final FeedLikeService feedLikeService;
+  private final WeatherMapper weatherMapper;
+  private final WeatherRepository weatherRepository;
 
   @Transactional
   @Override
@@ -69,8 +70,10 @@ public class FeedServiceImpl implements FeedService {
 
     User author = userRepository.findById(feedCreateRequest.getAuthorId())
         .orElseThrow(UserNotFoundException::new);
+    Weather weather = weatherRepository.findById(feedCreateRequest.getWeatherId())
+        .orElseThrow(RuntimeException::new);
 
-    Feed feed = feedMapper.toEntity(author, feedCreateRequest);
+    Feed feed = feedMapper.toEntity(author, weather, feedCreateRequest);
     Feed saved = feedRepository.save(feed);
     List<OotdDto> ootdList = ootdService.createOotdList(feed, feedCreateRequest.getClothesIds());
 
@@ -106,35 +109,10 @@ public class FeedServiceImpl implements FeedService {
     return toFeedDto(feed, ootds, likedByMe);
   }
 
-  // 임시로 만들어진 WeatherSummeryDto 인스턴스를 반환합니다.
-  @Override
-  public WeatherSummaryDto getMockWeatherSummaryDto() {
-
-    PrecipitationDto precipitation = PrecipitationDto.builder()
-        .type(PrecipitationsType.NONE)
-        .amount(0.1)
-        .probability(0.1)
-        .build();
-
-    TemperatureDto temperature = TemperatureDto.builder()
-        .current(0.1)
-        .comparedToDayBefore(0.1)
-        .min(0.1)
-        .max(0.1)
-        .build();
-
-    return WeatherSummaryDto.builder()
-        .weatherId(UUID.randomUUID())
-        .skyStatus(SkyStatus.CLEAR)
-        .precipitation(precipitation)
-        .temperature(temperature)
-        .build();
-  }
-
   // 생성/삭제
   private FeedDto toFeedDto(Feed feed, List<OotdDto> ootds, boolean likedByMe) {
     UserSummaryDto authorDto = UserSummaryDto.from(feed.getAuthor());
-    WeatherSummaryDto weatherSummaryDto = getMockWeatherSummaryDto();
+    WeatherSummaryDto weatherSummaryDto = weatherMapper.toSummaryDto(feed.getWeather());
 
     return feedMapper.toDto(feed, authorDto, weatherSummaryDto, ootds, likedByMe);
   }
@@ -142,7 +120,7 @@ public class FeedServiceImpl implements FeedService {
   // 일반적인 상황 (조회/갱신)
   private FeedDto toFeedDto(Feed feed, UUID currentUserId) {
     UserSummaryDto authorDto = UserSummaryDto.from(feed.getAuthor());
-    WeatherSummaryDto weatherSummaryDto = getMockWeatherSummaryDto();
+    WeatherSummaryDto weatherSummaryDto = weatherMapper.toSummaryDto(feed.getWeather());
     List<OotdDto> ootds = ootdService.findOotdByFeedId(feed.getId());
 
     boolean likedByMe = feedLikeService.isLikedByMe(feed, currentUserId);
