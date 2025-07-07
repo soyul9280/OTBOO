@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,7 +60,7 @@ public class ClothController implements ClothApi {
      */
     @Override
     @GetMapping("/extractions")
-    public ResponseEntity<ClothesDto> createFromUrl(String url) {
+    public ResponseEntity<ClothesDto> createFromUrl(@RequestParam String url) {
       log.info("[url로 옷 등록 요청] url: {}", url);
 
       ClothesDto urlCloth=clothService.createFromUrl(url);

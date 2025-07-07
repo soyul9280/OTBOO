@@ -1,9 +1,13 @@
 package com.codeit.weatherwear.domain.clothes.service.parser;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import java.util.Optional;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
+import java.time.Duration;
+import java.util.NoSuchElementException;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,20 +15,31 @@ public class ZigZagParser implements SiteParser{
 
   @Override
   public boolean supports(String url) {
-    return url.contains("zigzag.com");
+    return url.contains("zigzag");
   }
 
   @Override
-  public ClothesDto extract(Document document) {
+  public void waitUntilReady(WebDriver driver) {
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    wait.until(ExpectedConditions.presenceOfElementLocated(
+        By.cssSelector("h1[class*='BODY_15']")
+    ));
+  }
+
+  @Override
+  public ClothesDto extract(WebDriver driver) {
     //상품명, 대표이미지 추출 ( 없으면 빈값 )
-    String productName = Optional.ofNullable(
-        document.selectFirst("h1[class*='BODY_15']")
-    ).map(Element::text).orElse("");
+    String productName = "";
+    String imageUrl = "";
+    try {
+      WebElement nameElement = driver.findElement(By.cssSelector("h1[class*='BODY_15']"));
+      productName = nameElement.getText();
+    } catch (NoSuchElementException ignored) {}
 
-    String imageUrl = Optional.ofNullable(
-        document.selectFirst("img[src*='cf.product-image.s.zigzag.kr']")
-    ).map(el -> el.attr("src")).orElse("");
-
+    try {
+      WebElement imageElement = driver.findElement(By.cssSelector("img[src*='cf.product-image.s.zigzag.kr']"));
+      imageUrl = imageElement.getAttribute("src");
+    } catch (NoSuchElementException ignored) {}
 
     return ClothesDto.builder()
         .name(productName)
