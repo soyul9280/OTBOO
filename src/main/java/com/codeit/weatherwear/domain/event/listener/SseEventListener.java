@@ -1,4 +1,4 @@
-package com.codeit.weatherwear.domain.event;
+package com.codeit.weatherwear.domain.event.listener;
 
 import com.codeit.weatherwear.domain.event.dto.MultipleNotificationCreatedEvent;
 import com.codeit.weatherwear.domain.event.dto.NotificationCreatedEvent;
