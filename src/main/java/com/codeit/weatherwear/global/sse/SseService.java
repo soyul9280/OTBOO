@@ -54,6 +54,13 @@ public class SseService {
           });
     }
 
+    try {
+      sseEmitter.send("sse connected");
+    } catch (IOException e) {
+      log.error("SSE 연결 실패. receiverId={}", receiverId, e);
+      sseEmitter.completeWithError(e);
+      sseEmitterRepository.delete(receiverId, sseEmitter);
+    }
     return sseEmitter;
   }
 
