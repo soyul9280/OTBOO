@@ -1,7 +1,7 @@
-package com.codeit.weatherwear.domain.event.listener;
+package com.codeit.weatherwear.domain.event.sse;
 
-import com.codeit.weatherwear.domain.event.MultipleNotificationCreatedEvent;
-import com.codeit.weatherwear.domain.event.NotificationCreatedEvent;
+import com.codeit.weatherwear.domain.event.sse.dto.MultipleNotificationCreatedEvent;
+import com.codeit.weatherwear.domain.event.sse.dto.NotificationCreatedEvent;
 import com.codeit.weatherwear.domain.notification.NotificationDto;
 import com.codeit.weatherwear.global.sse.SseService;
 import lombok.RequiredArgsConstructor;

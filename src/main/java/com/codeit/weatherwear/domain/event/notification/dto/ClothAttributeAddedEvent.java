@@ -1,6 +1,4 @@
-package com.codeit.weatherwear.domain.event;
-
-import java.util.UUID;
+package com.codeit.weatherwear.domain.event.notification.dto;
 
 public record ClothAttributeAddedEvent(
     String attributeName

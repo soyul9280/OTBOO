@@ -1,12 +1,12 @@
-package com.codeit.weatherwear.domain.event.listener;
+package com.codeit.weatherwear.domain.event.notification;
 
-import com.codeit.weatherwear.domain.event.ClothAttributeAddedEvent;
-import com.codeit.weatherwear.domain.event.DirectMessageReceivedEvent;
-import com.codeit.weatherwear.domain.event.FeedLikeEvent;
-import com.codeit.weatherwear.domain.event.FolloweeFeedPostedEvent;
-import com.codeit.weatherwear.domain.event.NewFeedCommentEvent;
-import com.codeit.weatherwear.domain.event.NewFollowerEvent;
-import com.codeit.weatherwear.domain.event.PermissionChangedEvent;
+import com.codeit.weatherwear.domain.event.notification.dto.ClothAttributeAddedEvent;
+import com.codeit.weatherwear.domain.event.notification.dto.DirectMessageReceivedEvent;
+import com.codeit.weatherwear.domain.event.notification.dto.FeedLikeEvent;
+import com.codeit.weatherwear.domain.event.notification.dto.FolloweeFeedPostedEvent;
+import com.codeit.weatherwear.domain.event.notification.dto.NewFeedCommentEvent;
+import com.codeit.weatherwear.domain.event.notification.dto.NewFollowerEvent;
+import com.codeit.weatherwear.domain.event.notification.dto.PermissionChangedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.NotificationService;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;

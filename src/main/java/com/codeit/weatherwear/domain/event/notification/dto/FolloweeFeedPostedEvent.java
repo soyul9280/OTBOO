@@ -1,4 +1,4 @@
-package com.codeit.weatherwear.domain.event;
+package com.codeit.weatherwear.domain.event.notification.dto;
 
 import java.util.List;
 import java.util.UUID;
