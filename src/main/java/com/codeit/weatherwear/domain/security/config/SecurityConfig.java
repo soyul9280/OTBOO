@@ -36,7 +36,6 @@ import org.springframework.security.web.authentication.session.NullAuthenticated
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -51,7 +50,7 @@ public class SecurityConfig {
       JwtLogoutHandler jwtLogoutHandler,
       CustomOAuth2UserService customOAuth2UserService,
       @Qualifier("customOAuth2SuccessHandler") AuthenticationSuccessHandler customOAuth2SuccessHandler,
-      CorsConfigurationSource corsConfigurationSource)
+      AuthenticationFailureHandler customAuthenticationFailureHandler)
       throws Exception {
 
     httpSecurity
@@ -67,6 +66,7 @@ public class SecurityConfig {
             .userInfoEndpoint(userInfo -> userInfo
                 .userService(customOAuth2UserService))
             .successHandler(customOAuth2SuccessHandler)
+            .failureHandler(customAuthenticationFailureHandler)
         )
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -82,9 +82,11 @@ public class SecurityConfig {
         )
         .logout(logout -> logout
             .logoutRequestMatcher(SecurityRequestMatcher.SIGN_OUT)
-            .logoutSuccessUrl("/") // 홈으로
             .deleteCookies("refresh_token")    // 쿠키 삭제
             .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
+            .logoutSuccessHandler((request, response, authentication) -> {
+              response.setStatus(HttpStatus.NO_CONTENT.value());
+            })
         )
         .exceptionHandling(exceptionHandler -> exceptionHandler
             .defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
