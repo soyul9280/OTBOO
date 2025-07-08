@@ -8,6 +8,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
+/**
+ * 속성정의 검색용
+ *
+ * @param cursor
+ * @param idAfter
+ * @param limit
+ * @param sortBy
+ * @param sortDirection
+ * @param keywordLike
+ */
 public record AttributesSearchRequest(
     @Schema(description = "커서 페이지네이션 커서")
     String cursor,

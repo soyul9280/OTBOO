@@ -11,9 +11,13 @@ import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameExcep
 import com.codeit.weatherwear.domain.clothes.exception.SelectableDuplicateException;
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
+import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +33,7 @@ public class AttributeServiceImpl implements AttributeService {
 
     private final AttributeRepository attributeRepository;
     private final AttributeMapper attributeMapper;
+    private final ClothWithAttributesRepository clothWithAttributesRepository;
 
     /**
      * 속성 등록
@@ -47,7 +52,7 @@ public class AttributeServiceImpl implements AttributeService {
 
         Attribute attribute = Attribute.builder()
             .name(request.name())
-            .selectableValues(request.selectValues())
+            .selectableValues(request.selectableValues())
             .build();
 
         Attribute save = attributeRepository.save(attribute);
@@ -71,20 +76,25 @@ public class AttributeServiceImpl implements AttributeService {
                 log.warn("[속성 정의 수정 실패] 존재하지 않는 속성입니다. ID : {}", id);
                 return new AttributeNotFoundException();
             });
-        if(!attribute.getName().equals(request.name())) {
-            log.warn("[속성 정의 수정 실패] 존재하지 않는 속성명이거나 속성명 요청이 잘못되었습니다. ID : {}", id);
-            throw new InvalidAttributeNameException();
-        }
-        boolean hasDuplicates = request.selectValues().stream()
-            .anyMatch(attribute.getSelectableValues()::contains);
 
-        if(hasDuplicates) { {
+        //입력값 중복일 때 에러발생 (ex) 여름 여름
+        List<String> newValues = request.selectableValues();
+        Set<String> uniqueValues = new LinkedHashSet<>(newValues);//순서 중요
+        if (uniqueValues.size() != newValues.size()) {
             log.warn("[속성 정의 수정 실패] 중복된 속성 값을 입력하였습니다. ID : {}", id);
             throw new SelectableDuplicateException();
-        }}
+        }
+
+        //옷에서 사용중인 속성은 수정 불가
+        List<String> usedValues= clothWithAttributesRepository.findUsedValuesByAttribute(attribute.getId());
+        for (String value : usedValues) {
+            if(!newValues.contains(value)) {
+                throw new IllegalStateException("이미 사용 중인 속성은 수정할 수 없습니다.");
+            }
+        }
 
         log.debug("[속성 정의 수정] name: {}, 변경 전 values: {}", attribute.getName(), attribute.getSelectableValues());
-        attribute.update(request.selectValues());
+        attribute.update(request.name(),request.selectableValues());
 
         log.info("[속성 정의 수정 완료] ID : {}, name: {}, values: {}", id, attribute.getName(), attribute.getSelectableValues());
         return attributeMapper.toDto(attribute);

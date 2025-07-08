@@ -56,7 +56,9 @@ public class Attribute {
         this.selectableValues = selectableValues;
     }
 
-    public void update(List<String> selectableValues) {
-        this.selectableValues.add(selectableValues.get(0));
+    public void update(String newName,List<String> selectableValues) {
+        this.name = newName;
+        this.selectableValues.clear();
+        this.selectableValues.addAll(selectableValues);
     }
 }
