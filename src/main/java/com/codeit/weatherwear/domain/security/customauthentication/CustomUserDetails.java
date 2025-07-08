@@ -4,22 +4,25 @@ import com.codeit.weatherwear.domain.user.entity.Role;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @Slf4j
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails, OAuth2User {
 
-  private final UUID userID;
-  private final String email;
-  private final String password;
+  private UUID userID;
+  private String email;
+  private String password;
+  private Role role;
+  private boolean locked;
+  private Instant tempPasswordExpirationTime;
 
-  private final Role role;
-  private final boolean locked;
-  private final Instant tempPasswordExpirationTime;
+  private Map<String, Object> attributes;
 
   public CustomUserDetails(UUID userId, String email, String password, Role role,
       boolean locked, Instant tempPasswordExpirationTime) {
@@ -29,6 +32,10 @@ public class CustomUserDetails implements UserDetails {
     this.role = role;
     this.locked = locked;
     this.tempPasswordExpirationTime = tempPasswordExpirationTime;
+  }
+
+  public CustomUserDetails(Map<String, Object> attributes) {
+    this.attributes = attributes;
   }
 
   @Override
@@ -67,4 +74,18 @@ public class CustomUserDetails implements UserDetails {
     return this.userID;
   }
 
+  // OAuth2
+
+  @Override
+  public String getName() {
+    if (attributes != null) {
+      return (String) attributes.get("name");
+    }
+    return null;
+  }
+
+  @Override
+  public Map<String, Object> getAttributes() {
+    return attributes;
+  }
 }

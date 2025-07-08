@@ -39,7 +39,11 @@ public class SecurityRequestMatcher {
   public final static RequestMatcher GET_CSRF_TOKEN = new AntPathRequestMatcher(
       "/api/auth/csrf-token", HttpMethod.GET.name());
 
+  // 액세스 토큰 조회
+  public final static RequestMatcher GET_ACCESS_TOKEN_BY_REFRESH_TOKEN = new AntPathRequestMatcher(
+      "/api/auth/me");
   public static final RequestMatcher[] PUBLIC_MATCHERS = new RequestMatcher[]{
-      NON_API, SIGN_UP, SIGN_IN, SIGN_OUT, RESET_PASSWORD, REFRESH, GET_CSRF_TOKEN
+      NON_API, SIGN_UP, SIGN_IN, SIGN_OUT, RESET_PASSWORD, REFRESH, GET_CSRF_TOKEN,
+      GET_ACCESS_TOKEN_BY_REFRESH_TOKEN
   };
 }

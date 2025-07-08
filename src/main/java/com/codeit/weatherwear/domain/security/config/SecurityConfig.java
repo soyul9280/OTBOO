@@ -7,11 +7,15 @@ import com.codeit.weatherwear.domain.security.customauthentication.CustomAuthent
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetailsService;
 import com.codeit.weatherwear.domain.security.customauthentication.jwt.JwtAuthenticationFilter;
 import com.codeit.weatherwear.domain.security.customauthentication.jwt.JwtLogoutHandler;
+import com.codeit.weatherwear.domain.security.customauthentication.oauth2.CustomOAuth2SuccessHandler;
+import com.codeit.weatherwear.domain.security.customauthentication.oauth2.CustomOAuth2UserService;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,10 +30,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -41,7 +48,11 @@ public class SecurityConfig {
   SecurityFilterChain chain(HttpSecurity httpSecurity,
       CustomAuthenticationFilter customAuthenticationFilter,
       JwtAuthenticationFilter jwtAuthenticationFilter,
-      JwtLogoutHandler jwtLogoutHandler) throws Exception {
+      JwtLogoutHandler jwtLogoutHandler,
+      CustomOAuth2UserService customOAuth2UserService,
+      @Qualifier("customOAuth2SuccessHandler") AuthenticationSuccessHandler customOAuth2SuccessHandler,
+      CorsConfigurationSource corsConfigurationSource)
+      throws Exception {
 
     httpSecurity
         .authorizeHttpRequests(auth -> auth
@@ -51,6 +62,11 @@ public class SecurityConfig {
         )
         .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(jwtAuthenticationFilter, CustomAuthenticationFilter.class)
+        .oauth2Login(oauth2 -> oauth2
+            .userInfoEndpoint(userInfo -> userInfo
+                .userService(customOAuth2UserService))
+            .successHandler(customOAuth2SuccessHandler)
+        )
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
@@ -68,8 +84,12 @@ public class SecurityConfig {
             .logoutSuccessUrl("/") // 홈으로
             .deleteCookies("refresh_token")    // 쿠키 삭제
             .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
-        );
+        )
+        .exceptionHandling(exceptionHandler -> exceptionHandler
+            .defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                new AntPathRequestMatcher("/api/**")))
     ;
+
     return httpSecurity.build();
   }
 
@@ -90,7 +110,7 @@ public class SecurityConfig {
   @Bean
   public CustomAuthenticationFilter customAuthenticationFilter(
       ObjectMapper objectMapper,
-      AuthenticationSuccessHandler authenticationSuccessHandler,
+      @Qualifier("customAuthenticationSuccessHandler") AuthenticationSuccessHandler authenticationSuccessHandler,
       AuthenticationFailureHandler authenticationFailureHandler,
       AuthenticationManager authenticationManager) {
 
@@ -106,6 +126,7 @@ public class SecurityConfig {
   }
 
   @Bean
+  @Qualifier("customAuthenticationSuccessHandler")
   public AuthenticationSuccessHandler customAuthenticationSuccessHandler(
       ObjectMapper objectMapper, JwtSessionService jwtSessionService) {
     return new CustomAuthenticationSuccessHandler(objectMapper, jwtSessionService);
@@ -115,6 +136,13 @@ public class SecurityConfig {
   public AuthenticationFailureHandler customAuthenticationFailureHandler(
       ObjectMapper objectMapper) {
     return new CustomAuthenticationFailureHandler(objectMapper);
+  }
+
+  @Bean
+  @Qualifier("customOAuth2SuccessHandler")
+  public AuthenticationSuccessHandler customOAuth2SuccessHandler(
+      JwtSessionService jwtSessionService) {
+    return new CustomOAuth2SuccessHandler(jwtSessionService);
   }
 
   @Bean

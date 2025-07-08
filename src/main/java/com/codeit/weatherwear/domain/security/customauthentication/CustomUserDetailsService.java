@@ -27,12 +27,13 @@ public class CustomUserDetailsService implements UserDetailsService {
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     return userRepository.findByEmail(email)
         .map(user -> new CustomUserDetails(
-            user.getId(),
-            user.getEmail(),
-            user.getPassword(),
-            user.getRole(),
-            user.isLocked(),
-            user.getTempPasswordExpirationTime())
+                user.getId(),
+                user.getEmail(),
+                user.getPassword(),
+                user.getRole(),
+                user.isLocked(),
+                user.getTempPasswordExpirationTime()
+            )
         )
         .orElseThrow(
             () -> new UsernameNotFoundException("User not found with email: " + email));
