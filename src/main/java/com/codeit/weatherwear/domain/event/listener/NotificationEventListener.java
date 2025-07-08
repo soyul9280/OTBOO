@@ -6,7 +6,7 @@ import com.codeit.weatherwear.domain.event.dto.FeedLikeEvent;
 import com.codeit.weatherwear.domain.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.domain.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.domain.event.dto.NewFollowerEvent;
-import com.codeit.weatherwear.domain.event.dto.PermissionChangedEvent;
+import com.codeit.weatherwear.domain.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.NotificationService;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -105,7 +105,7 @@ public class NotificationEventListener {
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handlePermissionChangedEvent(PermissionChangedEvent event) {
+  public void handlePermissionChangedEvent(RoleChangedEvent event) {
     String title = "권한이 변경되었어요.";
     String content = String.format("%s -> %s", event.previousRoles().name(), event.newRoles().name());
 
