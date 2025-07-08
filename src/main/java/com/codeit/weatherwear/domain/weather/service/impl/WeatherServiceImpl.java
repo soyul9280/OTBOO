@@ -36,6 +36,13 @@ public class WeatherServiceImpl implements WeatherService {
 
   private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
+  /**
+   * 날씨 정보 요청 API
+   *
+   * @param latitude  위도
+   * @param longitude 경도
+   * @return WeatherDto 리스트 반환
+   */
   @Transactional
   @Override
   public List<WeatherDto> getWeatherInfo(double latitude, double longitude) {
@@ -59,6 +66,13 @@ public class WeatherServiceImpl implements WeatherService {
         Collectors.toList());
   }
 
+  /**
+   * 위치 정보 요청 API
+   *
+   * @param latitude  위도
+   * @param longitude 경도
+   * @return LocationDto 반환
+   */
   @Transactional
   @Override
   public LocationDto getLocationInfo(double latitude, double longitude) {

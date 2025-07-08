@@ -44,6 +44,12 @@ public enum ErrorCode {
 
   // WEATHER
   INVALID_WIND_SPEED(HttpStatus.BAD_REQUEST, "유효하지 않은 풍속", "풍속은 0 이상의 값이어야 합니다."),
+  WEATHER_API_RESPONSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "날씨 API 응답 오류",
+      "날씨 API가 정상적인 응답을 반환하지 않았습니다."),
+  WEATHER_API_REQUEST_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "날씨 API 요청 실패",
+      "날씨 API 요청 중 네트워크 오류 또는 인터럽트가 발생했습니다."),
+  WEATHER_API_PARSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "단기 예보 JSON 파싱 실패",
+      "단기 예보 JSON 파싱 중 오류가 발생하여 실패하였습니다."),
 
   // JWT
   JWTSESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "인증 정보 확인 실패", "토큰이 만료되거나 로그아웃되었습니다."),
