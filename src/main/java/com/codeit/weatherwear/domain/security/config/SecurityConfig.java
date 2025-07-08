@@ -82,9 +82,11 @@ public class SecurityConfig {
         )
         .logout(logout -> logout
             .logoutRequestMatcher(SecurityRequestMatcher.SIGN_OUT)
-            .logoutSuccessUrl("/") // 홈으로
             .deleteCookies("refresh_token")    // 쿠키 삭제
             .addLogoutHandler(jwtLogoutHandler) // JwtSession 삭제 & 토큰 블랙리스트 추가 핸들러
+            .logoutSuccessHandler((request, response, authentication) -> {
+              response.setStatus(HttpStatus.NO_CONTENT.value());
+            })
         )
         .exceptionHandling(exceptionHandler -> exceptionHandler
             .defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
