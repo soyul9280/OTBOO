@@ -46,24 +46,24 @@ public class WeatherAssembler {
     String fcstTime = helper.extractMinForecastTime(categoryMap);
 
     // 현재 습도 값 파싱
-    double currentHumidity = helper.parseDoubleOrNull(helper.getFcstValue(categoryMap, "REH"));
+    Double currentHumidity = helper.parseDoubleOrNull(helper.getFcstValue(categoryMap, "REH"));
     // 전일 대비 습도 변화랑 계산
-    double comparedHumidity = helper.calculateDifferenceFromPreviousDay(currentHumidity, "REH",
+    Double comparedHumidity = helper.calculateDifferenceFromPreviousDay(currentHumidity, "REH",
         fcstDate, fcstTime,
         groupedApiData);
 
     // todo: 기온 값 등이 없다고 해서 변화량을 0이라고 둬도 되나? null로 두는 것이 나을까? (고민)
     // 현재 기온 값 파싱
-    double currentTemperature = helper.parseDoubleOrNull(helper.getFcstValue(categoryMap, "TMP"));
+    Double currentTemperature = helper.parseDoubleOrNull(helper.getFcstValue(categoryMap, "TMP"));
     // 전일 대비 기온 변화량 계산
-    double comparedTemperature = helper.calculateDifferenceFromPreviousDay(currentTemperature,
+    Double comparedTemperature = helper.calculateDifferenceFromPreviousDay(currentTemperature,
         "TMP", fcstDate, fcstTime,
         groupedApiData);
 
     // 최고 기온 값 파싱 (해당 카테고리가 없을 때는 0)
-    double tmx = helper.parseMinMaxTempDoubleOrZero(categoryMap.get("TMX"));
+    Double tmx = helper.parseMinMaxTempDoubleOrNull(categoryMap.get("TMX"));
     // 최저 기온 값 파싱 (해당 카테고리가 없을 때는 0)
-    double tmn = helper.parseMinMaxTempDoubleOrZero(categoryMap.get("TMN"));
+    Double tmn = helper.parseMinMaxTempDoubleOrNull(categoryMap.get("TMN"));
 
     // Weather 엔티티 생성
     return Weather.builder()

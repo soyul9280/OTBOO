@@ -33,6 +33,10 @@ public class WeatherCalculationHelper {
   private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HHmm");
   private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
+  private static final String DEFAULT_TIME = "1100";
+  private static final String NO_PRECIPITATION = "강수없음";
+
+
   /**
    * 주어진 날짜와 시간 문자열을 KST 기준 {@link Instant} 로 변환합니다.
    *
@@ -96,15 +100,15 @@ public class WeatherCalculationHelper {
    * @param value 강수량 문자열
    * @return 실수형 강수량 (mm)
    */
-  public double parsePrecipitation(String value) {
-    if (value == null || value.equals("강수없음")) {
-      return 0.0;
+  public Double parsePrecipitation(String value) {
+    if (value == null || value.equals(NO_PRECIPITATION)) {
+      return null;
     }
     try {
       return Double.parseDouble(value);
     } catch (NumberFormatException e) {
       log.warn("Failed Precipitation Parsing - {}", value);
-      return 0.0;
+      return null;
     }
   }
 
@@ -118,10 +122,14 @@ public class WeatherCalculationHelper {
    * @param groupedApiData 날짜 및 시간별 그룹화된 예보 데이터
    * @return 전일 대비 변화량 (예보값이 없으면 현재값과 동일하다고 가정 → 차이 0)
    */
-  public double calculateDifferenceFromPreviousDay(
-      double current, String category, String fcstDate, String fcstTime,
+  public Double calculateDifferenceFromPreviousDay(
+      Double current, String category, String fcstDate, String fcstTime,
       Map<String, Map<String, List<WeatherApiData>>> groupedApiData
   ) {
+    if (current == null) {
+      return null;
+    }
+
     // 전날 날짜 계산
     LocalDate previousDate = LocalDate.parse(fcstDate, DATE_FORMATTER).minusDays(1);
     String previousDateStr = previousDate.format(DATE_FORMATTER);
@@ -149,7 +157,7 @@ public class WeatherCalculationHelper {
     return categoryMap.values().stream()
         .map(WeatherApiData::getFcstTime)
         .min(String::compareTo)
-        .orElse("1100");
+        .orElse(DEFAULT_TIME);
   }
 
   /**
@@ -158,8 +166,8 @@ public class WeatherCalculationHelper {
    * @param data 카테고리별 WeatherApiData
    * @return Double로 파싱된 데이터 값
    */
-  public double parseMinMaxTempDoubleOrZero(WeatherApiData data) {
-    return data != null ? Double.parseDouble(data.getFcstValue()) : 0;
+  public Double parseMinMaxTempDoubleOrNull(WeatherApiData data) {
+    return data != null ? Double.parseDouble(data.getFcstValue()) : null;
   }
 
 }

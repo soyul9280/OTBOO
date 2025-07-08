@@ -116,7 +116,7 @@ public class WeatherConvertServiceImpl implements WeatherConvertService {
         data -> data.getId().getCategory(),
         Function.identity(),
         // 동일 카테고리 내 fcstTime이 더 늦은(최신) 데이터 선택
-        (d1, d2) -> d1.getFcstTime().compareTo(d2.getFcstTime()) <= 0 ? d1 : d2
+        (d1, d2) -> d1.getFcstTime().compareTo(d2.getFcstTime()) >= 0 ? d1 : d2
     ));
   }
 }
