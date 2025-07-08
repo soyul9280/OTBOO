@@ -26,6 +26,16 @@ public enum ErrorCode {
   SELF_FOLLOW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우 할 수 없습니다.", ""),
   FOLLOW_DUPLICATED(HttpStatus.BAD_REQUEST, "이미 팔로우한 사용자입니다.", ""),
 
+  // LOCATION
+  KAKAO_GEO_API_RESPONSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "외부 API 응답 오류",
+      "카카오 주소 정보 요청에 대한 정상적인 응답을 반환하지 않았습니다."),
+  KAKAO_GEO_API_REQUEST_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "외부 API 요청 중 오류",
+      "카카오 주소 정보 요청 중 오류가 발생하였습니다."),
+  LOCATION_NOT_FOUND_BY_GEO_POINT(HttpStatus.NOT_FOUND, "위치 조회 실패", "존재하지 않는 위치 엔티티입니다."),
+  ADDRESS_FIELD_NOT_FOUND(HttpStatus.NOT_FOUND, "주소 정보 확인 실패", "응답 JSON에서 주소 노드를 찾을 수 없습니다."),
+  ADDRESS_JSON_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "주소 JSON 파싱 실패",
+      "주소 응답 데이터를 파싱하는 도중 오류가 발생했습니다."),
+
   // FEED
   FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "피드 조회 실패", "존재하지 않는 피드입니다."),
   UNSUPPORTED_SORT_FIELD(HttpStatus.BAD_REQUEST, "지원하지 않는 정렬 필드", "지원하지 않는 정렬 필드입니다."),
@@ -44,7 +54,6 @@ public enum ErrorCode {
   ATTRIBUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "속성 확인 실패", "존재하지 않는 속성입니다."),
   SELECTABLE_DUPLICATE(HttpStatus.BAD_REQUEST, "속성 값 중복 등록", "중복된 속성 값이 존재합니다."),
   INVALID_ATTRIBUTE_NAME(HttpStatus.BAD_REQUEST, "잘못된 속성명입니다.", "정보를 찾을 수 없습니다."),
-
 
   //CLOTH
   CLOTH_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "옷 등록 실패", "존재하는 옷입니다."),
