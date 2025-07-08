@@ -74,8 +74,9 @@ public class WeatherAssembler {
         .precipitation(
             Precipitation.builder()
                 .type(PrecipitationsType.fromCode(categoryMap.get("PTY").getFcstValue()))
-                .amount(helper.parsePrecipitation(categoryMap.get("PCP").getFcstValue()))
-                .probability(Double.parseDouble(categoryMap.get("POP").getFcstValue()))
+                .amount(helper.parsePrecipitationAmount(categoryMap.get("PCP").getFcstValue()))
+                .probability(
+                    helper.parsePrecipitationProbability(categoryMap.get("POP").getFcstValue()))
                 .build()
         )
         .humidity(

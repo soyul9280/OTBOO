@@ -100,7 +100,7 @@ public class WeatherCalculationHelper {
    * @param value 강수량 문자열
    * @return 실수형 강수량 (mm)
    */
-  public Double parsePrecipitation(String value) {
+  public Double parsePrecipitationAmount(String value) {
     if (value == null || value.equals(NO_PRECIPITATION)) {
       return null;
     }
@@ -108,6 +108,18 @@ public class WeatherCalculationHelper {
       return Double.parseDouble(value);
     } catch (NumberFormatException e) {
       log.warn("Failed Precipitation Parsing - {}", value);
+      return null;
+    }
+  }
+
+  public Double parsePrecipitationProbability(String value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      return Double.parseDouble(value) * 0.01;
+    } catch (NumberFormatException e) {
+      log.warn("Failed Precipitation Probability Parsing - {}", value);
       return null;
     }
   }
