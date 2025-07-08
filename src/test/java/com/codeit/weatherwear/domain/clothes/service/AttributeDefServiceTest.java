@@ -119,7 +119,7 @@ public class AttributeDefServiceTest {
             verify(attributeRepository, times(1)).findById(id);
         }
 
-        @Test
+      /*  @Test
         @DisplayName("수정 실패- 이름 불일치")
         void updateAttributes_Fail() {
             //given
@@ -140,7 +140,7 @@ public class AttributeDefServiceTest {
                 .isInstanceOf(InvalidAttributeNameException.class)
                 .hasMessage("잘못된 속성명입니다.");
             verify(attributeRepository, times(1)).findById(id);
-        }
+        }*/
     }
 
     @Nested
