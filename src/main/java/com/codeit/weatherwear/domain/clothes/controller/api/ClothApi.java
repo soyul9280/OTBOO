@@ -108,5 +108,21 @@ public interface ClothApi {
             required = true
         )
         @PathVariable(value = "clothesId") UUID clothesId);
+
+    @Operation(summary = "구매 링크로 옷 정보 불러오기", description = "구매 링크로 옷 정보 불러오기 API")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "구매 링크로 옷 정보 불러오기 성공",
+            content = @Content(schema = @Schema(implementation = ClothesDto.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "구매 링크로 옷 정보 불러오기 실패",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
+    @GetMapping("/extractions")
+    ResponseEntity<ClothesDto> createFromUrl(@Parameter(required = true) String url);
+
 }
 

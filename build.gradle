@@ -108,6 +108,9 @@ dependencies {
 
     // google oauth
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    //웹 크롤링 Selenium
+    implementation 'org.seleniumhq.selenium:selenium-java:4.10.0'
 }
 
 

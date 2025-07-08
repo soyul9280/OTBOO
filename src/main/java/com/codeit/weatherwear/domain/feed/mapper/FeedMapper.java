@@ -7,6 +7,7 @@ import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.weather.dto.response.WeatherSummaryDto;
+import com.codeit.weatherwear.domain.weather.entity.Weather;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -31,9 +32,10 @@ public class FeedMapper {
         .build();
   }
 
-  public Feed toEntity(User author, FeedCreateRequest feedCreateRequest) {
+  public Feed toEntity(User author, Weather weather, FeedCreateRequest feedCreateRequest) {
     return Feed.builder()
         .author(author)
+        .weather(weather)
         .content(feedCreateRequest.getContent())
         .likeCount(0)
         .commentCount(0)

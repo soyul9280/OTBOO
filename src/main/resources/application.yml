@@ -48,6 +48,10 @@ weather:
   api-url: ${WEATHER_INFO_API_URL}
   api-service-key: ${WEATHER_INFO_SERVICE_KEY}
 
+location:
+  api-url: ${LOCATION_API_URL}
+  api-key: ${LOCATION_API_KEY}
+
 jwt:
   issuer: weatherwear
   access-token:
@@ -63,3 +67,6 @@ time:
 resetpassword:
   validity-seconds: 600 # 10분
 
+sse:
+  event-queue-capacity: ${SSE_EVENT_QUEUE_CAPACITY:1000}
+  timeout: ${SSE_TIMEOUT:300000}

@@ -1,11 +1,11 @@
 package com.codeit.weatherwear.global.sse;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -15,7 +15,7 @@ public class SseEmitterRepository {
   private final Map<UUID, List<SseEmitter>> data = new ConcurrentHashMap<>(100);
 
   public SseEmitter save(UUID receiverId, SseEmitter sseEmitter) {
-    data.computeIfAbsent(receiverId, k -> new ArrayList<>()).add(sseEmitter);
+    data.computeIfAbsent(receiverId, k -> new CopyOnWriteArrayList<>()).add(sseEmitter);
     return sseEmitter;
   }
 
@@ -33,6 +33,9 @@ public class SseEmitterRepository {
     List<SseEmitter> sseEmitters = data.get(receiverId);
     if (sseEmitters != null) {
       sseEmitters.remove(sseEmitter);
+      if (sseEmitters.isEmpty()) {
+        data.remove(receiverId);
+      }
     }
   }
 }

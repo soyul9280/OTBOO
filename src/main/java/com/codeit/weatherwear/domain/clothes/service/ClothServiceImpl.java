@@ -16,11 +16,14 @@ import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameExcep
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
+import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
+import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -31,6 +34,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openqa.selenium.PageLoadStrategy;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +52,7 @@ public class ClothServiceImpl implements ClothService {
     private final AttributeRepository attributeRepository;
     private final UserRepository userRepository;
     private final ClothMapper clothMapper;
+    private final List<SiteParser> siteParsers;
 
     /**
      * 의상 등록
@@ -82,6 +90,42 @@ public class ClothServiceImpl implements ClothService {
         Cloth saveCloth = clothRepository.save(cloth);
         log.info("[옷 등록 완료] id: {}, 옷 이름: {}", saveCloth.getId(), saveCloth.getName());
         return clothMapper.toDto(saveCloth);
+    }
+
+    /**
+     * 구매링크로 의상 등록
+     *
+     * @param url 구매 링크
+     * @return 의상 DTO
+     * @throws IOException
+     */
+    @Override
+    public ClothesDto createFromUrl(String url) {
+
+        ChromeOptions chromeOptions = new ChromeOptions();
+        chromeOptions.addArguments("--headless=new");
+        chromeOptions.addArguments("--lang=ko");
+        chromeOptions.addArguments("--no-sandbox");
+        chromeOptions.addArguments("--disable-gpu");
+        chromeOptions.addArguments("--user-agent=Mozilla/5.0 (Linux; Android 10) Chrome/90.0.4430.85 Mobile Safari/537.36");
+        chromeOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
+
+        WebDriver driver = new ChromeDriver(chromeOptions);
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(6));
+        try {
+            driver.get(url);
+            SiteParser parser = siteParsers.stream()
+                .filter(p -> p.supports(url))
+                .findFirst()
+                //TODO: 추후 커스텀 예외 고민
+                .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 사이트입니다: " + url));
+            parser.waitUntilReady(driver);
+            return parser.extract(driver);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            driver.quit();
+        }
     }
 
     /**

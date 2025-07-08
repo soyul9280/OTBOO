@@ -5,6 +5,7 @@ import com.codeit.weatherwear.domain.feed.service.FeedLikeService;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,7 +35,7 @@ public class FeedLikeController {
       @AuthenticationPrincipal CustomUserDetails userDetails
   ) {
     feedLikeService.deleteFeedLike(feedId, userDetails.getUserId());
-    return ResponseEntity.ok(null);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
 

@@ -112,7 +112,7 @@ class FeedRepositoryTest {
             """)
         .setParameter("id", id)
         .setParameter("authorId", user.getId())
-        .setParameter("commentContent", content)
+        .setParameter("content", content)
         .setParameter("likeCount", likeCount)
         .setParameter("weatherId", weatherId)
         .setParameter("createdAt", createdAt)

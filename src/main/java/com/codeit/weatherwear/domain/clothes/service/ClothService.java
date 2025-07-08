@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public interface ClothService {
     ClothesDto create(ClothesCreateRequest request);
+    ClothesDto createFromUrl(String url);
     ClothesDto update(UUID clothesId,ClothesUpdateRequest request);
     PageResponse<ClothesDto> searchClothes(ClothesSearchRequest request);
     void delete(UUID clothesId);

@@ -16,11 +16,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,6 +52,22 @@ public class ClothController implements ClothApi {
     return ResponseEntity.status(HttpStatus.CREATED).body(createClothes);
   }
 
+    /**
+     * 의상을 url으로부터 불러와 등록합니다.
+     *
+     * @param url 구매 사이트 url
+     * @return
+     */
+    @Override
+    @GetMapping("/extractions")
+    public ResponseEntity<ClothesDto> createFromUrl(@RequestParam String url) {
+      log.info("[url로 옷 등록 요청] url: {}", url);
+
+      ClothesDto urlCloth=clothService.createFromUrl(url);
+      return ResponseEntity.ok(urlCloth);
+    }
+
+
   /**
    * 의상을 조회합니다.
    *
@@ -57,10 +75,11 @@ public class ClothController implements ClothApi {
    * @return
    */
   @Override
+  @GetMapping
   public ResponseEntity<PageResponse<ClothesDto>> searchClothes(
-      @ModelAttribute @Valid ClothesSearchRequest request) {
-    log.info("[옷 목록 조회 요청] ownerId: {}, typeEqual: {}, limit: {}",
-        request.ownerId(), request.typeEqual(), request.limit());
+    @ModelAttribute @Valid ClothesSearchRequest request) {
+      log.info("[옷 목록 조회 요청] ownerId: {}, typeEqual: {}, limit: {}",
+          request.ownerId(),request.typeEqual(), request.limit());
 
     PageResponse<ClothesDto> result = clothService.searchClothes(request);
     return ResponseEntity.ok(result);
@@ -105,6 +124,5 @@ public class ClothController implements ClothApi {
     clothService.delete(clothesId);
     return ResponseEntity.noContent().build();
   }
-
 
 }

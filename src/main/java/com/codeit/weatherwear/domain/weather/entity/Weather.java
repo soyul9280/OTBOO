@@ -44,7 +44,7 @@ public class Weather {
   private Instant forecastAt;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "sky_status", length = 10, nullable = false)
+  @Column(name = "sky_status", length = 20, nullable = false)
   private SkyStatus skyStatus;
 
   @Embedded

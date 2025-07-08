@@ -21,6 +21,7 @@ import com.codeit.weatherwear.domain.clothes.exception.ClothNotFoundException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
+import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import java.time.Instant;
@@ -46,6 +47,8 @@ public class ClothServiceTest {
     private ClothRepository clothRepository;
     @Mock
     private ClothMapper mapper;
+    @Mock
+    private List<SiteParser> siteParsers;
 
     @InjectMocks
     private ClothServiceImpl sut;

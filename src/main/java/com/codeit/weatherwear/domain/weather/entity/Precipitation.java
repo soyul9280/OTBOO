@@ -17,6 +17,8 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Precipitation {
 
+  // 관련 코드: PTY / PCP / POP
+
   @Enumerated(EnumType.STRING)
   @Comment("강수 형태")
   @Column(name = "precipitation_type", nullable = false)
