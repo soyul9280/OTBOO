@@ -16,6 +16,7 @@ import com.codeit.weatherwear.domain.clothes.exception.AttributeAlreadyExistsExc
 import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameException;
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
+import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,9 @@ public class AttributeDefServiceTest {
 
     @Mock
     private AttributeMapper attributeMapper;
+
+    @Mock
+    private ClothWithAttributesRepository clothWithAttributesRepository;
 
     @InjectMocks
     private AttributeServiceImpl sut;
