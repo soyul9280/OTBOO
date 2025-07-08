@@ -36,7 +36,6 @@ import org.springframework.security.web.authentication.session.NullAuthenticated
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -51,7 +50,7 @@ public class SecurityConfig {
       JwtLogoutHandler jwtLogoutHandler,
       CustomOAuth2UserService customOAuth2UserService,
       @Qualifier("customOAuth2SuccessHandler") AuthenticationSuccessHandler customOAuth2SuccessHandler,
-      CorsConfigurationSource corsConfigurationSource)
+      AuthenticationFailureHandler customAuthenticationFailureHandler)
       throws Exception {
 
     httpSecurity
@@ -67,6 +66,7 @@ public class SecurityConfig {
             .userInfoEndpoint(userInfo -> userInfo
                 .userService(customOAuth2UserService))
             .successHandler(customOAuth2SuccessHandler)
+            .failureHandler(customAuthenticationFailureHandler)
         )
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
