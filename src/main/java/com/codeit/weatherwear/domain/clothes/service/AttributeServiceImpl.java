@@ -76,10 +76,6 @@ public class AttributeServiceImpl implements AttributeService {
                 log.warn("[속성 정의 수정 실패] 존재하지 않는 속성입니다. ID : {}", id);
                 return new AttributeNotFoundException();
             });
-        if(!attribute.getName().equals(request.name())) {
-            log.warn("[속성 정의 수정 실패] 존재하지 않는 속성명이거나 속성명 요청이 잘못되었습니다. ID : {}", id);
-            throw new InvalidAttributeNameException();
-        }
 
         //입력값 중복일 때 에러발생 (ex) 여름 여름
         List<String> newValues = request.selectableValues();
