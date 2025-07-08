@@ -52,8 +52,7 @@ public class WeatherServiceImpl implements WeatherService {
     LocalDate today = LocalDate.now(KST);
 
     Instant todayStart = today.atStartOfDay(KST).toInstant();    // 오늘 00:00
-    List<Weather> weatherList = weatherRepository.findWeathersByLocationAndForecastedAt(location,
-        todayStart);
+    List<Weather> weatherList = weatherRepository.findRecentWeathers(location, todayStart);
 
     if (weatherList.isEmpty()) {
       // 없다면 가져오기
