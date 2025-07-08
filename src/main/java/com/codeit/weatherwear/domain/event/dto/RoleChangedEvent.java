@@ -3,7 +3,7 @@ package com.codeit.weatherwear.domain.event.dto;
 import com.codeit.weatherwear.domain.user.entity.Role;
 import java.util.UUID;
 
-public record PermissionChangedEvent(
+public record RoleChangedEvent(
     UUID receiverId,
     Role newRoles,
     Role previousRoles

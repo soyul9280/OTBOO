@@ -7,6 +7,6 @@ public sealed interface DomainEvent
     FolloweeFeedPostedEvent,
     NewFeedCommentEvent,
     NewFollowerEvent,
-    PermissionChangedEvent,
+    RoleChangedEvent,
     MultipleNotificationCreatedEvent,
     NotificationCreatedEvent { }
