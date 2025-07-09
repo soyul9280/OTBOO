@@ -111,6 +111,9 @@ dependencies {
 
     //웹 크롤링 Selenium
     implementation 'org.seleniumhq.selenium:selenium-java:4.10.0'
+
+    //웹소켓
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 
