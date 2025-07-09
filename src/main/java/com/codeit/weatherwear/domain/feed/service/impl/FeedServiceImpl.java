@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,16 +52,10 @@ public class FeedServiceImpl implements FeedService {
     log.info("Request Get Feed List");
 
     FeedSearchCondition condition = paramRequest.toSearchCondition();
-    int limit = condition.getLimit() + 1;
+    Slice<Feed> feedList = feedRepository.searchFeeds(condition);
+    long totalCount = feedRepository.getTotalFeedCount();
 
-    List<Feed> feedList = feedRepository.searchFeeds(condition, limit);
-    boolean hasNext = feedList.size() > condition.getLimit();
-
-    List<Feed> resultList = hasNext ? feedList.subList(0, condition.getLimit()) : feedList;
-    List<FeedDto> feedDtoList = resultList.stream().map(feed -> toFeedDto(feed, currentUserId))
-        .collect(Collectors.toList());
-
-    return toPageResponse(feedDtoList, condition, hasNext);
+    return toPageResponse(currentUserId, feedList, condition, totalCount);
   }
 
   @Transactional
@@ -128,24 +123,29 @@ public class FeedServiceImpl implements FeedService {
     return feedMapper.toDto(feed, authorDto, weatherSummaryDto, ootds, likedByMe);
   }
 
-  private PageResponse<FeedDto> toPageResponse(List<FeedDto> dtoList, FeedSearchCondition condition,
-      boolean hasNext) {
+  private PageResponse<FeedDto> toPageResponse(UUID currentUserId, Slice<Feed> feedSlice,
+      FeedSearchCondition condition,
+      long totalCount) {
+
+    List<Feed> feeds = feedSlice.getContent();
+
+    List<FeedDto> data = feeds.stream().map(feed -> toFeedDto(feed, currentUserId))
+        .collect(Collectors.toList());
 
     UUID nextIdAfter = null;
     Object nextCursor = null;
-    if (hasNext && !dtoList.isEmpty()) {
-      nextIdAfter = dtoList.get(dtoList.size() - 1).getId();
-      nextCursor =
-          condition.getSortBy().equals("createdAt") ? dtoList.get(dtoList.size() - 1).getCreatedAt()
-              : dtoList.get(dtoList.size() - 1).getLikeCount();
+    if (feedSlice.hasNext() && !data.isEmpty()) {
+      Feed nextFirstItem = feeds.get(feeds.size() - 1);
+      nextIdAfter = nextFirstItem.getId();
+      nextCursor = nextFirstItem.getCreatedAt();
     }
 
     return new PageResponse<>(
-        dtoList,
+        data,
         nextCursor,
         nextIdAfter,
-        hasNext,
-        dtoList.size(),
+        feedSlice.hasNext(),
+        totalCount,
         condition.getSortBy(),
         condition.getSortDirection().name()
     );
