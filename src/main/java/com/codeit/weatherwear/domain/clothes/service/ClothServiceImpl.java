@@ -20,6 +20,7 @@ import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.exception.s3.S3DeleteException;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
@@ -158,29 +159,42 @@ public class ClothServiceImpl implements ClothService {
                 return new ClothNotFoundException();
             });
 
-        // 썸네일 이미지가 있다면 새로 업로드 후 갱신
+        // 썸네일 이미지가 수정사항에 있다면 새로 업로드 후 갱신
         image.filter(file -> !file.isEmpty())
             .ifPresent(file -> {
+                //기존 이미지 삭제
+                String oldImageUrl = cloth.getClothesImageUrl();
                 String uploadUrl = thumbnailImageStorage.upload(file);
                 log.info("[옷 수정] 썸네일 이미지 변경됨: {}", uploadUrl);
                 cloth.updateImageUrl(uploadUrl);
+                if(oldImageUrl != null) {
+                    try{
+                        thumbnailImageStorage.delete(oldImageUrl);
+                        log.info("[옷 수정] 기존 이미지 삭제 완료: {}", oldImageUrl);
+                    }catch (Exception e){
+                        log.warn("[옷 수정 실패] 기존 이미지 삭제 실패: {}", oldImageUrl);
+                        throw new S3DeleteException();
+                    }
+                }
             });
 
         String imageUrl =
             cloth.getClothesImageUrl() != null ? thumbnailImageStorage.get(cloth.getClothesImageUrl()) : null;
 
-
+        //이름을 수정할 경우
+        if(request.name()!=null) {
+            cloth.updateName(request.name());
+        }
+        //타입을 수정할 경우
+        if(request.type()!=null) {
+            cloth.updateType(request.type());
+        }
+        //속성 수정 경우
         List<UUID> attrIds = request.attributes().stream()
             .map(ClothesAttributeDto::definitionId)
             .toList();
         List<Attribute> attributes = attributeRepository.findAllById(attrIds);
 
-        if(request.name()!=null) {
-            cloth.updateName(request.name());
-        }
-        if(request.type()!=null) {
-            cloth.updateType(request.type());
-        }
         if(request.attributes()!=null) {
             cloth.clearAttributes();
             Map<UUID, Attribute> attributeMap = attributes.stream()
@@ -189,6 +203,7 @@ public class ClothServiceImpl implements ClothService {
             applyAttributesToCloth(request.attributes(), attributeMap, cloth);
 
         }
+
         log.info("[옷 수정 완료] ID : {}, name: {}", clothesId, cloth.getName());
         return clothMapper.toDto(cloth,imageUrl);
     }
