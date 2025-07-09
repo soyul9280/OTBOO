@@ -64,10 +64,6 @@ class FeedCommentServiceImplTest {
   @Mock
   private FeedCommentMapper feedCommentMapper;
 
-  private FeedCommentCreateRequest createRequest;
-  private FeedCommentGetParamRequest getParamRequest;
-  private FeedCommentSearchCondition condition;
-
   private Location mockLocation;
   private UUID authorId;
   private User author;

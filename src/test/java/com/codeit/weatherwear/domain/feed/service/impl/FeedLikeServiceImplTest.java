@@ -72,7 +72,6 @@ class FeedLikeServiceImplTest {
   private FeedLike feedLike;
 
   private User currentUser;
-  private UserSummaryDto currentUserDto;
 
   private List<OotdDto> ootds;
   private FeedDto feedDto;
@@ -98,8 +97,6 @@ class FeedLikeServiceImplTest {
         .createdAt(Instant.now())
         .updatedAt(Instant.now())
         .build();
-
-    currentUserDto = UserSummaryDto.from(currentUser);
 
     ootds = List.of(mock(OotdDto.class));
   }
