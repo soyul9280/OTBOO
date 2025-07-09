@@ -10,6 +10,7 @@ import com.codeit.weatherwear.domain.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.NotificationService;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -58,7 +59,16 @@ public class NotificationEventListener {
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
+    UUID receiverId = event.receiverId();
+    String title = String.format("[DM] %s", event.senderName());
+    String content = event.content();
 
+    notificationService.create(
+        receiverId,
+        title,
+        content,
+        Level.INFO
+    );
   }
 
   @Async("eventExecutor")
