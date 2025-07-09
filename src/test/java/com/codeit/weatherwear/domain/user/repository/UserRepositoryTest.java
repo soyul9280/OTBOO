@@ -37,7 +37,6 @@ class UserRepositoryTest {
     testUsers.clear();
     for (int i = 1; i <= 5; i++) {
       User user = User.builder()
-          .id(UUID.fromString(String.format("00000000-0000-0000-0000-00000000000%d", i)))
           .name("user" + i)
           .email("user" + i + "@test.com")
           .password("")
@@ -126,7 +125,8 @@ class UserRepositoryTest {
   @Test
   void createdAt_커서페이징() {
     // given
-    User user3 = testUsers.get(2);
+    User user3 = userRepository.findByEmail("user3@test.com")
+        .orElseThrow();
     // when
     Slice<User> result = userRepository.searchUsers(
         user3.getCreatedAt().toString(), user3.getId(), 2,
