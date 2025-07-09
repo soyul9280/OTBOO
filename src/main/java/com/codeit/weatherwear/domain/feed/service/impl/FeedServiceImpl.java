@@ -89,19 +89,15 @@ public class FeedServiceImpl implements FeedService {
 
   @Transactional
   @Override
-  public FeedDto deleteFeed(UUID feedId, UUID currentUserId) {
+  public void deleteFeed(UUID feedId, UUID currentUserId) {
     log.info("Request Delete Feed - feedId: {}", feedId);
 
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new FeedNotFoundException(feedId));
-    boolean likedByMe = feedLikeService.isLikedByMe(feed, currentUserId);
 
     feedLikeService.deleteAllFeedLikeInFeed(feed);
     feedCommentService.deleteFeedCommentsByFeed(feed);
     feedRepository.delete(feed);
-    List<OotdDto> ootds = ootdService.deleteOotdByFeedId(feedId);
-
-    return toFeedDto(feed, ootds, likedByMe);
   }
 
   // 생성/삭제
