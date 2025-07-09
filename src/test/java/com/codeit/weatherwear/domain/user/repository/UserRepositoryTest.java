@@ -37,6 +37,7 @@ class UserRepositoryTest {
     testUsers.clear();
     for (int i = 1; i <= 5; i++) {
       User user = User.builder()
+          .id(UUID.fromString(String.format("00000000-0000-0000-0000-00000000000%d", i)))
           .name("user" + i)
           .email("user" + i + "@test.com")
           .password("")
