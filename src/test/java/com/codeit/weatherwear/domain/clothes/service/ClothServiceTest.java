@@ -119,7 +119,7 @@ public class ClothServiceTest {
             given(clothRepository.save(any(Cloth.class))).willReturn(clothes);
             given(mapper.toDto(any(Cloth.class),any())).willReturn(clothesDto);
             //when
-            ClothesDto result = sut.create(request,Optional.empty());
+            ClothesDto result = sut.create(request,null);
             //then
             assertThat(result.getName()).isEqualTo("후드티");
             assertThat(result.getType()).isEqualTo(ClothType.TOP);
@@ -144,7 +144,7 @@ public class ClothServiceTest {
             given(attributeRepository.findAllById(any())).willReturn(List.of()); // 속성 없음
 
             // when & then
-            assertThatThrownBy(() -> sut.create(request,Optional.empty()))
+            assertThatThrownBy(() -> sut.create(request,null))
                 .isInstanceOf(AttributeNotFoundException.class)
                 .hasMessageContaining("속성 확인 실패");
 
@@ -249,7 +249,7 @@ public class ClothServiceTest {
             given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef));
             given(mapper.toDto(any(Cloth.class),any())).willReturn(clothesDto);
             //when
-            ClothesDto result=sut.update(clothesId,request,Optional.empty());
+            ClothesDto result=sut.update(clothesId,request,null);
 
             //then
             assertThat(result.getName()).isEqualTo("빨강 후드티");
