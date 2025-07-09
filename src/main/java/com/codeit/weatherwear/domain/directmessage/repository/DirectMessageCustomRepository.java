@@ -1,6 +1,6 @@
 package com.codeit.weatherwear.domain.directmessage.repository;
 
-import com.codeit.weatherwear.domain.directmessage.DirectMessageDto;
+import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
