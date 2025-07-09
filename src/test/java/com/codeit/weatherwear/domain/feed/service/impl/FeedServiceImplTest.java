@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -49,7 +48,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +57,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@Disabled
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class FeedServiceImplTest {
@@ -100,8 +97,6 @@ class FeedServiceImplTest {
   private FeedGetParamRequest mockFeedQuery;
 
   private WeatherSummaryDto mockWeatherDto;
-  private PrecipitationDto mockPrecipitation;
-  private TemperatureDto mockTemperature;
   private UserSummaryDto mockAuthorDto;
   private FeedDto mockFeedDto;
 
@@ -122,182 +117,73 @@ class FeedServiceImplTest {
 
   @BeforeEach
   void setUp() {
+    // 위치 정보
     mockLocation = new Location(37.513068, 127.102570, 961159, 1953082, "서울 송파구 신천동");
 
+    // 유저 정보
     authorId = UUID.randomUUID();
     currentUserId = authorId;
+    mockAuthor = createMockUser(authorId, mockLocation);
+    mockAuthorDto = UserSummaryDto.from(mockAuthor);
+
+    // 날씨 정보
     weatherId = UUID.randomUUID();
+    mockWeather = createMockWeather(weatherId, mockLocation);
+    mockWeatherDto = createMockWeatherDto(weatherId, mockWeather);
+
+    // 의류 정보
     clothId1 = UUID.randomUUID();
     clothId2 = UUID.randomUUID();
     clothIds = List.of(clothId1, clothId2);
+    mockOotdDto1 = createMockOotdDto(clothId1, "상의");
+    mockOotdDto2 = createMockOotdDto(clothId2, "하의");
 
-    mockContent = "Mock Feed Content";
+    // 피드 정보
+    feedId = UUID.randomUUID();
+    mockContent = "FeedContent - " + UUID.randomUUID();
+    mockFeed = createMockFeed(feedId, mockAuthor, mockWeather, mockContent);
+    mockFeedDto = createMockFeedDto(mockFeed, mockAuthorDto, mockWeatherDto,
+        List.of(mockOotdDto1, mockOotdDto2));
 
-    mockAuthor = User.builder()
-        .id(authorId)
-        .email("test@example.com")
-        .name("홍길동")
-        .password("!password1234")
-        .role(Role.USER)
-        .locked(false)
-        .gender(Gender.FEMALE)
-        .birthDate(LocalDate.of(2000, 1, 1))
-        .temperatureSensitivity(10)
-        .profileImageUrl(null)
-        .location(mockLocation)
-        .createdAt(Instant.now())
-        .updatedAt(Instant.now())
-        .build();
+    // 갱신 피드
+    updateContent = "update";
+    updateMockFeed = createMockFeed(feedId, mockAuthor, mockWeather, updateContent);
+    updateFeedDto = createMockFeedDto(updateMockFeed, mockAuthorDto, mockWeatherDto,
+        List.of(mockOotdDto1, mockOotdDto2));
 
-    mockAuthorDto = UserSummaryDto.from(mockAuthor);
-
+    // 요청/조건
     mockRequest = FeedCreateRequest.builder()
         .authorId(authorId)
         .weatherId(weatherId)
         .clothesIds(clothIds)
         .content(mockContent)
         .build();
-
-    mockWeather = Weather.builder()
-        .location(new Location(37.513068, 127.102570, 961159, 1953082, "서울 송파구 신천동"))
-        .forecastedAt(Instant.now()) // 예보 기준 시각
-        .forecastAt(Instant.now().plusSeconds(3600)) // 예보 시각 (예: 1시간 후)
-        .skyStatus(SkyStatus.CLEAR) // 예시: 맑음
-        .precipitation(
-            Precipitation.builder()
-                .type(PrecipitationsType.NONE)
-                .amount(0.0)
-                .probability(0.0)
-                .build()
-        )
-        .humidity(
-            Humidity.builder()
-                .current(50.0)
-                .comparedToDayBefore(0.0)
-                .build()
-        )
-        .temperature(
-            Temperature.builder()
-                .current(20.0)
-                .comparedToDayBefore(0.0)
-                .min(15.0)
-                .max(25.0)
-                .build()
-        )
-        .windSpeed(
-            WindSpeed.builder()
-                .speed(1.2)
-                .build()
-        )
-        .build();
-    ReflectionTestUtils.setField(mockWeather, "id", weatherId);
-
-    mockWeatherDto = WeatherSummaryDto.builder()
-        .weatherId(weatherId)
-        .skyStatus(SkyStatus.CLEAR)
-        .precipitation(mockPrecipitation)
-        .temperature(mockTemperature)
-        .build();
-
-    feedId = UUID.randomUUID();
-    mockFeed = Feed.builder()
-        .author(mockAuthor)
-        .content(mockContent)
-        .weather(mockWeather)
-        .commentCount(0)
-        .likeCount(0)
-        .build();
-    ReflectionTestUtils.setField(mockFeed, "id", feedId);
-
     mockFeedQuery = FeedGetParamRequest.builder()
         .limit(10)
         .sortBy("createdAt")
         .sortDirection("ASCENDING")
         .build();
-
     condition = mockFeedQuery.toSearchCondition();
-
-    mockPrecipitation = PrecipitationDto.builder()
-        .type(PrecipitationsType.NONE)
-        .amount(0.1)
-        .probability(0.1)
-        .build();
-
-    mockTemperature = TemperatureDto.builder()
-        .current(0.1)
-        .comparedToDayBefore(0.1)
-        .min(0.1)
-        .max(0.1)
-        .build();
-
-    mockOotdDto1 = OotdDto.builder()
-        .clothesId(clothId1)
-        .name("cloth1")
-        .imageUrl(null)
-        .type("상의")
-        .attributes(null)
-        .build();
-    mockOotdDto2 = OotdDto.builder()
-        .clothesId(clothId2)
-        .name("cloth2")
-        .imageUrl(null)
-        .type("하의")
-        .attributes(null)
-        .build();
-
-    mockFeedDto = FeedDto.builder()
-        .id(mockFeed.getId())
-        .createdAt(mockFeed.getCreatedAt())
-        .updatedAt(mockFeed.getUpdatedAt())
-        .author(mockAuthorDto)
-        .weather(mockWeatherDto)
-        .ootds(List.of(mockOotdDto1, mockOotdDto2))
-        .content(mockFeed.getContent())
-        .commentCount(mockFeed.getCommentCount())
-        .likeCount(mockFeed.getLikeCount())
-        .likedByMe(false)
-        .build();
-
-    updateContent = "수정된 메시지";
-    updateMockFeed = Feed.builder()
-        .author(mockAuthor)
-        .content(updateContent)
-        .weather(mockWeather)
-        .commentCount(0)
-        .likeCount(0)
-        .build();
-    ReflectionTestUtils.setField(updateMockFeed, "id", feedId);
-
-    updateFeedDto = FeedDto.builder()
-        .id(updateMockFeed.getId())
-        .createdAt(updateMockFeed.getCreatedAt())
-        .updatedAt(updateMockFeed.getUpdatedAt())
-        .author(mockAuthorDto)
-        .weather(mockWeatherDto)
-        .ootds(null)
-        .content(updateMockFeed.getContent())
-        .commentCount(updateMockFeed.getCommentCount())
-        .likeCount(updateMockFeed.getLikeCount())
-        .likedByMe(false)
-        .build();
-
-    ReflectionTestUtils.setField(mockFeed, "id", feedId);
   }
 
   @Test
   @DisplayName("Feed를 성공적으로 생성하여 FeedDto를 리턴합니다.")
   void createFeed_success() {
     // given
-    given(userRepository.findById(authorId)).willReturn(Optional.ofNullable(mockAuthor));
-    given(weatherRepository.findById(weatherId)).willReturn(Optional.ofNullable(mockWeather));
+    given(userRepository.findById(authorId)).willReturn(Optional.of(mockAuthor));
+    given(weatherRepository.findById(weatherId)).willReturn(Optional.of(mockWeather));
     given(feedMapper.toEntity(mockAuthor, mockWeather, mockRequest)).willReturn(mockFeed);
     given(feedRepository.save(mockFeed)).willReturn(mockFeed);
     given(ootdService.createOotdList(eq(mockFeed), eq(mockRequest.getClothesIds()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
     given(weatherMapper.toSummaryDto(eq(mockWeather))).willReturn(mockWeatherDto);
-    given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
+    given(feedMapper.toDto(
+        eq(mockFeed),
+        eq(mockAuthorDto),
+        eq(mockWeatherDto),
         eq(List.of(mockOotdDto1, mockOotdDto2)),
-        eq(false))).willReturn(mockFeedDto);
+        eq(false)
+    )).willReturn(mockFeedDto);
 
     // when
     FeedDto result = feedService.createFeed(mockRequest, currentUserId);
@@ -347,11 +233,12 @@ class FeedServiceImplTest {
     given(ootdService.findOotdByFeedId(eq(mockFeed.getId()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
     given(feedLikeService.isLikedByMe(mockFeed, currentUserId)).willReturn(false);
+    given(weatherMapper.toSummaryDto(eq(mockWeather))).willReturn(mockWeatherDto);
     given(feedMapper.toDto(
         eq(mockFeed),
         eq(mockAuthorDto),
-        any(WeatherSummaryDto.class),
-        anyList(),
+        eq(mockWeatherDto),
+        eq(List.of(mockOotdDto1, mockOotdDto2)),
         eq(false)
     )).willReturn(mockFeedDto);
 
@@ -381,12 +268,18 @@ class FeedServiceImplTest {
     FeedUpdateRequest updateRequest = FeedUpdateRequest.builder().content(updateContent).build();
 
     given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-    given(ootdService.findOotdByFeedId(eq(mockFeed.getId()))).willReturn(
+    mockFeed.updateContent(updateContent);
+    given(weatherMapper.toSummaryDto(eq(mockWeather))).willReturn(mockWeatherDto);
+    given(feedLikeService.isLikedByMe(eq(mockFeed), eq(currentUserId))).willReturn(false);
+    given(ootdService.findOotdByFeedId(mockFeed.getId())).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
-    given(feedLikeService.isLikedByMe(mockFeed, currentUserId)).willReturn(false);
-    given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
+    given(feedMapper.toDto(
+        eq(mockFeed),
+        eq(mockAuthorDto),
+        eq(mockWeatherDto),
         eq(List.of(mockOotdDto1, mockOotdDto2)),
-        eq(false))).willReturn(updateFeedDto);
+        eq(false)
+    )).willReturn(updateFeedDto);
 
     // when
     FeedDto result = feedService.updateFeed(feedId, updateRequest, currentUserId);
@@ -420,9 +313,14 @@ class FeedServiceImplTest {
     given(feedLikeService.isLikedByMe(mockFeed, currentUserId)).willReturn(false);
     given(ootdService.deleteOotdByFeedId(eq(mockFeed.getId()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
-    given(feedMapper.toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
+    given(weatherMapper.toSummaryDto(eq(mockWeather))).willReturn(mockWeatherDto);
+    given(feedMapper.toDto(
+        eq(mockFeed),
+        eq(mockAuthorDto),
+        eq(mockWeatherDto),
         eq(List.of(mockOotdDto1, mockOotdDto2)),
-        eq(false))).willReturn(mockFeedDto);
+        eq(false)
+    )).willReturn(mockFeedDto);
 
     // when
     FeedDto result = feedService.deleteFeed(feedId, currentUserId);
@@ -453,6 +351,129 @@ class FeedServiceImplTest {
     // when & then
     assertThatThrownBy(() -> feedService.deleteFeed(failedId, authorId))
         .isInstanceOf(FeedNotFoundException.class);
+  }
+
+  // Private Method
+
+  private User createMockUser(UUID userId, Location location) {
+    return User.builder()
+        .id(userId)
+        .email("test@example.com")
+        .name("홍길동")
+        .password("!password1234")
+        .role(Role.USER)
+        .locked(false)
+        .gender(Gender.FEMALE)
+        .birthDate(LocalDate.of(2000, 1, 1))
+        .temperatureSensitivity(10)
+        .profileImageUrl(null)
+        .location(location)
+        .createdAt(Instant.now())
+        .updatedAt(Instant.now())
+        .build();
+  }
+
+  private Weather createMockWeather(UUID weatherId, Location location) {
+    Weather weather = Weather.builder()
+        .location(location)
+        .forecastedAt(Instant.now())
+        .forecastAt(Instant.now().plusSeconds(3600))
+        .skyStatus(SkyStatus.CLEAR)
+        .precipitation(
+            Precipitation.builder()
+                .type(PrecipitationsType.NONE)
+                .amount(0.0)
+                .probability(0.0)
+                .build()
+        )
+        .humidity(
+            Humidity.builder()
+                .current(50.0)
+                .comparedToDayBefore(0.0)
+                .build()
+        )
+        .temperature(
+            Temperature.builder()
+                .current(20.0)
+                .comparedToDayBefore(0.0)
+                .min(15.0)
+                .max(25.0)
+                .build()
+        )
+        .windSpeed(
+            WindSpeed.builder()
+                .speed(1.2)
+                .build()
+        )
+        .build();
+    ReflectionTestUtils.setField(weather, "id", weatherId);
+    return weather;
+  }
+
+  private OotdDto createMockOotdDto(UUID clothesId, String type) {
+    return OotdDto.builder()
+        .clothesId(clothesId)
+        .name(type.equals("상의") ? "cloth1" : "cloth2")
+        .imageUrl(null)
+        .type(type)
+        .attributes(null)
+        .build();
+  }
+
+  private Feed createMockFeed(UUID feedId, User author, Weather weather, String content) {
+    Feed feed = Feed.builder()
+        .author(author)
+        .content(content)
+        .weather(weather)
+        .commentCount(0)
+        .likeCount(0)
+        .build();
+    ReflectionTestUtils.setField(feed, "id", feedId);
+    ReflectionTestUtils.setField(feed, "createdAt", Instant.now());
+    ReflectionTestUtils.setField(feed, "updatedAt", Instant.now());
+    return feed;
+  }
+
+  private FeedDto createMockFeedDto(Feed feed, UserSummaryDto authorDto,
+      WeatherSummaryDto weatherDto, List<OotdDto> ootds) {
+    return FeedDto.builder()
+        .id(feed.getId())
+        .createdAt(feed.getCreatedAt())
+        .updatedAt(feed.getUpdatedAt())
+        .author(authorDto)
+        .weather(weatherDto)
+        .ootds(ootds)
+        .content(feed.getContent())
+        .commentCount(feed.getCommentCount())
+        .likeCount(feed.getLikeCount())
+        .likedByMe(false)
+        .build();
+  }
+
+  private WeatherSummaryDto createMockWeatherDto(UUID weatherId, Weather mockWeather) {
+    return WeatherSummaryDto.builder()
+        .weatherId(weatherId)
+        .skyStatus(mockWeather.getSkyStatus())
+        .precipitation(createMockPrecipitationDto(mockWeather.getPrecipitation()))
+        .temperature(createMockTemperatureDto(mockWeather.getTemperature()))
+        .build();
+  }
+
+  private PrecipitationDto createMockPrecipitationDto(Precipitation precipitation) {
+    return PrecipitationDto.builder()
+        .type(precipitation.getType())
+        .amount(precipitation.getAmount())
+        .probability(precipitation.getProbability())
+        .build();
+  }
+
+  private TemperatureDto createMockTemperatureDto(Temperature temperature) {
+    return TemperatureDto.builder()
+        .current(temperature.getCurrent())
+        .comparedToDayBefore(temperature.getComparedToDayBefore())
+        .min(temperature.getMin())
+        .max(temperature.getMax())
+        .build();
   }
 
 }
