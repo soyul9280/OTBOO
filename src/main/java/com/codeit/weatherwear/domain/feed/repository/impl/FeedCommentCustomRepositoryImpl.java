@@ -94,6 +94,7 @@ public class FeedCommentCustomRepositoryImpl implements FeedCommentCustomReposit
         }
       }
       default -> {
+        // 실제로 도달해서는 안 되는 방어 로직
         log.warn("Not Implement Sort Field in Feed Comment: {}", sortBy);
         throw new NotImplementSortFieldException(sortBy);
       }
@@ -114,6 +115,7 @@ public class FeedCommentCustomRepositoryImpl implements FeedCommentCustomReposit
       case SORT_BY_CREATED_AT ->
           new OrderSpecifier<>(order, path.getDateTime(SORT_BY_CREATED_AT, Instant.class));
       default -> {
+        // 실제로 도달해서는 안 되는 방어 로직
         log.warn("Not Implement Sort Field in Feed Comment: {}", sortBy);
         throw new NotImplementSortFieldException(sortBy);
       }
