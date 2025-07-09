@@ -43,7 +43,8 @@ public class DirectMessageService {
 
     log.info("direct message created. id={}", directMessage.getId());
 
-    eventPublisher.publish(new DirectMessageReceivedEvent(receiver.getId(), sender.getName(), content));
+    eventPublisher.publish(new DirectMessageReceivedEvent(receiver.getId(), sender.getId(),
+            sender.getName(), DirectMessageDto.from(directMessage)));
     return DirectMessageDto.from(directMessage);
   }
 

@@ -61,7 +61,7 @@ public class NotificationEventListener {
   public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
     UUID receiverId = event.receiverId();
     String title = String.format("[DM] %s", event.senderName());
-    String content = event.content();
+    String content = event.directMessageDto().content();
 
     notificationService.create(
         receiverId,
