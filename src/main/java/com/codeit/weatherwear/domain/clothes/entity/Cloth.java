@@ -92,9 +92,11 @@ public class Cloth {
     this.clothesWithAttributes.clear();
   }
 
-  public void updateCloth(String name, ClothType type) {
+  public void updateName(String name) {
     this.name = name;
-    this.clothType = type;
+  }
+  public void updateType(ClothType clothType) {
+    this.clothType = clothType;
   }
 
   public void updateImageUrl(String imageUrl) {

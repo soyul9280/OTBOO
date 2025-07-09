@@ -7,6 +7,6 @@ public record ClothesUpdateRequest(
     String name,
     ClothType type,
     List<ClothesAttributeDto> attributes
-) {
+){
 
 }

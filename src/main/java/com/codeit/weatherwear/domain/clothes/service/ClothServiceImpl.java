@@ -175,14 +175,20 @@ public class ClothServiceImpl implements ClothService {
             .toList();
         List<Attribute> attributes = attributeRepository.findAllById(attrIds);
 
-        cloth.clearAttributes();
-        cloth.updateCloth(request.name(),request.type());
+        if(request.name()!=null) {
+            cloth.updateName(request.name());
+        }
+        if(request.type()!=null) {
+            cloth.updateType(request.type());
+        }
+        if(request.attributes()!=null) {
+            cloth.clearAttributes();
+            Map<UUID, Attribute> attributeMap = attributes.stream()
+                .collect(Collectors.toMap(Attribute::getId, Function.identity()));
 
-        Map<UUID, Attribute> attributeMap = attributes.stream()
-            .collect(Collectors.toMap(Attribute::getId, Function.identity()));
+            applyAttributesToCloth(request.attributes(), attributeMap, cloth);
 
-        applyAttributesToCloth(request.attributes(), attributeMap, cloth);
-
+        }
         log.info("[옷 수정 완료] ID : {}, name: {}", clothesId, cloth.getName());
         return clothMapper.toDto(cloth,imageUrl);
     }

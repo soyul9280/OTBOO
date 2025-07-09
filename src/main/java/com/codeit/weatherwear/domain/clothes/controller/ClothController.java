@@ -97,10 +97,9 @@ public class ClothController implements ClothApi {
    */
   @Override
   @PreAuthorize("@authorizationEvaluator.isClothOwner(authentication.principal.userId, #clothesId)")
-  @PatchMapping(value = "/{id}"
-      ,consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PatchMapping("/{clothesId}")
   public ResponseEntity<ClothesDto> update(
-      @PathVariable("id") UUID clothesId,
+      @PathVariable("clothesId") UUID clothesId,
       @RequestPart("request") ClothesUpdateRequest request,
       @RequestPart(value = "image", required = false) MultipartFile image) {
     log.info("[옷 수정 요청] ID: {}, 옷 이름: {}", clothesId, request.name());
@@ -116,7 +115,7 @@ public class ClothController implements ClothApi {
    * @return
    */
   @Override
-  @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isClothOwner(#clothesId, authentication.principal.userId)")
+  @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isClothOwner(authentication.principal.userId, #clothesId)")
   @DeleteMapping("/{clothesId}")
   public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {
     log.info("[옷 삭제 요청] ID: {}", clothesId);
