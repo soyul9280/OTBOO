@@ -27,6 +27,7 @@ import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.domain.weather.entity.Weather;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -79,52 +80,20 @@ class FeedLikeServiceImplTest {
   @BeforeEach
   void setUp() {
     feedId = UUID.randomUUID();
-    currentUserId = UUID.randomUUID();
     feedLikeId = UUID.randomUUID();
 
-    currentUser = User.builder()
-        .id(currentUserId)
-        .email("test@example.com")
-        .name("홍길동")
-        .password("!password1234")
-        .role(Role.USER)
-        .locked(false)
-        .gender(Gender.FEMALE)
-        .birthDate(LocalDate.of(2000, 1, 1))
-        .temperatureSensitivity(10)
-        .profileImageUrl(null)
-        .location(mock(Location.class))
-        .createdAt(Instant.now())
-        .updatedAt(Instant.now())
-        .build();
-
+    currentUserId = UUID.randomUUID();
+    currentUser = createMockUser(currentUserId, mock(Location.class));
     ootds = List.of(mock(OotdDto.class));
-  }
-
-  private FeedDto createFeedDto(int likeCount) {
-    FeedDto dto = mock(FeedDto.class);
-    given(dto.getLikeCount()).willReturn(likeCount);
-    given(dto.getId()).willReturn(feedId);
-    return dto;
-  }
-
-  private FeedLike createFeedLike(Feed feed) {
-    FeedLike feedLike = FeedLike.builder()
-        .user(currentUser)
-        .feed(feed)
-        .build();
-    ReflectionTestUtils.setField(feedLike, "id", feedLikeId);
-
-    return feedLike;
   }
 
   @Test
   @DisplayName("좋아요를 성공적으로 추가한다")
   void addFeedLike_success() {
     // given
-    feed = mock(Feed.class);
-    given(feed.getId()).willReturn(feedId);
-    feedDto = createFeedDto(1);
+    int likeCount = 10;
+    feed = createFeed(feedId, mock(User.class), mock(Weather.class), likeCount);
+    feedDto = createFeedDto(likeCount + 1);
     feedLike = createFeedLike(feed);
 
     given(userRepository.findById(currentUserId)).willReturn(Optional.of(currentUser));
@@ -141,10 +110,7 @@ class FeedLikeServiceImplTest {
     // then
     assertThat(result).isNotNull();
     assertThat(result.getId()).isEqualTo(feed.getId());
-    assertThat(result.getLikeCount()).isEqualTo(1);
-
-    // verify
-    verify(feed).increaseLikeCount();
+    assertThat(result.getLikeCount()).isEqualTo(likeCount + 1);
   }
 
   @Test
@@ -179,8 +145,8 @@ class FeedLikeServiceImplTest {
   @DisplayName("좋아요를 성공적으로 취소한다")
   void deleteFeedLike_success() {
     // given
-    feed = mock(Feed.class);
-    given(feed.getId()).willReturn(feedId);
+    int likeCount = 10;
+    feed = createFeed(feedId, mock(User.class), mock(Weather.class), likeCount);
     feedLike = createFeedLike(feed);
 
     given(feedRepository.findById(feed.getId())).willReturn(Optional.of(feed));
@@ -191,7 +157,29 @@ class FeedLikeServiceImplTest {
     feedLikeService.deleteFeedLike(feedId, currentUserId);
 
     // then
-    verify(feed).decreaseLikeCount();
+    assertThat(feed.getLikeCount()).isEqualTo(likeCount - 1);
+
+    verify(feedLikeRepository).delete(feedLike);
+  }
+
+  @Test
+  @DisplayName("좋아요 수가 0이면 좋아요를 삭제해도 0이 리턴된다")
+  void deleteFeedLike_0_success() {
+    // given
+    int likeCount = 0;
+    feed = createFeed(feedId, mock(User.class), mock(Weather.class), likeCount);
+    feedLike = createFeedLike(feed);
+
+    given(feedRepository.findById(feed.getId())).willReturn(Optional.of(feed));
+    given(feedLikeRepository.findFeedLikeByFeedIdAndUserId(feedId, currentUserId)).willReturn(
+        Optional.of(feedLike));
+
+    // when
+    feedLikeService.deleteFeedLike(feedId, currentUserId);
+
+    // then
+    assertThat(feed.getLikeCount()).isEqualTo(0);
+
     verify(feedLikeRepository).delete(feedLike);
   }
 
@@ -250,6 +238,57 @@ class FeedLikeServiceImplTest {
     // when & then
     assertThatThrownBy(() -> feedLikeService.isLikedByMe(feed, failedId))
         .isInstanceOf(UserNotFoundException.class);
+  }
+
+  // private method -------------
+
+  private User createMockUser(UUID userId, Location location) {
+    return User.builder()
+        .id(userId)
+        .email("test@example.com")
+        .name("홍길동")
+        .password("!password1234")
+        .role(Role.USER)
+        .locked(false)
+        .gender(Gender.FEMALE)
+        .birthDate(LocalDate.of(2000, 1, 1))
+        .temperatureSensitivity(10)
+        .profileImageUrl(null)
+        .location(location)
+        .createdAt(Instant.now())
+        .updatedAt(Instant.now())
+        .build();
+  }
+
+  private Feed createFeed(UUID feedId, User author, Weather weather, int likeCount) {
+    Feed feed = Feed.builder()
+        .author(author)
+        .content("content")
+        .weather(weather)
+        .commentCount(0)
+        .likeCount(likeCount)
+        .build();
+    ReflectionTestUtils.setField(feed, "id", feedId);
+    ReflectionTestUtils.setField(feed, "createdAt", Instant.now());
+    ReflectionTestUtils.setField(feed, "updatedAt", Instant.now());
+    return feed;
+  }
+
+  private FeedDto createFeedDto(int likeCount) {
+    FeedDto dto = mock(FeedDto.class);
+    given(dto.getLikeCount()).willReturn(likeCount);
+    given(dto.getId()).willReturn(feedId);
+    return dto;
+  }
+
+  private FeedLike createFeedLike(Feed feed) {
+    FeedLike feedLike = FeedLike.builder()
+        .user(currentUser)
+        .feed(feed)
+        .build();
+    ReflectionTestUtils.setField(feedLike, "id", feedLikeId);
+
+    return feedLike;
   }
 
 }

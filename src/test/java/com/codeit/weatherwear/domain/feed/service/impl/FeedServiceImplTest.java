@@ -313,34 +313,15 @@ class FeedServiceImplTest {
   void deleteFeed_success() {
     // given
     given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-    given(feedLikeService.isLikedByMe(mockFeed, currentUserId)).willReturn(false);
-    given(ootdService.deleteOotdByFeedId(eq(mockFeed.getId()))).willReturn(
-        List.of(mockOotdDto1, mockOotdDto2));
-    given(weatherMapper.toSummaryDto(eq(mockWeather))).willReturn(mockWeatherDto);
-    given(feedMapper.toDto(
-        eq(mockFeed),
-        eq(mockAuthorDto),
-        eq(mockWeatherDto),
-        eq(List.of(mockOotdDto1, mockOotdDto2)),
-        eq(false)
-    )).willReturn(mockFeedDto);
 
     // when
-    FeedDto result = feedService.deleteFeed(feedId, currentUserId);
-
-    // then
-    assertThat(result).isNotNull();
-    assertThat(result.getId()).isEqualTo(mockFeed.getId());
-    assertThat(result.getContent()).isEqualTo(mockFeed.getContent());
+    feedService.deleteFeed(feedId, currentUserId);
 
     // verify
     verify(feedRepository).findById(feedId);
-    verify(feedLikeService).isLikedByMe(mockFeed, currentUserId);
     verify(feedLikeService).deleteAllFeedLikeInFeed(mockFeed);
     verify(feedCommentService).deleteFeedCommentsByFeed(mockFeed);
     verify(feedRepository).delete(mockFeed);
-    verify(feedMapper).toDto(eq(mockFeed), eq(mockAuthorDto), any(WeatherSummaryDto.class),
-        eq(List.of(mockOotdDto1, mockOotdDto2)), eq(false));
   }
 
   @Test
