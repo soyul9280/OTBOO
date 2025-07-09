@@ -9,6 +9,9 @@ jobs:
 
     env:
       SPRING_PROFILES_ACTIVE: test
+      ADMIN_INITIAL_EMAIL: admin@ci.com
+      ADMIN_INITIAL_NAME: admin
+      ADMIN_INITIAL_PASSWORD: test1234
 
     steps:
       - uses: actions/checkout@v4
