@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.util.StringUtils;
 
 @Slf4j
@@ -35,11 +38,12 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
       SORT_BY_LIKE_COUNT);
 
   @Override
-  public List<Feed> searchFeeds(FeedSearchCondition condition, int limit) {
+  public Slice<Feed> searchFeeds(FeedSearchCondition condition) {
 
     QFeed feed = QFeed.feed;
+    int limit = condition.getLimit();
 
-    return queryFactory
+    List<Feed> contents = queryFactory
         .selectFrom(feed)
         .where(
             idAfter(feed, condition.getIdAfter(), condition.getCursor(), condition.getSortBy(),
@@ -50,9 +54,27 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
             authorIdEqual(condition.getAuthorIdEqual())
         )
         .orderBy(sortBy(condition.getSortBy(), condition.getSortDirection()))
-        .limit(limit)
+        .limit(limit + 1)
         .fetch();
+
+    boolean hasNext = contents.size() > limit;
+    if (hasNext) {
+      contents.remove(limit);
+    }
+
+    return new SliceImpl<>(contents, PageRequest.of(0, limit), hasNext);
   }
+
+  @Override
+  public long getTotalFeedCount() {
+    QFeed feed = QFeed.feed;
+    Long result = queryFactory
+        .select(feed.count())
+        .from(feed)
+        .fetchOne();
+    return result != null ? result : 0L;
+  }
+
 
   private BooleanExpression idAfter(QFeed feed, UUID idAfter, String cursor, String sortBy,
       SortDirection direction) {
@@ -86,6 +108,7 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
         }
       }
       default -> {
+        // 실제로 도달해서는 안 되는 방어 로직
         log.warn("Not Implement Sort Field: {}", sortBy);
         throw new NotImplementSortFieldException(sortBy);
       }
@@ -124,6 +147,7 @@ public class FeedCustomRepositoryImpl implements FeedCustomRepository {
       case SORT_BY_LIKE_COUNT ->
           new OrderSpecifier<>(order, path.getNumber(SORT_BY_LIKE_COUNT, Integer.class));
       default -> {
+        // 실제로 도달해서는 안 되는 방어 로직
         log.warn("Not Implement Sort Field: {}", sortBy);
         throw new NotImplementSortFieldException(sortBy);
       }
