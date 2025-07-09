@@ -12,13 +12,11 @@ import com.codeit.weatherwear.domain.user.dto.request.UserRoleUpdateRequest;
 import com.codeit.weatherwear.domain.user.dto.request.UserSearchRequest;
 import com.codeit.weatherwear.domain.user.dto.response.ProfileDto;
 import com.codeit.weatherwear.domain.user.dto.response.UserDto;
-import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserAlreadyExistsException;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.mapper.UserMapper;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
-import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.List;
 import java.util.UUID;
@@ -68,7 +66,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public ProfileDto findProfile(UUID userId) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new UserNotFoundException());
+        .orElseThrow(() -> new UserNotFoundException(userId));
     return userMapper.toProfileDto(user);
   }
 
@@ -76,7 +74,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new UserNotFoundException());
+        .orElseThrow(() -> new UserNotFoundException(userId));
 
     // Location 생성
     Location location = null;
@@ -102,7 +100,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public UUID updateLock(UUID userId, UserLockUpdateRequest userLockUpdateRequest) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new UserNotFoundException());
+        .orElseThrow(() -> new UserNotFoundException(userId));
 
     user.updateLocked(userLockUpdateRequest.locked());
 
@@ -118,7 +116,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public void updatePassword(UUID userId, ChangePasswordRequest changePasswordRequest) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new UserNotFoundException());
+        .orElseThrow(() -> new UserNotFoundException(userId));
 
     String newPassword = passwordEncoder.encode(changePasswordRequest.password());
 
@@ -129,7 +127,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserDto updateRole(UUID userId, UserRoleUpdateRequest userRoleUpdateRequest) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new UserNotFoundException());
+        .orElseThrow(() -> new UserNotFoundException(userId));
     user.updateRole(userRoleUpdateRequest.role());
 
     // 권한 변경 시 해당 사용자는 자동으로 로그아웃
@@ -140,18 +138,17 @@ public class UserServiceImpl implements UserService {
 
   @Transactional(readOnly = true)
   @Override
-  public PageResponse searchUsers(UserSearchRequest userSearchRequest) {
-    String cursor = userSearchRequest.cursor();
-    UUID idAfter = userSearchRequest.idAfter();
-    int limit = userSearchRequest.limit();
-    String sortBy = userSearchRequest.sortBy();
-    SortDirection sortDirection = userSearchRequest.sortDirection();
-    String emailLike = userSearchRequest.emailLike();
-    Role roleEqual = userSearchRequest.roleEqual();
-    Boolean locked = userSearchRequest.locked();
-
-    Slice<User> slice = userRepository.searchUsers(cursor, idAfter, limit, sortBy,
-        sortDirection, emailLike, roleEqual, locked);
+  public PageResponse<UserDto> searchUsers(UserSearchRequest userSearchRequest) {
+    Slice<User> slice = userRepository.searchUsers(
+        userSearchRequest.cursor(),
+        userSearchRequest.idAfter(),
+        userSearchRequest.limit(),
+        userSearchRequest.sortBy(),
+        userSearchRequest.sortDirection(),
+        userSearchRequest.emailLike(),
+        userSearchRequest.roleEqual(),
+        userSearchRequest.locked()
+    );
 
     List<User> users = slice.getContent();
     List<UserDto> userDtos = users.stream()
@@ -159,34 +156,41 @@ public class UserServiceImpl implements UserService {
         .toList();
 
     boolean hasNext = slice.hasNext();
+    Object nextCursor = calculateNextCursor(users, hasNext, userSearchRequest.sortBy());
+    UUID nextIdAfter = calculateNextId(users, hasNext);
 
-    // 커서 구하기
-    User lastUser = (users.size() > 0) ? users.get(users.size() - 1) : null;
-    Object nextCursor = null;
-    UUID nextIdAfter = null;
-    if (lastUser != null && hasNext) {
-      switch (sortBy) {
-        case "email":
-          nextCursor = lastUser.getEmail();
-          break;
-        case "createdAt":
-          nextCursor = lastUser.getCreatedAt();
-          break;
-        default:
-          throw new IllegalArgumentException("지원하지 않는 정렬 기준입니다.");
-      }
-      nextIdAfter = lastUser.getId();
-    }
-
-    return new PageResponse(
+    return new PageResponse<>(
         userDtos,
         nextCursor,
         nextIdAfter,
-        slice.hasNext(),
-        userRepository.getTotalCount(emailLike, roleEqual, locked),
-        sortBy,
-        sortDirection.name()
+        hasNext,
+        userRepository.getTotalCount(
+            userSearchRequest.emailLike(),
+            userSearchRequest.roleEqual(),
+            userSearchRequest.locked()
+        ),
+        userSearchRequest.sortBy(),
+        userSearchRequest.sortDirection().name()
     );
+  }
+
+
+  private Object calculateNextCursor(List<User> users, boolean hasNext, String sortBy) {
+    if (users.isEmpty() || !hasNext) {
+      return null;
+    }
+    return switch (sortBy) {
+      case "email" -> users.get(users.size() - 1).getEmail();
+      case "createdAt" -> users.get(users.size() - 1).getCreatedAt();
+      default -> throw new IllegalArgumentException("Unsupported sortBy: " + sortBy);
+    };
+  }
+
+  private UUID calculateNextId(List<User> users, boolean hasNext) {
+    if (users.isEmpty() || !hasNext) {
+      return null;
+    }
+    return users.get(users.size() - 1).getId();
   }
 
 }

@@ -28,3 +28,9 @@ logging:
 weather:
   api-url: ${WEATHER_INFO_API_URL}
   api-service-key: ${WEATHER_INFO_SERVICE_KEY}
+
+app:
+  admin:
+    email: admin_test@mail.com
+    name: admin
+    password: admintest1!

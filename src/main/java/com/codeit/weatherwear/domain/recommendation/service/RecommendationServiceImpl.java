@@ -2,10 +2,12 @@ package com.codeit.weatherwear.domain.recommendation.service;
 
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
+import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
+import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
 import com.codeit.weatherwear.domain.user.entity.User;
@@ -14,6 +16,7 @@ import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeedType;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
+import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +40,8 @@ public class RecommendationServiceImpl implements RecommendationService {
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
   private final ClothRepository clothRepository;
-  private final ClothMapper clothMapper;
+  private final ThumbnailImageStorage thumbnailImageStorage;
+  private final RecommendClothesMapper recommendClothesMapper;
 
   /**
    * 의상 추천
@@ -64,7 +68,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     List<Cloth> filtered = filterCloth(user, weather, clothes);
 
     //타입별 1개씩 선택
-    List<ClothesDto> recommendedClothes = new ArrayList<>();
+    List<RecommendClothesDto> recommendedClothes = new ArrayList<>();
     // 타입별로 필터링된 옷을 그룹화
     Map<ClothType, List<Cloth>> groupedFilteredClothes = filtered.stream()
         .collect(Collectors.groupingBy(Cloth::getClothType));
@@ -73,7 +77,12 @@ public class RecommendationServiceImpl implements RecommendationService {
     List<Cloth> dresses = groupedFilteredClothes.getOrDefault(ClothType.DRESS, Collections.emptyList());
     if (!dresses.isEmpty()) {
       // DRESS 중 무작위로 하나 선택하여 추천 목록에 추가
-      recommendedClothes.add(clothMapper.toDto(getRandomCloth(dresses)));
+      Cloth randomDress = getRandomCloth(dresses);
+      String imageUrl = randomDress.getClothesImageUrl() != null
+          ? thumbnailImageStorage.get(randomDress.getClothesImageUrl())
+          : null;
+
+      recommendedClothes.add(recommendClothesMapper.toDto(randomDress, imageUrl));
       // DRESS가 선택되었으므로 TOP과 BOTTOM은 추천 대상에서 제외
       groupedFilteredClothes.remove(ClothType.TOP);
       groupedFilteredClothes.remove(ClothType.BOTTOM);
@@ -85,7 +94,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     for (Map.Entry<ClothType, List<Cloth>> entry : groupedFilteredClothes.entrySet()) {
       List<Cloth> clothsOfType = entry.getValue();
       if (!clothsOfType.isEmpty()) {
-        recommendedClothes.add(clothMapper.toDto(getRandomCloth(clothsOfType)));
+        Cloth randomCloth = getRandomCloth(clothsOfType);
+        String imageUrl = randomCloth.getClothesImageUrl() != null
+            ? thumbnailImageStorage.get(randomCloth.getClothesImageUrl())
+            : null;
+        recommendedClothes.add(recommendClothesMapper.toDto(randomCloth, imageUrl));
       }
     }
 
