@@ -86,6 +86,13 @@ sse:
   event-queue-capacity: ${SSE_EVENT_QUEUE_CAPACITY:1000}
   timeout: ${SSE_TIMEOUT:300000}
 
+
+app:
+  admin:
+    email: ${ADMIN_INITIAL_EMAIL}
+    name: ${ADMIN_INITIAL_NAME}
+    password: ${ADMIN_INITIAL_PASSWORD}
+
 weatherwear:
   storage:
     type: s3
@@ -95,3 +102,4 @@ weatherwear:
       region: ${AWS_S3_REGION}
       bucket: ${AWS_S3_BUCKET}
       presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION}
+

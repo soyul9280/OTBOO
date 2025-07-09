@@ -5,6 +5,7 @@ import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,28 +19,31 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class AdminUserInitializer implements ApplicationRunner {
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
+  @Value("${app.admin.name}")
+  private String adminName;
+  @Value("${app.admin.email}")
+  private String adminEmail;
+  @Value("${app.admin.password}")
+  private String adminPassword;
 
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        String name = "admin";
-        String email = "system@otboo.io";
-        String password = "otboo1!";
+  @Override
+  public void run(ApplicationArguments args) throws Exception {
 
-        if (!userRepository.existsByEmail(email) && !userRepository.existsByName(name)) {
-            User admin = userRepository.save(
-                User.builder()
-                    .name(name)
-                    .email(email)
-                    .password(passwordEncoder.encode(password))
-                    .role(Role.ADMIN)
-                    .build()
-            );
-            log.info("Admin User Created: {}", email);
-        } else {
-            log.info("Admin User({}) Already Exists", email);
-        }
+    if (!userRepository.existsByEmail(adminEmail) && !userRepository.existsByName(adminName)) {
+      userRepository.save(
+          User.builder()
+              .name(adminName)
+              .email(adminEmail)
+              .password(passwordEncoder.encode(adminPassword))
+              .role(Role.ADMIN)
+              .build()
+      );
+      log.info("Admin User Created: {}", adminEmail);
+    } else {
+      log.info("Admin User({}) Already Exists", adminEmail);
     }
+  }
 }
