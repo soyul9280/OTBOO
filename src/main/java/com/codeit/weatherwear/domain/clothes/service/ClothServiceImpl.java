@@ -31,7 +31,6 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,7 +65,7 @@ public class ClothServiceImpl implements ClothService {
      * @return 의상 DTO
      */
     @Override
-    public ClothesDto create(ClothesCreateRequest request, Optional<MultipartFile> image) {
+    public ClothesDto create(ClothesCreateRequest request, MultipartFile image) {
         //사용자 찾기
         User user = userRepository.findById(request.ownerId())
             .orElseThrow(()-> {
@@ -76,10 +75,9 @@ public class ClothServiceImpl implements ClothService {
 
         // 썸네일 S3 업로드
         log.debug("[썸네일 업로드 시작]");
-        String thumbnailKey =
-            image.filter(file -> !file.isEmpty())
-                .map(thumbnailImageStorage::upload)
-                .orElse(null);
+        String thumbnailKey = (image != null && !image.isEmpty())
+                ? thumbnailImageStorage.upload(image)
+                : null;
         log.info("[이미지 업로드] S3에 업로드 완료 S3 Key: {}", thumbnailKey);
 
         Cloth cloth=Cloth.builder()
@@ -152,7 +150,7 @@ public class ClothServiceImpl implements ClothService {
      * @return 의상 DTO
      */
     @Override
-    public ClothesDto update(UUID clothesId,ClothesUpdateRequest request,Optional<MultipartFile> image) {
+    public ClothesDto update(UUID clothesId,ClothesUpdateRequest request,MultipartFile image) {
         Cloth cloth = clothRepository.findByIdWithAttributes(clothesId)
             .orElseThrow(()->{
                 log.warn("[옷 수정 실패] id: {}, 수정 요청한 옷 이름: {}", clothesId, request.name());
@@ -160,13 +158,12 @@ public class ClothServiceImpl implements ClothService {
             });
 
         // 썸네일 이미지가 수정사항에 있다면 새로 업로드 후 갱신
-        image.filter(file -> !file.isEmpty())
-            .ifPresent(file -> {
-                //기존 이미지 삭제
-                String oldImageUrl = cloth.getClothesImageUrl();
-                String uploadUrl = thumbnailImageStorage.upload(file);
-                log.info("[옷 수정] 썸네일 이미지 변경됨: {}", uploadUrl);
-                cloth.updateImageUrl(uploadUrl);
+        if (image != null && !image.isEmpty()) {
+            //기존 이미지 삭제
+            String oldImageUrl = cloth.getClothesImageUrl();
+            String uploadUrl = thumbnailImageStorage.upload(image);
+            log.info("[옷 수정] 썸네일 이미지 변경됨: {}", uploadUrl);
+            cloth.updateImageUrl(uploadUrl);
                 if(oldImageUrl != null) {
                     try{
                         thumbnailImageStorage.delete(oldImageUrl);
@@ -176,7 +173,8 @@ public class ClothServiceImpl implements ClothService {
                         throw new S3DeleteException();
                     }
                 }
-            });
+            }
+
 
         String imageUrl =
             cloth.getClothesImageUrl() != null ? thumbnailImageStorage.get(cloth.getClothesImageUrl()) : null;
@@ -303,8 +301,9 @@ public class ClothServiceImpl implements ClothService {
                 .build();
 
             cloth.addAttribute(attr);
-            log.debug("[옷 속성 값 적용 완료]");
         }
+        log.debug("[옷 속성 값 적용 완료]");
+
     }
 
 }
