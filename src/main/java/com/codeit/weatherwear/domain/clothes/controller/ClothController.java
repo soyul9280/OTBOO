@@ -48,12 +48,12 @@ public class ClothController implements ClothApi {
       @RequestPart(value = "image", required = false) MultipartFile image) {
     log.info("[옷 등록 요청] 옷 이름: {}, 의상 타입: {}", request.name(), request.type());
 
-    ClothesDto createClothes = clothService.create(request);
+    ClothesDto createClothes = clothService.create(request, image);
     return ResponseEntity.status(HttpStatus.CREATED).body(createClothes);
   }
 
     /**
-     * 의상을 url으로부터 불러와 등록합니다.
+     * 의상을 url으로부터 불러옵니다.
      *
      * @param url 구매 사이트 url
      * @return
@@ -95,17 +95,15 @@ public class ClothController implements ClothApi {
    * @return
    */
   @Override
-  @PreAuthorize("@authorizationEvaluator.isClothOwner(#clothesId, authentication.principal.userId)")
-  @PatchMapping(
-      value = "/{clothesId}"
-      , consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PreAuthorize("@authorizationEvaluator.isClothOwner(authentication.principal.userId, #clothesId)")
+  @PatchMapping("/{clothesId}")
   public ResponseEntity<ClothesDto> update(
       @PathVariable("clothesId") UUID clothesId,
-      @Valid @RequestPart("request") ClothesUpdateRequest request,
+      @RequestPart("request") ClothesUpdateRequest request,
       @RequestPart(value = "image", required = false) MultipartFile image) {
     log.info("[옷 수정 요청] ID: {}, 옷 이름: {}", clothesId, request.name());
 
-    ClothesDto update = clothService.update(clothesId, request);
+    ClothesDto update = clothService.update(clothesId, request,image);
     return ResponseEntity.ok(update);
   }
 
@@ -116,7 +114,7 @@ public class ClothController implements ClothApi {
    * @return
    */
   @Override
-  @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isClothOwner(#clothesId, authentication.principal.userId)")
+  @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isClothOwner(authentication.principal.userId, #clothesId)")
   @DeleteMapping("/{clothesId}")
   public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {
     log.info("[옷 삭제 요청] ID: {}", clothesId);
