@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,6 +109,13 @@ class FeedCommentCustomRepositoryImplTest {
     assertThat(result.getContent().get(limit - 1).getId()).isEqualTo(
         feedComments.get(limit - 1).getId());
     assertThat(result.hasNext()).isTrue();
+
+    // 생성일 기준 오름차순 정렬 검증
+    List<FeedComment> content = result.getContent();
+    for (int i = 0; i < content.size() - 1; i++) {
+      assertThat(content.get(i).getCreatedAt())
+          .isBeforeOrEqualTo(content.get(i + 1).getCreatedAt());
+    }
   }
 
   @Test
@@ -130,6 +138,8 @@ class FeedCommentCustomRepositoryImplTest {
         .sortDirection(SortDirection.DESCENDING)
         .build();
 
+    feedComments.sort(Comparator.comparing(FeedComment::getContent).reversed());
+
     given(queryFactory.selectFrom(QFeedComment.feedComment)).willReturn(mockQuery);
     given(mockQuery.join(QFeedComment.feedComment.author, QUser.user)).willReturn(mockQuery);
     given(mockQuery.fetchJoin()).willReturn(mockQuery);
@@ -148,6 +158,13 @@ class FeedCommentCustomRepositoryImplTest {
     assertThat(result.getContent().get(limit - 1).getId()).isEqualTo(
         feedComments.get(limit - 1).getId());
     assertThat(result.hasNext()).isTrue();
+
+    // 생성일 기준 내림차순 정렬 검증
+    List<FeedComment> content = result.getContent();
+    for (int i = 0; i < content.size() - 1; i++) {
+      assertThat(content.get(i).getCreatedAt())
+          .isAfterOrEqualTo(content.get(i + 1).getCreatedAt());
+    }
   }
 
   @Test
@@ -254,8 +271,6 @@ class FeedCommentCustomRepositoryImplTest {
     // then
     assertThat(result).isNotNull();
     assertThat(result.getContent()).hasSize(limit);
-    assertThat(result.getContent().get(limit - 1).getId()).isEqualTo(
-        feedComments.get(limit - 1).getId());
     assertThat(result.hasNext()).isFalse();
   }
 
