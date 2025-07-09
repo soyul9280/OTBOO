@@ -85,3 +85,9 @@ resetpassword:
 sse:
   event-queue-capacity: ${SSE_EVENT_QUEUE_CAPACITY:1000}
   timeout: ${SSE_TIMEOUT:300000}
+
+app:
+  admin:
+    email: ${ADMIN_INITIAL_EMAIL}
+    name: ${ADMIN_INITIAL_NAME}
+    password: ${ADMIN_INITAL_PASSWORD}
