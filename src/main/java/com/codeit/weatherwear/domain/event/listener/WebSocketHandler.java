@@ -18,9 +18,9 @@ public class WebSocketHandler {
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(DirectMessageReceivedEvent event) {
-    DirectMessageDto directMessageDto = event.directMessageDto();
-    String receiverId = event.receiverId().toString();
-    String senderId = event.senderId().toString();
+    DirectMessageDto dto = event.directMessageDto();
+    String receiverId = dto.receiver().userId().toString();
+    String senderId = dto.sender().userId().toString();
 
     String destination;
 
@@ -29,6 +29,6 @@ public class WebSocketHandler {
     } else {
       destination = String.format("/sub/direct-message_%s_%s", senderId, receiverId);
     }
-    messagingTemplate.convertAndSend(destination, directMessageDto);
+    messagingTemplate.convertAndSend(destination, dto);
   }
 }

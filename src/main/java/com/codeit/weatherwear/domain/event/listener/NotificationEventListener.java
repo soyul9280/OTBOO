@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.event.listener;
 
+import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.event.dto.ClothAttributeAddedEvent;
 import com.codeit.weatherwear.domain.event.dto.DirectMessageReceivedEvent;
 import com.codeit.weatherwear.domain.event.dto.FeedLikeEvent;
@@ -59,8 +60,11 @@ public class NotificationEventListener {
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
-    UUID receiverId = event.receiverId();
-    String title = String.format("[DM] %s", event.senderName());
+    DirectMessageDto dto = event.directMessageDto();
+    UUID receiverId = dto.receiver().userId();
+    String senderName = dto.sender().name();
+
+    String title = String.format("[DM] %s", senderName);
     String content = event.directMessageDto().content();
 
     notificationService.create(
