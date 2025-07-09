@@ -2,7 +2,7 @@ package com.codeit.weatherwear.domain.directmessage.repository;
 
 import static com.codeit.weatherwear.domain.directmessage.QDirectMessage.directMessage;
 
-import com.codeit.weatherwear.domain.directmessage.DirectMessageDto;
+import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;

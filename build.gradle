@@ -112,8 +112,13 @@ dependencies {
     //웹 크롤링 Selenium
     implementation 'org.seleniumhq.selenium:selenium-java:4.10.0'
 
+    //웹소켓
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
     //S3
-    implementation 'software.amazon.awssdk:s3:2.31.7'}
+    implementation 'software.amazon.awssdk:s3:2.31.7'
+}
+
 
 
 tasks.named('test') {

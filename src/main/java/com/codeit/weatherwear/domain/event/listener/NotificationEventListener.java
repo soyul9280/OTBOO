@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.event.listener;
 
+import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.event.dto.ClothAttributeAddedEvent;
 import com.codeit.weatherwear.domain.event.dto.DirectMessageReceivedEvent;
 import com.codeit.weatherwear.domain.event.dto.FeedLikeEvent;
@@ -10,6 +11,7 @@ import com.codeit.weatherwear.domain.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.NotificationService;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -58,7 +60,19 @@ public class NotificationEventListener {
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
+    DirectMessageDto dto = event.directMessageDto();
+    UUID receiverId = dto.receiver().userId();
+    String senderName = dto.sender().name();
 
+    String title = String.format("[DM] %s", senderName);
+    String content = event.directMessageDto().content();
+
+    notificationService.create(
+        receiverId,
+        title,
+        content,
+        Level.INFO
+    );
   }
 
   @Async("eventExecutor")
