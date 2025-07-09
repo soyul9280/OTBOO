@@ -1,10 +1,12 @@
 package com.codeit.weatherwear.domain.notification;
 
+import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,14 +23,14 @@ public class NotificationController {
 
   @GetMapping
   public ResponseEntity<PageResponse<NotificationDto>> getNotifications(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @RequestParam(required = false) String cursor,
       @RequestParam(required = false) UUID idAfter,
       @RequestParam int limit
   ) {
-    //인증 기능이 완료되면 유저의 id를 가져오는 것으로 변경
-    UUID tempId = UUID.randomUUID();
     PageRequest pageable = PageRequest.of(0, limit);
-    return ResponseEntity.ok(notificationService.findNotification(tempId, cursor, idAfter, pageable));
+    return ResponseEntity
+        .ok(notificationService.findNotification(userDetails.getUserId(), cursor, idAfter, pageable));
   }
 
   @DeleteMapping("/{id}")

@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.follow;
 import com.codeit.weatherwear.domain.follow.dto.FollowDto;
 import com.codeit.weatherwear.domain.follow.dto.FollowSummaryDto;
 import com.codeit.weatherwear.domain.follow.dto.request.FollowCreateRequest;
+import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.global.response.PageResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,10 +37,11 @@ public class FollowController {
   }
 
   @GetMapping("/summary")
-  public ResponseEntity<FollowSummaryDto> getSummary(@RequestParam UUID userId) {
-    //이 부분은 나중에 security 관련 세팅이 완료되면 인증 정보를 바탕으로 한 현재 로그인된 유저의 id를 가져올 예정
-    UUID myId = UUID.randomUUID();
-    return ResponseEntity.ok(followService.getSummary(userId, myId));
+  public ResponseEntity<FollowSummaryDto> getSummary(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @RequestParam UUID userId
+  ) {
+    return ResponseEntity.ok(followService.getSummary(userId, userDetails.getUserId()));
   }
 
   @GetMapping("/followings")
