@@ -50,9 +50,9 @@ public class UserController {
   }
 
   @GetMapping("")
-  public ResponseEntity<PageResponse> searchUsers(
+  public ResponseEntity<PageResponse<UserDto>> searchUsers(
       @ModelAttribute @Valid UserSearchRequest userSearchRequest) {
-    PageResponse result = userService.searchUsers(userSearchRequest);
+    PageResponse<UserDto> result = userService.searchUsers(userSearchRequest);
     return ResponseEntity.ok(result);
   }
 

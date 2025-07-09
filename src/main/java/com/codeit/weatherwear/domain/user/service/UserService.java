@@ -13,18 +13,18 @@ import java.util.UUID;
 
 public interface UserService {
 
-    UserDto create(UserCreateRequest userCreateRequest);
+  UserDto create(UserCreateRequest userCreateRequest);
 
-    ProfileDto findProfile(UUID userId);
+  ProfileDto findProfile(UUID userId);
 
-    ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest);
+  ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest);
 
-    UUID updateLock(UUID userId, UserLockUpdateRequest userLockUpdateRequest);
+  UUID updateLock(UUID userId, UserLockUpdateRequest userLockUpdateRequest);
 
-    void updatePassword(UUID userId, ChangePasswordRequest changePasswordRequest);
+  void updatePassword(UUID userId, ChangePasswordRequest changePasswordRequest);
 
-    UserDto updateRole(UUID userId, UserRoleUpdateRequest userRoleUpdateRequest);
+  UserDto updateRole(UUID userId, UserRoleUpdateRequest userRoleUpdateRequest);
 
-    PageResponse searchUsers(UserSearchRequest userSearchRequest);
+  PageResponse<UserDto> searchUsers(UserSearchRequest userSearchRequest);
 
 }
