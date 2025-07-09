@@ -3,7 +3,6 @@ package com.codeit.weatherwear.domain.feed.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -54,6 +53,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -227,9 +229,10 @@ class FeedServiceImplTest {
   void getFeedList_success() {
     // given
     List<Feed> feedList = List.of(mockFeed);
+    Slice<Feed> feedSlice = new SliceImpl<>(feedList, PageRequest.of(0, feedList.size()),
+        false);
 
-    given(feedRepository.searchFeeds(any(FeedSearchCondition.class),
-        anyInt())).willReturn(feedList);
+    given(feedRepository.searchFeeds(any(FeedSearchCondition.class))).willReturn(feedSlice);
     given(ootdService.findOotdByFeedId(eq(mockFeed.getId()))).willReturn(
         List.of(mockOotdDto1, mockOotdDto2));
     given(feedLikeService.isLikedByMe(mockFeed, currentUserId)).willReturn(false);
@@ -255,7 +258,7 @@ class FeedServiceImplTest {
     assertThat(resultList.sortDirection()).isEqualTo(condition.getSortDirection().name());
 
     // verify
-    verify(feedRepository).searchFeeds(any(FeedSearchCondition.class), anyInt());
+    verify(feedRepository).searchFeeds(any(FeedSearchCondition.class));
     verify(feedLikeService).isLikedByMe(mockFeed, currentUserId);
     verify(feedMapper, times(feedList.size())).toDto(eq(mockFeed), eq(mockAuthorDto),
         any(WeatherSummaryDto.class), eq(List.of(mockOotdDto1, mockOotdDto2)), eq(false));
