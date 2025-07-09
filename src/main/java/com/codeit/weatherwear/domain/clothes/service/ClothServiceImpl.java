@@ -170,7 +170,6 @@ public class ClothServiceImpl implements ClothService {
                         log.info("[옷 수정] 기존 이미지 삭제 완료: {}", oldImageUrl);
                     }catch (Exception e){
                         log.warn("[옷 수정 실패] 기존 이미지 삭제 실패: {}", oldImageUrl);
-                        throw new S3DeleteException();
                     }
                 }
             }
