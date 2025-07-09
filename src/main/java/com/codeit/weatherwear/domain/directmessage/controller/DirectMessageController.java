@@ -1,5 +1,7 @@
-package com.codeit.weatherwear.domain.directmessage;
+package com.codeit.weatherwear.domain.directmessage.controller;
 
+import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
+import com.codeit.weatherwear.domain.directmessage.DirectMessageService;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.UUID;
@@ -31,7 +33,4 @@ public class DirectMessageController {
     return ResponseEntity.ok(directMessageService
         .findDirectMessages(userDetails.getUserId(), userId, cursor, idAfter, pageRequest));
   }
-
-
-
 }
