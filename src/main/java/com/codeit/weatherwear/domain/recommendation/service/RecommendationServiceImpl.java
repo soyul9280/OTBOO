@@ -1,12 +1,10 @@
 package com.codeit.weatherwear.domain.recommendation.service;
 
 
-import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
-import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
@@ -15,10 +13,10 @@ import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeedType;
+import com.codeit.weatherwear.domain.weather.exception.WeatherApiResponseException;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,47 +58,59 @@ public class RecommendationServiceImpl implements RecommendationService {
     Weather weather = weatherRepository.findById(weatherId).orElseThrow(() -> {
       log.warn("[추천 조회 실패] 존재하지 않는 날씨 id: {}", weatherId);
       //TODO: 날씨 기능 완료 후 변경하기
-      return new IllegalArgumentException("존재하지 않는 날씨 입니다.");
+      return new WeatherApiResponseException("존재하지 않는 날씨 입니다.");
     });
 
     List<Cloth> clothes = clothRepository.findAllWithAttributesByUserId(user.getId());
 
+    //날씨에 적당한 옷 타입마다 필터링하기
     List<Cloth> filtered = filterCloth(user, weather, clothes);
 
-    //타입별 1개씩 선택
-    List<RecommendClothesDto> recommendedClothes = new ArrayList<>();
     // 타입별로 필터링된 옷을 그룹화
     Map<ClothType, List<Cloth>> groupedFilteredClothes = filtered.stream()
         .collect(Collectors.groupingBy(Cloth::getClothType));
 
-    // DRESS 타입 처리: DRESS가 선택되면 TOP과 BOTTOM은 제외
-    List<Cloth> dresses = groupedFilteredClothes.getOrDefault(ClothType.DRESS, Collections.emptyList());
-    if (!dresses.isEmpty()) {
-      // DRESS 중 무작위로 하나 선택하여 추천 목록에 추가
-      Cloth randomDress = getRandomCloth(dresses);
-      String imageUrl = randomDress.getClothesImageUrl() != null
-          ? thumbnailImageStorage.get(randomDress.getClothesImageUrl())
-          : null;
+    // DRESS는 먼저 랜덤 선택해본다 (선택되지 않을 수도 있음)
+    Cloth dressCandidate = getRandomCloth(groupedFilteredClothes.get(ClothType.DRESS), true);
+    boolean hasDress = (dressCandidate != null);
 
-      recommendedClothes.add(recommendClothesMapper.toDto(randomDress, imageUrl));
-      // DRESS가 선택되었으므로 TOP과 BOTTOM은 추천 대상에서 제외
-      groupedFilteredClothes.remove(ClothType.TOP);
-      groupedFilteredClothes.remove(ClothType.BOTTOM);
-      groupedFilteredClothes.remove(ClothType.DRESS); // DRESS는 이미 선택했으니 다시 고려하지 않음
-    }
+    List<Cloth> finalRecommendation = new ArrayList<>();
 
-    // 나머지 타입별로 하나씩 선택하여 추천 목록에 추가
-    // TOP, BOTTOM은 DRESS 선택 여부에 따라 이미 제거되었을 수 있음
-    for (Map.Entry<ClothType, List<Cloth>> entry : groupedFilteredClothes.entrySet()) {
-      List<Cloth> clothsOfType = entry.getValue();
-      if (!clothsOfType.isEmpty()) {
-        Cloth randomCloth = getRandomCloth(clothsOfType);
-        String imageUrl = randomCloth.getClothesImageUrl() != null
-            ? thumbnailImageStorage.get(randomCloth.getClothesImageUrl())
-            : null;
-        recommendedClothes.add(recommendClothesMapper.toDto(randomCloth, imageUrl));
+    // DRESS 처리
+    if (hasDress) {
+      finalRecommendation.add(dressCandidate);
+    } else {
+      // TOP, BOTTOM = DRESS 없을 때 선택
+      Cloth top = getRandomCloth(groupedFilteredClothes.get(ClothType.TOP), false);
+      Cloth bottom = getRandomCloth(groupedFilteredClothes.get(ClothType.BOTTOM), false);
+      if (top != null) {
+        finalRecommendation.add(top);
+      }
+      if (bottom != null) {
+        finalRecommendation.add(bottom);
       }
     }
+
+    // 나머지 ClothType들 처리 (무조건 하나 선택)
+    for (ClothType type : ClothType.values()) {
+      if (type == ClothType.DRESS || type == ClothType.TOP || type == ClothType.BOTTOM) {
+        continue;
+      }
+      Cloth selected = getRandomCloth(groupedFilteredClothes.get(type), false);
+      if (selected != null) {
+        finalRecommendation.add(selected);
+      }
+    }
+
+    // DTO 변환 + 썸네일 처리
+    List<RecommendClothesDto> recommendedClothes = finalRecommendation.stream()
+        .map(cloth -> {
+          String imageUrl = cloth.getClothesImageUrl() != null
+              ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
+              : null;
+          return recommendClothesMapper.toDto(cloth, imageUrl);
+        })
+        .toList();
 
     return RecommendationDto.builder()
         .weatherId(weatherId)
@@ -109,16 +119,17 @@ public class RecommendationServiceImpl implements RecommendationService {
         .build();
   }
 
-  private List<Cloth> filterCloth(User user,Weather weather,List<Cloth> cloths) {
+  private List<Cloth> filterCloth(User user, Weather weather, List<Cloth> cloths) {
     //체감온도 계산 t:온도 v:풍속
     double t = weather.getTemperature().getCurrent();
     double v = weather.getWindSpeed().getSpeed();
-    double apparent = 13.12 + 0.6215 * t - 11.37 * Math.pow(v, 0.16) + 0.3965 * Math.pow(v, 0.16) * t;
+    double apparent =
+        13.12 + 0.6215 * t - 11.37 * Math.pow(v, 0.16) + 0.3965 * Math.pow(v, 0.16) * t;
 
-    //민감도 보정
+    //민감도 보정( 사용자 민감도 가져오기, 없다면 기본값 2 )
     int sensitivity = Optional.ofNullable(user.getTemperatureSensitivity()).orElse(2);
     double adjusted = apparent + (sensitivity - 2) * 2;
-    
+
     //날씨 조건 추출
     double rainProb = weather.getPrecipitation().getProbability();
     WindSpeedType windSpeedType = weather.getWindSpeed().getSpeedAsWord();
@@ -146,20 +157,24 @@ public class RecommendationServiceImpl implements RecommendationService {
     if (season != null) {
       switch (season) {
         case "봄":
-          if (temp < 5 || temp > 20)
+          if (temp < 5 || temp > 20) {
             return false;
+          }
           break;
         case "여름":
-          if (temp < 20)
+          if (temp < 20) {
             return false;
+          }
           break;
         case "가을":
-          if (temp < 10 || temp > 25)
+          if (temp < 10 || temp > 25) {
             return false;
+          }
           break;
         case "겨울":
-          if (temp > 10)
+          if (temp > 10) {
             return false;
+          }
           break;
       }
     }
@@ -167,20 +182,24 @@ public class RecommendationServiceImpl implements RecommendationService {
     if (thickness != null) {
       switch (thickness) {
         case "아주 두꺼움":
-          if (temp > 5)
+          if (temp > 5) {
             return false; // 5도 초과면 아주 두꺼운 옷은 부적합
+          }
           break;
         case "약간 두꺼움":
-          if (temp > 12 || temp < 0)
+          if (temp > 12 || temp < 0) {
             return false; // 0~12도 범위
+          }
           break;
         case "약간 얇음":
-          if (temp < 15 || temp > 25)
+          if (temp < 15 || temp > 25) {
             return false; // 15~25도 범위
+          }
           break;
         case "아주 얇음":
-          if (temp < 20)
+          if (temp < 20) {
             return false; // 20도 미만이면 아주 얇은 옷은 부적합
+          }
           break;
       }
     }
@@ -193,10 +212,19 @@ public class RecommendationServiceImpl implements RecommendationService {
     return true;
   }
 
-  private Cloth getRandomCloth(List<Cloth> clothes) {
+  private Cloth getRandomCloth(List<Cloth> clothes, boolean allowSkip) {
     if (clothes == null || clothes.isEmpty()) {
-      return null; // 선택할 옷이 없음
+      return null;
     }
+
+    if (allowSkip) {
+      // 예: 50% 확률로 선택 안 할 수 있음
+      boolean skip = ThreadLocalRandom.current().nextBoolean(); // true or false
+      if (skip) {
+        return null;
+      }
+    }
+
     return clothes.get(ThreadLocalRandom.current().nextInt(clothes.size()));
   }
 }
