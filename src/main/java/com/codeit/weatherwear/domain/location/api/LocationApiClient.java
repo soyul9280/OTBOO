@@ -30,14 +30,15 @@ public class LocationApiClient {
   private final LocationApiProperties apiProperties;
   private final LocationApiParser locationApiParser;
 
+  // httpClient 생성
+  private final HttpClient httpClient;
+
   public List<String> getRegionNames(double latitude, double longitude) {
     // api 요청 URL 등록
     String requestUrl = String.format(
         "%s?x=%f&y=%f&input_coord=%s", apiProperties.getApiUrl(), longitude, latitude, INPUT_COORD
     );
 
-    // HTTP 클라이언트 생성
-    HttpClient client = HttpClient.newHttpClient();
     // HTTP 요청 생성
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(requestUrl))
@@ -47,7 +48,7 @@ public class LocationApiClient {
 
     try {
       // 응답 값 받아오기 - 응답값 body bytes를 String으로 변환
-      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+      HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
       if (response.statusCode() != HttpStatus.OK.value()) {
         throw new KakaoGeoApiResponseException(response.statusCode());
       }

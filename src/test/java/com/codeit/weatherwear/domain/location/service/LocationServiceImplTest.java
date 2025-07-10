@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,10 +41,6 @@ class LocationServiceImplTest {
 
   @Mock
   private LocationApiClient locationApiClient;
-
-  @BeforeEach
-  void setUp() {
-  }
 
   @Test
   @DisplayName("위경도를 통해 위치 엔티티를 찾아 성공적으로 반환한다")

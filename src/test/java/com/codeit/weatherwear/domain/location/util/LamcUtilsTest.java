@@ -31,8 +31,8 @@ class LamcUtilsTest {
     GeoPoint geo = lamcUtils.convertToGeo(grid.nx(), grid.ny());
 
     // then
-    assertThat(geo.latitude()).isCloseTo(latitude, within(0.1)); // ±0.1도
-    assertThat(geo.longitude()).isCloseTo(longitude, within(0.1));
+    assertThat(geo.latitude()).isCloseTo(latitude, within(0.02)); // ±0.02도
+    assertThat(geo.longitude()).isCloseTo(longitude, within(0.02));
   }
 
 }
