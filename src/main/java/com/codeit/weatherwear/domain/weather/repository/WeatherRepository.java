@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WeatherRepository extends JpaRepository<Weather, UUID> {
 
-  @Query("SELECT w FROM Weather w WHERE w.location = :location AND w.forecastedAt >= :start")
+  @Query("SELECT w FROM Weather w WHERE w.location = :location AND w.forecastAt >= :start")
   List<Weather> findRecentWeathers(@Param("location") Location location,
       @Param("start") Instant todayStart);
 }
