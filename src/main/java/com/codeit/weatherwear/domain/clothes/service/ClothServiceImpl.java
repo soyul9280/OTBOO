@@ -19,6 +19,7 @@ import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.exception.s3.S3DeleteException;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
@@ -166,6 +167,7 @@ public class ClothServiceImpl implements ClothService {
         } catch (Exception e) {
           log.warn("[옷 수정 실패] 기존 이미지 삭제 실패: {}", oldImageUrl);
           thumbnailImageStorage.delete(uploadUrl);
+          throw new S3DeleteException();
         }
         log.info("[옷 수정] 썸네일 이미지 변경됨: {}", uploadUrl);
         cloth.updateImageUrl(uploadUrl);
@@ -272,6 +274,18 @@ public class ClothServiceImpl implements ClothService {
           log.warn("[옷 삭제 실패] 존재하지 않는 옷 ID: {}", clothesId);
           return new ClothNotFoundException();
         });
+
+    // 썸네일 이미지가 있다면 S3에서 삭제
+    if (cloth.getClothesImageUrl() != null) {
+      log.debug("[S3 이미지 삭제 요청] Key: {}", cloth.getClothesImageUrl());
+      try {
+        thumbnailImageStorage.delete(cloth.getClothesImageUrl());
+        log.info("[옷 삭제] S3 썸네일 삭제 완료: {}", cloth.getClothesImageUrl());
+      } catch (Exception e) {
+        log.warn("[옷 삭제 실패] 이미지 삭제 실패: {}", cloth.getClothesImageUrl());
+        throw new S3DeleteException();
+      }
+    }
     clothRepository.delete(cloth);
     log.info("[옷 삭제 완료] ID: {}", clothesId);
   }
