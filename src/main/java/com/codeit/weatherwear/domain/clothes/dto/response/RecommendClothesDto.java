@@ -12,6 +12,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class RecommendClothesDto {
+
   UUID clothesId;
   UUID ownerId;
   String name;

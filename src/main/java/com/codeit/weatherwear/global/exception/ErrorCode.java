@@ -50,6 +50,7 @@ public enum ErrorCode {
       "날씨 API 요청 중 네트워크 오류 또는 인터럽트가 발생했습니다."),
   WEATHER_API_PARSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "단기 예보 JSON 파싱 실패",
       "단기 예보 JSON 파싱 중 오류가 발생하여 실패하였습니다."),
+  WEATHER_NOT_FOUND(HttpStatus.NOT_FOUND, "날씨 확인 실패", "존재하지 않는 날씨입니다."),
 
   // JWT
   JWTSESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "인증 정보 확인 실패", "토큰이 만료되거나 로그아웃되었습니다."),
@@ -64,7 +65,8 @@ public enum ErrorCode {
 
   //S3
   S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 이미지 업로드에 실패했습니다.", "이미지 저장 중 오류 발생"),
-  PRESIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Presigned URL 생성 실패", "이미지 접근 URL 생성 중 오류 발생"),
+  PRESIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Presigned URL 생성 실패",
+      "이미지 접근 URL 생성 중 오류 발생"),
   S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 객체 삭제에 실패했습니다.", "이미지를 삭제할 수 없습니다."),
 
 
