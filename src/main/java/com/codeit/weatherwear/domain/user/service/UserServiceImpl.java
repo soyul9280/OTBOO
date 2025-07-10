@@ -1,5 +1,7 @@
 package com.codeit.weatherwear.domain.user.service;
 
+import com.codeit.weatherwear.domain.event.DomainEventPublisher;
+import com.codeit.weatherwear.domain.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.domain.location.dto.LocationDto;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.service.LocationService;
@@ -12,6 +14,7 @@ import com.codeit.weatherwear.domain.user.dto.request.UserRoleUpdateRequest;
 import com.codeit.weatherwear.domain.user.dto.request.UserSearchRequest;
 import com.codeit.weatherwear.domain.user.dto.response.ProfileDto;
 import com.codeit.weatherwear.domain.user.dto.response.UserDto;
+import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserAlreadyExistsException;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
@@ -42,6 +45,7 @@ public class UserServiceImpl implements UserService {
   private final LocationService locationService;
   private final JwtSessionService jwtSessionService;
   private final ThumbnailImageStorage thumbnailImageStorage;
+  private final DomainEventPublisher domainEventPublisher;
 
 
   @Transactional
@@ -139,10 +143,16 @@ public class UserServiceImpl implements UserService {
   public UserDto updateRole(UUID userId, UserRoleUpdateRequest userRoleUpdateRequest) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
-    user.updateRole(userRoleUpdateRequest.role());
+    Role previousRole = user.getRole();
 
     // 권한 변경 시 해당 사용자는 자동으로 로그아웃
     jwtSessionService.invalidateToken(userId);
+
+    user.updateRole(userRoleUpdateRequest.role());
+
+    // 권한 변경 알림 전송
+    domainEventPublisher.publish(
+        new RoleChangedEvent(userId, userRoleUpdateRequest.role(), previousRole));
 
     return userMapper.toUserDto(user);
   }

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.codeit.weatherwear.domain.event.DomainEventPublisher;
 import com.codeit.weatherwear.domain.location.service.LocationService;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.codeit.weatherwear.domain.user.dto.request.ChangePasswordRequest;
@@ -58,6 +59,8 @@ class UserServiceImplTest {
   private LocationService locationService;
   @Mock
   private JwtSessionService jwtSessionService;
+  @Mock
+  private DomainEventPublisher domainEventPublisher;
 
 
   @Test
