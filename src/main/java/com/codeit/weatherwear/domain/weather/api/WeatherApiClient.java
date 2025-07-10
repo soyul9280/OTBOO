@@ -25,6 +25,8 @@ public class WeatherApiClient {
 
   private final WeatherApiProperties apiProperties;
 
+  private final HttpClient httpClient;
+
   /**
    * 단기 예보 API에 데이터를 요청하여 응답을 받아와 리턴한다.
    *
@@ -49,14 +51,13 @@ public class WeatherApiClient {
     );
 
     // HttpClient 세팅 및 요청 세팅
-    HttpClient client = HttpClient.newHttpClient();
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(requestUrl))
         .GET()
         .build();
 
     try {
-      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+      HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
       String resultCode = extractResultCode(mapper, response.body());
       // 응답 코드가 00이 아니면 비정상적인 응답 (오류)
       if (!"00".equals(resultCode)) {
