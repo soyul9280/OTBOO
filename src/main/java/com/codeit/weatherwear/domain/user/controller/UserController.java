@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +41,7 @@ public class UserController {
   public ResponseEntity<UserDto> createUser(
       @Valid @RequestBody UserCreateRequest userCreateRequest) {
     UserDto result = userService.create(userCreateRequest);
-    return ResponseEntity.ok(result);
+    return ResponseEntity.status(HttpStatus.CREATED).body(result);
   }
 
   @GetMapping("/{userId}/profiles")
@@ -61,9 +62,8 @@ public class UserController {
   public ResponseEntity<ProfileDto> updateProfile(
       @PathVariable UUID userId,
       @Valid @RequestPart("request") ProfileUpdateRequest profileUpdateRequest,
-      @RequestPart(required = false) MultipartFile profileImage) {
-    // TODO: S3 세팅 후 프로필 이미지 업데이트 추가
-    ProfileDto result = userService.updateProfile(userId, profileUpdateRequest);
+      @RequestPart(value = "image", required = false) MultipartFile profileImage) {
+    ProfileDto result = userService.updateProfile(userId, profileUpdateRequest, profileImage);
     return ResponseEntity.ok(result);
   }
 
