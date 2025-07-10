@@ -55,32 +55,6 @@ public class ClothServiceImpl implements ClothService {
   private final ClothMapper clothMapper;
   private final List<SiteParser> siteParsers;
 
-  private static void applyAttributesToCloth(List<ClothesAttributeDto> attributeDtos,
-      Map<UUID, Attribute> attrMap,
-      Cloth cloth) {
-    for (ClothesAttributeDto dto : attributeDtos) {
-      Attribute attribute = attrMap.get(dto.definitionId());
-      if (attribute == null) {
-        log.warn("[옷의 속성 값 적용 실패] 존재하지 않는 속성입니다. ID : {}", dto.definitionId());
-        throw new AttributeNotFoundException();
-      }
-      if (!attribute.getSelectableValues().contains(dto.value())) {
-        log.warn("[옷의 속성 값 적용 실패] 존재하지 않는 속성 값입니다. ID : {}", dto.definitionId());
-        throw new InvalidAttributeNameException();
-      }
-
-      ClothWithAttributes attr = ClothWithAttributes.builder()
-          .value(dto.value())
-          .attribute(attribute)
-          .cloth(cloth)
-          .build();
-
-      cloth.addAttribute(attr);
-    }
-    log.debug("[옷 속성 값 적용 완료]");
-
-  }
-
   /**
    * 의상 등록
    *
@@ -300,6 +274,32 @@ public class ClothServiceImpl implements ClothService {
         });
     clothRepository.delete(cloth);
     log.info("[옷 삭제 완료] ID: {}", clothesId);
+  }
+
+  private static void applyAttributesToCloth(List<ClothesAttributeDto> attributeDtos,
+      Map<UUID, Attribute> attrMap,
+      Cloth cloth) {
+    for (ClothesAttributeDto dto : attributeDtos) {
+      Attribute attribute = attrMap.get(dto.definitionId());
+      if (attribute == null) {
+        log.warn("[옷의 속성 값 적용 실패] 존재하지 않는 속성입니다. ID : {}", dto.definitionId());
+        throw new AttributeNotFoundException();
+      }
+      if (!attribute.getSelectableValues().contains(dto.value())) {
+        log.warn("[옷의 속성 값 적용 실패] 존재하지 않는 속성 값입니다. ID : {}", dto.definitionId());
+        throw new InvalidAttributeNameException();
+      }
+
+      ClothWithAttributes attr = ClothWithAttributes.builder()
+          .value(dto.value())
+          .attribute(attribute)
+          .cloth(cloth)
+          .build();
+
+      cloth.addAttribute(attr);
+    }
+    log.debug("[옷 속성 값 적용 완료]");
+
   }
 
 }
