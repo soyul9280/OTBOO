@@ -159,7 +159,8 @@ public class ClothServiceImpl implements ClothService {
     if (image != null && !image.isEmpty()) {
       //기존 이미지 삭제
       String oldImageUrl = cloth.getClothesImageUrl();
-      String uploadUrl = thumbnailImageStorage.upload(image);
+      String uploadKey = thumbnailImageStorage.upload(image);
+      String uploadUrl = thumbnailImageStorage.get(uploadKey);
       if (oldImageUrl != null) {
         try {
           thumbnailImageStorage.delete(oldImageUrl);
