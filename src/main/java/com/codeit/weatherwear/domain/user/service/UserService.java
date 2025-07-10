@@ -10,6 +10,7 @@ import com.codeit.weatherwear.domain.user.dto.response.ProfileDto;
 import com.codeit.weatherwear.domain.user.dto.response.UserDto;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
 
@@ -17,7 +18,8 @@ public interface UserService {
 
   ProfileDto findProfile(UUID userId);
 
-  ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest);
+  ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest,
+      MultipartFile profileImage);
 
   UUID updateLock(UUID userId, UserLockUpdateRequest userLockUpdateRequest);
 

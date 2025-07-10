@@ -18,6 +18,7 @@ import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.mapper.UserMapper;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.response.PageResponse;
+import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +41,7 @@ public class UserServiceImpl implements UserService {
   private final PasswordEncoder passwordEncoder;
   private final LocationService locationService;
   private final JwtSessionService jwtSessionService;
+  private final ThumbnailImageStorage thumbnailImageStorage;
 
 
   @Transactional
@@ -72,7 +75,8 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   @Override
-  public ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest) {
+  public ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest,
+      MultipartFile profileImage) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -83,7 +87,14 @@ public class UserServiceImpl implements UserService {
       location = locationService.findOrCreateLocation(locationDto);
     }
 
-    // TODO: S3 세팅 완료되면 ProfileImageUrl도 업데이트
+    // ProfileImageUrl 업로드
+    String profileImageUrl = null;
+    if (profileImage != null && !profileImage.isEmpty()) {
+      log.debug("[Start Uploading Profile Image On S3] - userId: {}", userId);
+      profileImageUrl = thumbnailImageStorage.get(thumbnailImageStorage.upload(profileImage));
+      log.debug("[Uploading Profile Image On S3 Completed] - userId: {}, url: {}", userId,
+          profileImageUrl);
+    }
 
     user.updateProfile(
         profileUpdateRequest.name(),
@@ -91,7 +102,7 @@ public class UserServiceImpl implements UserService {
         profileUpdateRequest.birthDate(),
         location,
         profileUpdateRequest.temperatureSensitivity(),
-        null);
+        profileImageUrl);
 
     return userMapper.toProfileDto(user);
   }

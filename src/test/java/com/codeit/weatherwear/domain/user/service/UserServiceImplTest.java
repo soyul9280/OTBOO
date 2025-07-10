@@ -140,7 +140,7 @@ class UserServiceImplTest {
     when(userMapper.toProfileDto(user)).thenReturn(dto);
 
     // when
-    ProfileDto result = userService.updateProfile(userId, request);
+    ProfileDto result = userService.updateProfile(userId, request, null);
 
     // then
     assertThat(result.getName()).isEqualTo("newName");
@@ -161,7 +161,8 @@ class UserServiceImplTest {
     when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
     // when & then
-    assertThrows(UserNotFoundException.class, () -> userService.updateProfile(userId, request));
+    assertThrows(UserNotFoundException.class,
+        () -> userService.updateProfile(userId, request, null));
   }
 
   @Test

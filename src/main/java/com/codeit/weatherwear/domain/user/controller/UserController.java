@@ -61,9 +61,9 @@ public class UserController {
   public ResponseEntity<ProfileDto> updateProfile(
       @PathVariable UUID userId,
       @Valid @RequestPart("request") ProfileUpdateRequest profileUpdateRequest,
-      @RequestPart(required = false) MultipartFile profileImage) {
+      @RequestPart(value = "image", required = false) MultipartFile profileImage) {
     // TODO: S3 세팅 후 프로필 이미지 업데이트 추가
-    ProfileDto result = userService.updateProfile(userId, profileUpdateRequest);
+    ProfileDto result = userService.updateProfile(userId, profileUpdateRequest, profileImage);
     return ResponseEntity.ok(result);
   }
 
