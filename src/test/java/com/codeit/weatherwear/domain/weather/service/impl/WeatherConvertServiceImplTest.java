@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.codeit.weatherwear.domain.location.entity.Location;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -132,6 +134,8 @@ class WeatherConvertServiceImplTest {
   @DisplayName("동일 카테고리 내에서 fcstTime이 더 늦은 데이터만 남는다")
   void convertWeatherApiData_latest_categoryData_only() {
     // given
+    ArgumentCaptor<Map<String, WeatherApiData>> captor = ArgumentCaptor.forClass(Map.class);
+
     WeatherApiData tmp1 = createWeatherApiData(baseDate, baseTime, "TMP", fcstDate, "1500");
     WeatherApiData tmp2 = createWeatherApiData(baseDate, baseTime, "TMP", fcstDate, "1600"); // 최신
     WeatherApiData pop1 = createWeatherApiData(baseDate, baseTime, "POP", fcstDate, "1400"); // 최신
@@ -147,12 +151,19 @@ class WeatherConvertServiceImplTest {
         fcstDate, timeMap
     );
 
+    // 필터링된 카테고리별 최신 데이터 맵 정의
+    Map<String, WeatherApiData> expectedCategoryMap = Map.of(
+        "TMP", tmp2,
+        "POP", pop1,
+        "SKY", sky
+    );
+
     Location location = mock(Location.class);
     Weather weather = mock(Weather.class);
 
     // WeatherAssembler가 호출될 때 결과 반환
     given(weatherAssembler.assemble(
-        eq(fcstDate), eq(baseDate), anyMap(), eq(location), eq(groupedApiData)
+        eq(fcstDate), eq(baseDate), eq(expectedCategoryMap), eq(location), eq(groupedApiData)
     )).willReturn(weather);
 
     // when
@@ -161,6 +172,18 @@ class WeatherConvertServiceImplTest {
     // then
     assertThat(result).hasSize(1);
     assertThat(result.get(0)).isSameAs(weather);
+
+    // verify
+    // weatherAssembler.assemble가 정확히 아래 인자들로 호출됐는지 검증
+    // 세 번째 인자(categoryMap)를 ArgumentCaptor로 캡처
+    verify(weatherAssembler).assemble(
+        eq(fcstDate), eq(baseDate), captor.capture(), eq(location), eq(groupedApiData)
+    );
+
+    // 캡처된 categoryMap을 꺼내서 기대한 값과 일치하는지 확인
+    Map<String, WeatherApiData> actualCategoryMap = captor.getValue();
+    assertThat(actualCategoryMap).isEqualTo(expectedCategoryMap);
+
   }
 
   // private method -------------------
