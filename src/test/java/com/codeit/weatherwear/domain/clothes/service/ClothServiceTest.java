@@ -442,7 +442,7 @@ public class ClothServiceTest {
       ClothesUpdateRequest request = new ClothesUpdateRequest(
           "빨강 후드티", ClothType.TOP, List.of(color)
       );
-      
+
       String newImageKey = "new-image-key";
       String newImageUrl = "https://s3.com/new-image.jpg";
       String oldImageUrl = "https://s3.com/old-image.jpg";
@@ -462,7 +462,6 @@ public class ClothServiceTest {
 
       given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(
           Optional.of(clothWithImage));
-      given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef));
       given(thumbnailImageStorage.upload(newFile)).willReturn(newImageKey);
       given(thumbnailImageStorage.get(newImageKey)).willReturn(newImageUrl);
       doThrow(new S3DeleteException()).when(thumbnailImageStorage).delete(oldImageUrl);
@@ -473,9 +472,9 @@ public class ClothServiceTest {
           .hasMessageContaining("S3 객체 삭제에 실패했습니다.");
 
       verify(thumbnailImageStorage).upload(newFile);
+      verify(thumbnailImageStorage).get(newImageKey);
       verify(thumbnailImageStorage).delete(oldImageUrl);
       verify(thumbnailImageStorage).delete(newImageUrl);
-      verify(thumbnailImageStorage, never()).get(any());
       verify(mapper, never()).toDto(any(), any());
     }
   }
