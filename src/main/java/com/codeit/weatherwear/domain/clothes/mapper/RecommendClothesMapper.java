@@ -34,13 +34,4 @@ public class RecommendClothesMapper {
         .build();
 
   }
-
-  public List<ClothesAttributeDefDto> toAttributeDefDto(List<ClothWithAttributes> attrs) {
-    return attrs
-        .stream().map(
-            attr -> new ClothesAttributeDefDto(attr.getId(), attr.getAttribute().getName(),
-                attr.getAttribute().getSelectableValues())
-        )
-        .toList();
-  }
 }

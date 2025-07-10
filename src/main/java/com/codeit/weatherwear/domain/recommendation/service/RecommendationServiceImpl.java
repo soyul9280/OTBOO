@@ -14,6 +14,7 @@ import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeedType;
 import com.codeit.weatherwear.domain.weather.exception.WeatherApiResponseException;
+import com.codeit.weatherwear.domain.weather.exception.WeatherNotFoundException;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.util.ArrayList;
@@ -57,8 +58,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     });
     Weather weather = weatherRepository.findById(weatherId).orElseThrow(() -> {
       log.warn("[추천 조회 실패] 존재하지 않는 날씨 id: {}", weatherId);
-      //TODO: 날씨 기능 완료 후 변경하기
-      return new WeatherApiResponseException("존재하지 않는 날씨 입니다.");
+      return new WeatherNotFoundException();
     });
 
     List<Cloth> clothes = clothRepository.findAllWithAttributesByUserId(user.getId());
