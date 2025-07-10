@@ -87,37 +87,54 @@ class WeatherFetchServiceImplTest {
   // private method -----------
   private String getResponseJson() {
     return """
-        {
-        	"meta": {
-        		"total_count": 1
-        	},
-        	"documents": [
-        		{
-        			"road_address": {
-        				"address_name": "서울특별시 종로구 사직로 161",
-        				"region_1depth_name": "서울",
-        				"region_2depth_name": "종로구",
-        				"region_3depth_name": "",
-        				"road_name": "사직로",
-        				"underground_yn": "N",
-        				"main_building_no": "161",
-        				"sub_building_no": "",
-        				"building_name": "경복궁",
-        				"zone_no": "03045"
+        			"dataType": "JSON",
+        			"items": {
+        				"item": [
+        					{
+        						"baseDate": "20250710",
+        						"baseTime": "0500",
+        						"category": "TMP",
+        						"fcstDate": "20250710",
+        						"fcstTime": "0600",
+        						"fcstValue": "27",
+        						"nx": 59,
+        						"ny": 126
+        					},
+        					{
+        						"baseDate": "20250710",
+        						"baseTime": "0500",
+        						"category": "UUU",
+        						"fcstDate": "20250710",
+        						"fcstTime": "0600",
+        						"fcstValue": "-1.6",
+        						"nx": 59,
+        						"ny": 126
+        					},
+        					{
+        						"baseDate": "20250710",
+        						"baseTime": "0500",
+        						"category": "VVV",
+        						"fcstDate": "20250710",
+        						"fcstTime": "0600",
+        						"fcstValue": "-0.7",
+        						"nx": 59,
+        						"ny": 126
+        					},
+        					{
+        						"baseDate": "20250710",
+        						"baseTime": "0500",
+        						"category": "VEC",
+        						"fcstDate": "20250710",
+        						"fcstTime": "0600",
+        						"fcstValue": "68",
+        						"nx": 59,
+        						"ny": 126
+        					}
+        				]
         			},
-        			"address": {
-        				"address_name": "서울 종로구 세종로 1-1",
-        				"region_1depth_name": "서울",
-        				"region_2depth_name": "종로구",
-        				"region_3depth_name": "세종로",
-        				"mountain_yn": "N",
-        				"main_address_no": "1",
-        				"sub_address_no": "1",
-        				"zip_code": ""
-        			}
-        		}
-        	]
-        }
+        			"pageNo": 1,
+        			"numOfRows": 10,
+        			"totalCount": 907
         """;
   }
 
