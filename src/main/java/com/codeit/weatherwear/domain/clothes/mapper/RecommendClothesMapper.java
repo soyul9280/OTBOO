@@ -1,10 +1,8 @@
 package com.codeit.weatherwear.domain.clothes.mapper;
 
-import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeWithDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
-import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -13,7 +13,6 @@ import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeedType;
-import com.codeit.weatherwear.domain.weather.exception.WeatherApiResponseException;
 import com.codeit.weatherwear.domain.weather.exception.WeatherNotFoundException;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
