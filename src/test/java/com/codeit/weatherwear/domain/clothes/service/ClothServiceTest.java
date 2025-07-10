@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.clothes.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -162,7 +163,7 @@ public class ClothServiceTest {
     }
 
     @Test
-    @DisplayName("직접 의상 등록 - 이미지 존재")
+    @DisplayName("직접 의상 등록 성공 - 이미지 존재")
     void create_withImage() {
       //given
       ClothesAttributeDto color = new ClothesAttributeDto(colorId, "파랑");
@@ -280,7 +281,7 @@ public class ClothServiceTest {
     }
 
     @Test
-    @DisplayName("삭제 실패 - 이미지가 있는 의상")
+    @DisplayName("삭제 실패 - 이미지가 있는 의상, 이미지 삭제 시도시 실패")
     void delete_with_image_fail() {
       //given
       String imageUrl = "https://s3.com/image.jpg";
@@ -296,15 +297,15 @@ public class ClothServiceTest {
           .build();
 
       given(clothRepository.findById(clothesId)).willReturn(Optional.of(clothWithImage));
-
+      doThrow(new S3DeleteException()).when(thumbnailImageStorage).delete(imageUrl);
       //when
       //then
       assertThatThrownBy(() -> sut.delete(clothesId))
           .isInstanceOf(S3DeleteException.class)
           .hasMessageContaining("S3 객체 삭제에 실패했습니다.");
       verify(clothRepository, times(1)).findById(clothesId);
+      verify(thumbnailImageStorage).delete(imageUrl);
       verify(clothRepository, never()).delete(any());
-      verify(thumbnailImageStorage, never()).delete(any());
     }
   }
 
@@ -348,6 +349,134 @@ public class ClothServiceTest {
       assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
       verify(attributeRepository, times(1)).findAllById(any());
       verify(thumbnailImageStorage, never()).upload(any());
+    }
+
+    @Test
+    @DisplayName("의상 수정 성공- 이미지 존재, 이미지 & 속성 & 이름 수정")
+    void update_withImage() {
+      //given
+      ClothesAttributeDto color = new ClothesAttributeDto(colorId, "빨강");
+      ClothesAttributeDto size = new ClothesAttributeDto(sizeId, "L");
+      ClothesAttributeWithDefDto colorDto = new ClothesAttributeWithDefDto(colorId,
+          "색상", List.of("빨강", "파랑"), "빨강");
+      ClothesAttributeWithDefDto sizeDto = new ClothesAttributeWithDefDto(sizeId,
+          "사이즈", List.of("S", "L"), "L");
+
+      String oldImageKey = "old-image-key";
+      String newImageKey = "new-image-key";
+      String newImageUrl = "https://s3.com/new-image.jpg";
+      MultipartFile newFile = new MockMultipartFile("file", "new.jpg", "image/jpeg",
+          "new-content".getBytes());
+
+      Cloth clothWithImage = Cloth.builder()
+          .id(clothesId)
+          .createdAt(Instant.now())
+          .updatedAt(Instant.now())
+          .name("후드티")
+          .clothType(ClothType.TOP)
+          .clothesImageUrl(oldImageKey)
+          .user(mockUser)
+          .build();
+
+      ClothesUpdateRequest request = new ClothesUpdateRequest(
+          "빨강 후드티", ClothType.TOP, List.of(color, size)
+      );
+
+      ClothesDto clothesDto = ClothesDto.builder()
+          .id(clothesId)
+          .ownerId(ownerId)
+          .name("후드티")
+          .imageUrl(newImageUrl)
+          .type(ClothType.TOP)
+          .attributes(List.of(colorDto, sizeDto))
+          .build();
+
+      given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(
+          Optional.of(clothWithImage));
+      given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef, sizeDef));
+      given(thumbnailImageStorage.upload(newFile)).willReturn(newImageKey);
+      given(thumbnailImageStorage.get(newImageKey)).willReturn(newImageUrl);
+      given(mapper.toDto(any(Cloth.class), any())).willReturn(clothesDto);
+      //when
+      ClothesDto result = sut.update(clothesId, request, newFile);
+      //then
+      assertThat(result.getName()).isEqualTo("후드티");
+      assertThat(result.getType()).isEqualTo(ClothType.TOP);
+      assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
+      assertThat(result.getAttributes().get(1).value()).isEqualTo("L");
+      verify(clothRepository).findByIdWithAttributes(clothesId);
+      verify(attributeRepository).findAllById(any());
+      verify(thumbnailImageStorage).upload(newFile);
+      verify(thumbnailImageStorage).get(newImageKey);
+      verify(thumbnailImageStorage).delete(oldImageKey);
+    }
+
+    @Test
+    @DisplayName("수정 실패 - 이미지 없는 의상, 속성 ID가 존재하지 않음")
+    void update_fail() {
+      // given
+      UUID invalidAttrId = UUID.randomUUID();
+      ClothesAttributeDto invalidAttr = new ClothesAttributeDto(invalidAttrId, "없는 속성");
+      ClothesUpdateRequest request = new ClothesUpdateRequest(
+          "후드티", ClothType.TOP, List.of(invalidAttr)
+      );
+      given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(Optional.of(cloth));
+      given(attributeRepository.findAllById(any())).willReturn(List.of()); // 속성 없음
+
+      // when & then
+      assertThatThrownBy(() -> sut.update(clothesId, request, null))
+          .isInstanceOf(AttributeNotFoundException.class)
+          .hasMessageContaining("속성 확인 실패");
+      verify(clothRepository).findByIdWithAttributes(clothesId);
+      verify(attributeRepository).findAllById(any());
+      verify(thumbnailImageStorage, never()).upload(any());
+      verify(thumbnailImageStorage, never()).delete(any());
+      verify(thumbnailImageStorage, never()).get(any());
+    }
+
+    @Test
+    @DisplayName("수정 실패 - 기존 이미지 삭제 실패로 수정 중단")
+    void update_fail_withImage() {
+      // given
+      ClothesAttributeDto color = new ClothesAttributeDto(colorId, "빨강");
+      ClothesUpdateRequest request = new ClothesUpdateRequest(
+          "빨강 후드티", ClothType.TOP, List.of(color)
+      );
+      
+      String newImageKey = "new-image-key";
+      String newImageUrl = "https://s3.com/new-image.jpg";
+      String oldImageUrl = "https://s3.com/old-image.jpg";
+
+      MultipartFile newFile = new MockMultipartFile("file", "new.jpg", "image/jpeg",
+          "new-content".getBytes());
+
+      Cloth clothWithImage = Cloth.builder()
+          .id(clothesId)
+          .createdAt(Instant.now())
+          .updatedAt(Instant.now())
+          .name("후드티")
+          .clothType(ClothType.TOP)
+          .clothesImageUrl(oldImageUrl)
+          .user(mockUser)
+          .build();
+
+      given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(
+          Optional.of(clothWithImage));
+      given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef));
+      given(thumbnailImageStorage.upload(newFile)).willReturn(newImageKey);
+      given(thumbnailImageStorage.get(newImageKey)).willReturn(newImageUrl);
+      doThrow(new S3DeleteException()).when(thumbnailImageStorage).delete(oldImageUrl);
+
+      // when & then
+      assertThatThrownBy(() -> sut.update(clothesId, request, newFile))
+          .isInstanceOf(S3DeleteException.class)
+          .hasMessageContaining("S3 객체 삭제에 실패했습니다.");
+
+      verify(thumbnailImageStorage).upload(newFile);
+      verify(thumbnailImageStorage).delete(oldImageUrl);
+      verify(thumbnailImageStorage).delete(newImageUrl);
+      verify(thumbnailImageStorage, never()).get(any());
+      verify(mapper, never()).toDto(any(), any());
     }
   }
 }
