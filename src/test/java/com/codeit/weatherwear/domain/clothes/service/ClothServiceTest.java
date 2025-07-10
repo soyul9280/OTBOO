@@ -24,6 +24,7 @@ import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.exception.s3.S3DeleteException;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.time.Instant;
 import java.util.List;
@@ -238,6 +239,32 @@ public class ClothServiceTest {
     }
 
     @Test
+    @DisplayName("삭제 성공 - 이미지가 있는 의상")
+    void delete_with_image() {
+      //given
+      String imageUrl = "https://s3.com/image.jpg";
+
+      Cloth clothWithImage = Cloth.builder()
+          .id(clothesId)
+          .createdAt(Instant.now())
+          .updatedAt(Instant.now())
+          .name("후드티")
+          .clothType(ClothType.TOP)
+          .clothesImageUrl(imageUrl)
+          .user(mockUser)
+          .build();
+
+      given(clothRepository.findById(clothesId)).willReturn(Optional.of(clothWithImage));
+
+      //when
+      sut.delete(clothesId);
+      //then
+      verify(clothRepository, times(1)).findById(clothesId);
+      verify(clothRepository, times(1)).delete(clothWithImage);
+      verify(thumbnailImageStorage).delete(imageUrl);
+    }
+
+    @Test
     @DisplayName("삭제 실패 - 존재하지 않는 의상")
     void delete_fail() {
       // given
@@ -250,6 +277,34 @@ public class ClothServiceTest {
           .hasMessageContaining("옷 확인 실패");
       verify(clothRepository, times(1)).findById(id);
       verify(clothRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("삭제 실패 - 이미지가 있는 의상")
+    void delete_with_image_fail() {
+      //given
+      String imageUrl = "https://s3.com/image.jpg";
+
+      Cloth clothWithImage = Cloth.builder()
+          .id(clothesId)
+          .createdAt(Instant.now())
+          .updatedAt(Instant.now())
+          .name("후드티")
+          .clothType(ClothType.TOP)
+          .clothesImageUrl(imageUrl)
+          .user(mockUser)
+          .build();
+
+      given(clothRepository.findById(clothesId)).willReturn(Optional.of(clothWithImage));
+
+      //when
+      //then
+      assertThatThrownBy(() -> sut.delete(clothesId))
+          .isInstanceOf(S3DeleteException.class)
+          .hasMessageContaining("S3 객체 삭제에 실패했습니다.");
+      verify(clothRepository, times(1)).findById(clothesId);
+      verify(clothRepository, never()).delete(any());
+      verify(thumbnailImageStorage, never()).delete(any());
     }
   }
 
