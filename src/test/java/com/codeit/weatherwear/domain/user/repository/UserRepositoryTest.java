@@ -6,11 +6,11 @@ import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.global.config.JpaConfig;
 import com.codeit.weatherwear.global.request.SortDirection;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
+@Slf4j
 @Import({JpaConfig.class})
 class UserRepositoryTest {
 
@@ -33,7 +34,7 @@ class UserRepositoryTest {
   private final List<User> testUsers = new ArrayList<>();
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws InterruptedException {
     testUsers.clear();
     for (int i = 1; i <= 5; i++) {
       User user = User.builder()
@@ -42,9 +43,9 @@ class UserRepositoryTest {
           .password("")
           .role(Role.USER)
           .locked(i % 2 == 0)
-          .createdAt(Instant.parse("2025-07-0" + i + "T00:00:00Z"))
           .build();
       testUsers.add(user);
+      Thread.sleep(1);
       em.persist(user);
     }
     em.flush();
@@ -122,24 +123,29 @@ class UserRepositoryTest {
         .containsExactly("user4@test.com", "user5@test.com");
   }
 
-  // todo: 해당 부분 테스트 실패로 주석 처리
-//  @Test
-//  void createdAt_커서페이징() {
-//    // given
-//    User user3 = userRepository.findByEmail("user3@test.com")
-//        .orElseThrow();
-//    // when
-//    Slice<User> result = userRepository.searchUsers(
-//        user3.getCreatedAt().toString(), user3.getId(), 2,
-//        "createdAt", SortDirection.ASCENDING, null, null, null
-//    );
-//
-//    // then
-//    assertThat(result.getContent()).hasSize(2);
-//    assertThat(result.getContent())
-//        .extracting(User::getEmail)
-//        .containsExactly("user4@test.com", "user5@test.com");
-//  }
+  @Test
+  void createdAt_커서페이징() {
+    // given
+    User user3 = userRepository.findByEmail("user3@test.com")
+        .orElseThrow();
+
+    for (User user : testUsers) {
+      log.info("name: " + user.getName() + " / " + user.getCreatedAt());
+    }
+    // when
+    Slice<User> result = userRepository.searchUsers(
+        user3.getCreatedAt().toString(), user3.getId(), 2,
+        "createdAt", SortDirection.ASCENDING, null, null, null
+    );
+    for (User user : result.getContent()) {
+      log.info("name: " + user.getName() + " / " + user.getCreatedAt());
+    }
+    // then
+    assertThat(result.getContent()).hasSize(2);
+    assertThat(result.getContent())
+        .extracting(User::getEmail)
+        .containsExactly("user4@test.com", "user5@test.com");
+  }
 
   @Test
   void 조건에_맞는_유저_총_개수() {
