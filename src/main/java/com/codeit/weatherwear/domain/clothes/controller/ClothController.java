@@ -46,26 +46,22 @@ public class ClothController implements ClothApi {
   public ResponseEntity<ClothesDto> create(
       @Valid @RequestPart("request") ClothesCreateRequest request,
       @RequestPart(value = "image", required = false) MultipartFile image) {
-    log.info("[옷 등록 요청] 옷 이름: {}, 의상 타입: {}", request.name(), request.type());
-
     ClothesDto createClothes = clothService.create(request, image);
     return ResponseEntity.status(HttpStatus.CREATED).body(createClothes);
   }
 
-    /**
-     * 의상을 url으로부터 불러옵니다.
-     *
-     * @param url 구매 사이트 url
-     * @return
-     */
-    @Override
-    @GetMapping("/extractions")
-    public ResponseEntity<ClothesDto> createFromUrl(@RequestParam String url) {
-      log.info("[url로 옷 등록 요청] url: {}", url);
-
-      ClothesDto urlCloth=clothService.createFromUrl(url);
-      return ResponseEntity.ok(urlCloth);
-    }
+  /**
+   * 의상을 url으로부터 불러옵니다.
+   *
+   * @param url 구매 사이트 url
+   * @return
+   */
+  @Override
+  @GetMapping("/extractions")
+  public ResponseEntity<ClothesDto> createFromUrl(@RequestParam String url) {
+    ClothesDto urlCloth = clothService.createFromUrl(url);
+    return ResponseEntity.ok(urlCloth);
+  }
 
 
   /**
@@ -77,10 +73,7 @@ public class ClothController implements ClothApi {
   @Override
   @GetMapping
   public ResponseEntity<PageResponse<ClothesDto>> searchClothes(
-    @ModelAttribute @Valid ClothesSearchRequest request) {
-      log.info("[옷 목록 조회 요청] ownerId: {}, typeEqual: {}, limit: {}",
-          request.ownerId(),request.typeEqual(), request.limit());
-
+      @ModelAttribute @Valid ClothesSearchRequest request) {
     PageResponse<ClothesDto> result = clothService.searchClothes(request);
     return ResponseEntity.ok(result);
   }
@@ -101,9 +94,7 @@ public class ClothController implements ClothApi {
       @PathVariable("clothesId") UUID clothesId,
       @RequestPart("request") ClothesUpdateRequest request,
       @RequestPart(value = "image", required = false) MultipartFile image) {
-    log.info("[옷 수정 요청] ID: {}, 옷 이름: {}", clothesId, request.name());
-
-    ClothesDto update = clothService.update(clothesId, request,image);
+    ClothesDto update = clothService.update(clothesId, request, image);
     return ResponseEntity.ok(update);
   }
 
@@ -117,8 +108,6 @@ public class ClothController implements ClothApi {
   @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isClothOwner(authentication.principal.userId, #clothesId)")
   @DeleteMapping("/{clothesId}")
   public ResponseEntity<Void> delete(@PathVariable UUID clothesId) {
-    log.info("[옷 삭제 요청] ID: {}", clothesId);
-
     clothService.delete(clothesId);
     return ResponseEntity.noContent().build();
   }
