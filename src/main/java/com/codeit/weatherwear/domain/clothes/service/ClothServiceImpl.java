@@ -293,7 +293,8 @@ public class ClothServiceImpl implements ClothService {
         thumbnailImageStorage.delete(cloth.getClothesImageUrl());
         log.info("[Delete Cloth] Deleting S3 ThumbNail Completed: {}", cloth.getClothesImageUrl());
       } catch (Exception e) {
-        log.warn("[Fail Deleting Cloth] Fail Deleting S3 ThumbNai: {}", cloth.getClothesImageUrl());
+        log.warn("[Fail Deleting Cloth] Fail Deleting S3 ThumbNail: {}",
+            cloth.getClothesImageUrl());
         throw new S3DeleteException();
       }
     }
