@@ -1,11 +1,15 @@
 package com.codeit.weatherwear.domain.auth.service;
 
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 @Service
 @Slf4j
@@ -14,28 +18,30 @@ public class EmailServiceImpl implements EmailService {
 
   private final JavaMailSender javaMailSender;
 
+  private final TemplateEngine templateEngine;
+
+  @Value("${resetpassword.validity-seconds}")
+  private long passwordValiditySeconds;
+
   @Async
   public void sendTempPasswordEmail(String toEmail, String tempPassword) {
-    String content = """
-        안녕하세요.
-        "옷장을 부탁해" 서비스입니다.
-                
-        요청하신 임시 비밀번호는 아래와 같습니다.
-        --------------
-        %s
-        --------------
-                
-        임시 비밀번호는 발급 시점으로부터 10분 간 유효합니다.
-        로그인 후 반드시 비밀번호를 변경해주세요.
-                
-        감사합니다.        
-        """.formatted(tempPassword);
+    try {
+      // Thymeleaf context 설정
+      Context context = new Context();
+      context.setVariable("tempPassword", tempPassword);
+      context.setVariable("validMinutes", passwordValiditySeconds / 60);
 
-    SimpleMailMessage message = new SimpleMailMessage();
-    message.setTo(toEmail);
-    message.setSubject("[옷장을 부탁해] 임시 비밀번호 안내");
-    message.setText(content);
+      String htmlContent = templateEngine.process("email/reset-password", context);
 
-    javaMailSender.send(message);
+      MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+      helper.setTo(toEmail);
+      helper.setSubject("[옷장을 부탁해] 임시 비밀번호 안내");
+      helper.setText(htmlContent, true); // HTML 본문
+
+      javaMailSender.send(mimeMessage);
+    } catch (Exception e) {
+      log.error("임시 비밀번호 이메일 전송 실패", e);
+    }
   }
 }
