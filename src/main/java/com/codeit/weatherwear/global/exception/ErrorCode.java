@@ -60,7 +60,7 @@ public enum ErrorCode {
   ATTRIBUTE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "속성 등록 실패", "속성이 이미 존재합니다."),
   ATTRIBUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "속성 확인 실패", "존재하지 않는 속성입니다."),
   SELECTABLE_DUPLICATE(HttpStatus.BAD_REQUEST, "속성 값 중복 등록", "중복된 속성 값이 존재합니다."),
-  INVALID_ATTRIBUTE_NAME(HttpStatus.BAD_REQUEST, "잘못된 속성명입니다.", "정보를 찾을 수 없습니다."),
+  INVALID_ATTRIBUTE_VALUE(HttpStatus.BAD_REQUEST, "잘못된 속성값입니다.", "정보를 찾을 수 없습니다."),
 
 
   //S3

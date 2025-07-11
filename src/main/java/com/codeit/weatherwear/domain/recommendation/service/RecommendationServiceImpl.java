@@ -52,11 +52,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     //사용자 조회
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
     User user = userRepository.findByEmail(email).orElseThrow(() -> {
-      log.warn("[추천 조회 실패] 존재하지 않는 사용자 email: {}", email);
+      log.warn("[Fail Searching Recommendation] User Not Found, Email: {}", email);
       return new UserNotFoundException();
     });
     Weather weather = weatherRepository.findById(weatherId).orElseThrow(() -> {
-      log.warn("[추천 조회 실패] 존재하지 않는 날씨 id: {}", weatherId);
+      log.warn("[Fail Searching Recommendation] Weather Not Found, ID: {}", weatherId);
       return new WeatherNotFoundException();
     });
 
@@ -110,7 +110,6 @@ public class RecommendationServiceImpl implements RecommendationService {
           return recommendClothesMapper.toDto(cloth, imageUrl);
         })
         .toList();
-
     return RecommendationDto.builder()
         .weatherId(weatherId)
         .userId(user.getId())
@@ -218,7 +217,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     if (allowSkip) {
       // 예: 50% 확률로 선택 안 할 수 있음
-      boolean skip = ThreadLocalRandom.current().nextBoolean(); // true or false
+      boolean skip = ThreadLocalRandom.current().nextBoolean();
       if (skip) {
         return null;
       }

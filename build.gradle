@@ -34,8 +34,15 @@ jacocoTestReport {
     }
 }
 
+// 환경변수에서 버전 불러오기 - 아니면 0.0.1-SNAPSHOT
+def envVersion = System.getenv("PROJECT_VERSION") ?: "0.0.1-SNAPSHOT"
+
 group = 'com.codeit'
-version = '0.0.1-SNAPSHOT'
+version = envVersion
+
+bootJar {
+    archiveFileName = "${project.name}-${project.version}.jar"
+}
 
 java {
     toolchain {
@@ -122,8 +129,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 }
 
-
 tasks.named('test') {
     useJUnitPlatform()
 }
-

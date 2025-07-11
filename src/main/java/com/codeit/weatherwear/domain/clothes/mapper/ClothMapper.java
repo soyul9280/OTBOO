@@ -35,7 +35,7 @@ public class ClothMapper {
 
   }
 
-  //TODO: 이미지 로직 완성되면 제거할 것!! OOTD필드에서도 사용하니 확인하기
+  //TODO: 이미지 로직 처리로 해당 메서드 삭제해야함 -> 피드 부분 확인하기
   public ClothesDto toDto(Cloth cloth) {
     List<ClothesAttributeWithDefDto> clothesAttributeWithDefDtos = cloth.getClothesWithAttributes()
         .stream()

@@ -43,8 +43,6 @@ public class AttributeController implements AttributeApi {
   @PostMapping
   public ResponseEntity<ClothesAttributeDefDto> create(
       @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
-    log.info("[속성 정의 등록 요청] 속성명: {}", request.name());
-
     ClothesAttributeDefDto createAttribute = service.create(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(createAttribute);
   }
@@ -60,8 +58,6 @@ public class AttributeController implements AttributeApi {
   public ResponseEntity<ClothesAttributeDefDto> update(
       @PathVariable UUID definitionId,
       @Valid @RequestBody ClothesAttributeDefUpdateRequest request) {
-    log.info("[속성 정의 수정 요청] ID: {}, 속성명: {}", definitionId, request.name());
-
     ClothesAttributeDefDto updateAttribute = service.update(definitionId, request);
     return ResponseEntity.status(HttpStatus.OK).body(updateAttribute);
   }
@@ -75,7 +71,6 @@ public class AttributeController implements AttributeApi {
   @Override
   @DeleteMapping("/{definitionId}")
   public ResponseEntity<Void> delete(@PathVariable UUID definitionId) {
-    log.info("[속성 정의 삭제 요청] ID: {}", definitionId);
     service.delete(definitionId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
@@ -90,9 +85,6 @@ public class AttributeController implements AttributeApi {
   @GetMapping
   public ResponseEntity<PageResponse<ClothesAttributeDefDto>> searchAttributes(
       @ModelAttribute @Valid AttributesSearchRequest request) {
-    log.info("[속성 정의 목록 조회 요청] keyword: {}, sortBy: {}, direction: {}, limit: {}",
-        request.keywordLike(), request.sortBy(), request.sortDirection(), request.limit());
-
     PageResponse<ClothesAttributeDefDto> result = service.searchAttributes(request);
     return ResponseEntity.ok(result);
   }
