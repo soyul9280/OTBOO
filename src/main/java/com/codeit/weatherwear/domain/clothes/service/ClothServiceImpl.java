@@ -140,7 +140,7 @@ public class ClothServiceImpl implements ClothService {
       return parser.extract(driver);
     } catch (Exception e) {
       log.warn("[Fail Creating Cloth From URL] - URL: {}", url);
-      throw new RuntimeException(e);
+      throw new RuntimeException("네트워크 실패", e);
     } finally {
       driver.quit();
     }
