@@ -39,8 +39,6 @@ class FeedRepositoryTest {
   @Autowired
   private FeedRepository feedRepository;
 
-  // 잠시 테스트용 주석을 추가했습니다.
-
   private User user;
   private Feed feed1, feed2, feed3;
 
