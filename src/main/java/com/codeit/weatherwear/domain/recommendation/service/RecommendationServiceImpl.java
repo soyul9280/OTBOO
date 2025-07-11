@@ -217,7 +217,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     if (allowSkip) {
       // 예: 50% 확률로 선택 안 할 수 있음
-      boolean skip = ThreadLocalRandom.current().nextBoolean(); // true or false
+      boolean skip = ThreadLocalRandom.current().nextBoolean();
       if (skip) {
         return null;
       }
