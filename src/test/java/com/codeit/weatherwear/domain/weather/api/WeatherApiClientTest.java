@@ -9,8 +9,6 @@ import static org.mockito.BDDMockito.given;
 import com.codeit.weatherwear.domain.weather.exception.WeatherApiRequestException;
 import com.codeit.weatherwear.domain.weather.exception.WeatherApiResponseException;
 import com.codeit.weatherwear.global.properties.WeatherApiProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -171,13 +169,5 @@ class WeatherApiClientTest {
         }
         """;
   }
-
-
-  private String getResponseCode() throws JsonProcessingException {
-    String json = getResponseJson();
-    JsonNode root = mapper.readTree(json);
-    return root.path("response").path("header").path("resultCode").asText();
-  }
-
 
 }
