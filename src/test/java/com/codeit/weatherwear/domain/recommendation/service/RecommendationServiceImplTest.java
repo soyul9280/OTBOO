@@ -68,8 +68,8 @@ class RecommendationServiceImplTest {
   @InjectMocks
   private RecommendationServiceImpl sut;
 
-  private UUID weatherId;
-  private UUID userId;
+  private UUID weatherId = UUID.randomUUID();
+  private UUID userId = UUID.randomUUID();
   private User mockUser;
   private Weather mockWeather;
   private Cloth dress;
