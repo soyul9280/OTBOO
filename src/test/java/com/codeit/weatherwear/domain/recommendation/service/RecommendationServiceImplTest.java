@@ -134,13 +134,7 @@ class RecommendationServiceImplTest {
 
     // 조건부 추천 검증
     dtoMap.forEach((cloth, dto) -> {
-      if (cloth == hat) {
-        return; // 이미 검증 완료
-      }
-
-      if (clothes.contains(dto)) {
-        assertThat(clothes).contains(dto);
-      } else {
+      if (!clothes.contains(dto)) {
         verify(recommendClothesMapper, never()).toDto(eq(cloth), any());
       }
     });
