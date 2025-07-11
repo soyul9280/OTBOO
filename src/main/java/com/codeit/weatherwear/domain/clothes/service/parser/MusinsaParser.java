@@ -22,7 +22,7 @@ public class MusinsaParser implements SiteParser {
 
   @Override
   public void waitUntilReady(WebDriver driver) {
-    log.info("[무신사 옷 정보 추출 시작]");
+    log.info("[Start Extracting Musinsa Cloth]");
     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     wait.until(ExpectedConditions.presenceOfElementLocated(
         By.cssSelector("div[data-content-name='대표이미지'] img[alt][src]")
@@ -36,13 +36,15 @@ public class MusinsaParser implements SiteParser {
     String imageUrl = "";
 
     try {
-      WebElement mainImageContainer = driver.findElement(By.cssSelector("div[data-content-name='대표이미지']"));
+      WebElement mainImageContainer = driver.findElement(
+          By.cssSelector("div[data-content-name='대표이미지']"));
       WebElement imageElement = mainImageContainer.findElement(By.tagName("img"));
       imageUrl = imageElement.getAttribute("src");
       productName = imageElement.getAttribute("alt");
-    } catch (NoSuchElementException ignored) {}
+    } catch (NoSuchElementException ignored) {
+    }
 
-    log.info("[옷 정보 추출 완료 : {}, 상품명: {}","무신사", productName);
+    log.info("[Extracting Cloth Completed : {}, Name: {}", "무신사", productName);
 
     return ClothesDto.builder()
         .name(productName)

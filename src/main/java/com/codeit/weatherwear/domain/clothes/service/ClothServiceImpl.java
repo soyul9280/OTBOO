@@ -11,7 +11,7 @@ import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
 import com.codeit.weatherwear.domain.clothes.exception.ClothNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeNameException;
+import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeValueException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
@@ -64,19 +64,21 @@ public class ClothServiceImpl implements ClothService {
    */
   @Override
   public ClothesDto create(ClothesCreateRequest request, MultipartFile image) {
+    log.info("[Start Creating Cloth] Cloth Name: {}, Cloth Type: {}", request.name(),
+        request.type());
     //사용자 찾기
     User user = userRepository.findById(request.ownerId())
         .orElseThrow(() -> {
-          log.warn("[옷 등록 실패] 존재하지 않는 사용자 : {}", request.ownerId());
+          log.warn("[Fail Creating Cloth] User Not Found - OwnerId: {}", request.ownerId());
           return new UserNotFoundException();
         });
 
     // 썸네일 S3 업로드
-    log.debug("[썸네일 업로드 시작]");
+    log.debug("[Start Uploading Thumbnail Image]");
     String thumbnailKey = (image != null && !image.isEmpty())
         ? thumbnailImageStorage.upload(image)
         : null;
-    log.info("[이미지 업로드] S3에 업로드 완료 S3 Key: {}", thumbnailKey);
+    log.info("[Uploading Profile Image On S3 Completed] Key: {}", thumbnailKey);
 
     Cloth cloth = Cloth.builder()
         .name(request.name())
@@ -98,7 +100,8 @@ public class ClothServiceImpl implements ClothService {
     applyAttributesToCloth(request.attributes(), attrMap, cloth);
 
     Cloth saveCloth = clothRepository.save(cloth);
-    log.info("[옷 등록 완료] id: {}, 옷 이름: {}", saveCloth.getId(), saveCloth.getName());
+    log.info("[Creating Cloth Completed] Id: {}, Cloth Name: {}", saveCloth.getId(),
+        saveCloth.getName());
     String imageUrl = thumbnailKey != null ? thumbnailImageStorage.get(thumbnailKey) : null;
     return clothMapper.toDto(saveCloth, imageUrl);
   }
@@ -112,7 +115,7 @@ public class ClothServiceImpl implements ClothService {
    */
   @Override
   public ClothesDto createFromUrl(String url) {
-
+    log.info("[Start Getting Cloth From Url] URL: {}", url);
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--headless=new");
     chromeOptions.addArguments("--lang=ko");
@@ -129,11 +132,14 @@ public class ClothServiceImpl implements ClothService {
       SiteParser parser = siteParsers.stream()
           .filter(p -> p.supports(url))
           .findFirst()
-          //TODO: 추후 커스텀 예외 고민
-          .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 사이트입니다: " + url));
+          .orElseThrow(() -> {
+            log.warn("[Fail Creating Cloth] Site Not Support - URL: {}", url);
+            return new IllegalArgumentException("지원하지 않는 사이트입니다");
+          });
       parser.waitUntilReady(driver);
       return parser.extract(driver);
     } catch (Exception e) {
+      log.warn("[Fail Creating Cloth From URL] - URL: {}", url);
       throw new RuntimeException(e);
     } finally {
       driver.quit();
@@ -149,9 +155,10 @@ public class ClothServiceImpl implements ClothService {
    */
   @Override
   public ClothesDto update(UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
+    log.info("[Start Updating Cloth] ID: {}, Cloth Name: {}", clothesId, request.name());
     Cloth cloth = clothRepository.findByIdWithAttributes(clothesId)
         .orElseThrow(() -> {
-          log.warn("[옷 수정 실패] id: {}, 수정 요청한 옷 이름: {}", clothesId, request.name());
+          log.warn("[Fail Updating Cloth] ID: {}, Cloth Name: {}", clothesId, request.name());
           return new ClothNotFoundException();
         });
 
@@ -164,13 +171,13 @@ public class ClothServiceImpl implements ClothService {
       if (oldImageUrl != null) {
         try {
           thumbnailImageStorage.delete(oldImageUrl);
-          log.info("[옷 수정] 기존 이미지 삭제 완료: {}", oldImageUrl);
+          log.info("[Updating Cloth] Delete Old Image: {}", oldImageUrl);
         } catch (Exception e) {
-          log.warn("[옷 수정 실패] 기존 이미지 삭제 실패: {}", oldImageUrl);
+          log.warn("[Fail Updating Cloth] Fail Deleting Old Image: {}", oldImageUrl);
           thumbnailImageStorage.delete(uploadUrl);
           throw new S3DeleteException();
         }
-        log.info("[옷 수정] 썸네일 이미지 변경됨: {}", uploadUrl);
+        log.info("[Updating Cloth] Change ThumbNail Image: {}", uploadUrl);
         cloth.updateImageUrl(uploadUrl);
       }
     }
@@ -202,13 +209,15 @@ public class ClothServiceImpl implements ClothService {
 
     }
 
-    log.info("[옷 수정 완료] ID : {}, name: {}", clothesId, cloth.getName());
+    log.info("[Updating Cloth Completed] ID : {}, Name: {}", clothesId, cloth.getName());
     return clothMapper.toDto(cloth, imageUrl);
   }
 
   @Override
   @Transactional(readOnly = true)
   public PageResponse<ClothesDto> searchClothes(ClothesSearchRequest request) {
+    log.info("[Start Searching Cloth] ownerId: {}, typeEqual: {}, limit: {}",
+        request.ownerId(), request.typeEqual(), request.limit());
     Instant cursor = null;
     if (request.cursor() != null && !request.cursor().isBlank()) {
       try {
@@ -225,7 +234,7 @@ public class ClothServiceImpl implements ClothService {
 
     Slice<Cloth> clothes = clothRepository.searchCloths(cursor, idAfter, limit, typeEqual, ownerId);
     List<Cloth> clothesList = clothes.getContent();
-    log.debug("[쿼리 실행 결과] 전체 개수: {}, hasNext: {}", clothesList.size(), clothes.hasNext());
+    log.debug("[Query Result] Total Count: {}, hasNext: {}", clothesList.size(), clothes.hasNext());
 
     //toDto : N+1문제 해결위해 한번에 갖고오기
     List<UUID> ids = clothesList.stream()
@@ -242,7 +251,7 @@ public class ClothServiceImpl implements ClothService {
           return clothMapper.toDto(cloth, imageUrl);
         })
         .toList();
-    log.debug("[응답 변환] 변환된 ClothesDto 개수: {}", data.size());
+    log.debug("[Response Result] Count Changed To ClothesDto: {}", data.size());
 
     Cloth last =
         (clothesList.size() > 0) ? clothesList.get(clothesList.size() - 1) : null;
@@ -270,25 +279,26 @@ public class ClothServiceImpl implements ClothService {
    */
   @Override
   public void delete(UUID clothesId) {
+    log.info("[Start Deleting Cloth] ID: {}", clothesId);
     Cloth cloth = clothRepository.findById(clothesId)
         .orElseThrow(() -> {
-          log.warn("[옷 삭제 실패] 존재하지 않는 옷 ID: {}", clothesId);
+          log.warn("[Fail Deleting Cloth] Cloth Not Found ID: {}", clothesId);
           return new ClothNotFoundException();
         });
 
     // 썸네일 이미지가 있다면 S3에서 삭제
     if (cloth.getClothesImageUrl() != null) {
-      log.debug("[S3 이미지 삭제 요청] Key: {}", cloth.getClothesImageUrl());
+      log.debug("[Request Deleting S3 Image] Key: {}", cloth.getClothesImageUrl());
       try {
         thumbnailImageStorage.delete(cloth.getClothesImageUrl());
-        log.info("[옷 삭제] S3 썸네일 삭제 완료: {}", cloth.getClothesImageUrl());
+        log.info("[Delete Cloth] Deleting S3 ThumbNail Completed: {}", cloth.getClothesImageUrl());
       } catch (Exception e) {
-        log.warn("[옷 삭제 실패] 이미지 삭제 실패: {}", cloth.getClothesImageUrl());
+        log.warn("[Fail Deleting Cloth] Fail Deleting S3 ThumbNai: {}", cloth.getClothesImageUrl());
         throw new S3DeleteException();
       }
     }
     clothRepository.delete(cloth);
-    log.info("[옷 삭제 완료] ID: {}", clothesId);
+    log.info("[Deleting Cloth Completed] ID: {}", clothesId);
   }
 
   private static void applyAttributesToCloth(List<ClothesAttributeDto> attributeDtos,
@@ -297,12 +307,14 @@ public class ClothServiceImpl implements ClothService {
     for (ClothesAttributeDto dto : attributeDtos) {
       Attribute attribute = attrMap.get(dto.definitionId());
       if (attribute == null) {
-        log.warn("[옷의 속성 값 적용 실패] 존재하지 않는 속성입니다. ID : {}", dto.definitionId());
+        log.warn("[Fail Applying Attributes To Cloth] Attribute Not Found, ID : {}",
+            dto.definitionId());
         throw new AttributeNotFoundException();
       }
       if (!attribute.getSelectableValues().contains(dto.value())) {
-        log.warn("[옷의 속성 값 적용 실패] 존재하지 않는 속성 값입니다. ID : {}", dto.definitionId());
-        throw new InvalidAttributeNameException();
+        log.warn("[Fail Applying Attributes To Cloth] Value Not Found, ID : {}",
+            dto.definitionId());
+        throw new InvalidAttributeValueException();
       }
 
       ClothWithAttributes attr = ClothWithAttributes.builder()
@@ -313,7 +325,7 @@ public class ClothServiceImpl implements ClothService {
 
       cloth.addAttribute(attr);
     }
-    log.debug("[옷 속성 값 적용 완료]");
+    log.debug("[Applying Attributes Completed]");
 
   }
 
