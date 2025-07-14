@@ -1,5 +1,7 @@
 package com.codeit.weatherwear.domain.user.service;
 
+import com.codeit.weatherwear.domain.event.DomainEventPublisher;
+import com.codeit.weatherwear.domain.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.domain.location.dto.LocationDto;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.service.LocationService;
@@ -12,12 +14,14 @@ import com.codeit.weatherwear.domain.user.dto.request.UserRoleUpdateRequest;
 import com.codeit.weatherwear.domain.user.dto.request.UserSearchRequest;
 import com.codeit.weatherwear.domain.user.dto.response.ProfileDto;
 import com.codeit.weatherwear.domain.user.dto.response.UserDto;
+import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserAlreadyExistsException;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.mapper.UserMapper;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.response.PageResponse;
+import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +44,8 @@ public class UserServiceImpl implements UserService {
   private final PasswordEncoder passwordEncoder;
   private final LocationService locationService;
   private final JwtSessionService jwtSessionService;
+  private final ThumbnailImageStorage thumbnailImageStorage;
+  private final DomainEventPublisher domainEventPublisher;
 
 
   @Transactional
@@ -72,7 +79,8 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   @Override
-  public ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest) {
+  public ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest,
+      MultipartFile profileImage) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -83,7 +91,14 @@ public class UserServiceImpl implements UserService {
       location = locationService.findOrCreateLocation(locationDto);
     }
 
-    // TODO: S3 세팅 완료되면 ProfileImageUrl도 업데이트
+    // ProfileImageUrl 업로드
+    String profileImageUrl = null;
+    if (profileImage != null && !profileImage.isEmpty()) {
+      log.debug("[Start Uploading Profile Image On S3] - userId: {}", userId);
+      profileImageUrl = thumbnailImageStorage.get(thumbnailImageStorage.upload(profileImage));
+      log.debug("[Uploading Profile Image On S3 Completed] - userId: {}, url: {}", userId,
+          profileImageUrl);
+    }
 
     user.updateProfile(
         profileUpdateRequest.name(),
@@ -91,7 +106,7 @@ public class UserServiceImpl implements UserService {
         profileUpdateRequest.birthDate(),
         location,
         profileUpdateRequest.temperatureSensitivity(),
-        null);
+        profileImageUrl);
 
     return userMapper.toProfileDto(user);
   }
@@ -128,10 +143,16 @@ public class UserServiceImpl implements UserService {
   public UserDto updateRole(UUID userId, UserRoleUpdateRequest userRoleUpdateRequest) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
-    user.updateRole(userRoleUpdateRequest.role());
+    Role previousRole = user.getRole();
 
     // 권한 변경 시 해당 사용자는 자동으로 로그아웃
     jwtSessionService.invalidateToken(userId);
+
+    user.updateRole(userRoleUpdateRequest.role());
+
+    // 권한 변경 알림 전송
+    domainEventPublisher.publish(
+        new RoleChangedEvent(userId, userRoleUpdateRequest.role(), previousRole));
 
     return userMapper.toUserDto(user);
   }

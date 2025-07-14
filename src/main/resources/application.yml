@@ -1,6 +1,6 @@
 spring:
   application:
-    name: weatherwear
+    name: ${PROJECT_NAME:weatherwear}
 
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
