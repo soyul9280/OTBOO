@@ -16,6 +16,13 @@ public class OotdMapper {
   private final ClothMapper clothMapper;
   private final ThumbnailImageStorage thumbnailImageStorage;
 
+  /**
+   * Creates an Ootd entity by associating the specified Feed and Cloth.
+   *
+   * @param feed  the Feed to associate with the Ootd
+   * @param cloth the Cloth to associate with the Ootd
+   * @return a new Ootd entity linked to the given Feed and Cloth
+   */
   public Ootd toEntity(Feed feed, Cloth cloth) {
     return Ootd.builder()
         .feed(feed)
@@ -23,6 +30,12 @@ public class OotdMapper {
         .build();
   }
 
+  /**
+   * Converts an {@link Ootd} entity to an {@link OotdDto}, including cloth details and a resolved thumbnail image URL if available.
+   *
+   * @param ootd the OOTD entity to convert
+   * @return an OotdDto containing the cloth's ID, name, thumbnail image URL (if present), type, and attribute definitions
+   */
   public OotdDto toDto(Ootd ootd) {
     Cloth cloth = ootd.getCloth();
     String imageUrl =
