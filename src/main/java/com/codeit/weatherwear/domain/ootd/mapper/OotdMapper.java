@@ -1,11 +1,11 @@
 package com.codeit.weatherwear.domain.ootd.mapper;
 
-import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
 import com.codeit.weatherwear.domain.ootd.entity.Ootd;
+import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class OotdMapper {
 
   private final ClothMapper clothMapper;
+  private final ThumbnailImageStorage thumbnailImageStorage;
 
   public Ootd toEntity(Feed feed, Cloth cloth) {
     return Ootd.builder()
@@ -23,13 +24,17 @@ public class OotdMapper {
   }
 
   public OotdDto toDto(Ootd ootd) {
-    ClothesDto clothesDto = clothMapper.toDto(ootd.getCloth());
+    Cloth cloth = ootd.getCloth();
+    String imageUrl =
+        cloth.getClothesImageUrl() != null ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
+            : null;
+
     return OotdDto.builder()
-        .clothesId(clothesDto.getId())
-        .name(clothesDto.getName())
-        .imageUrl(clothesDto.getImageUrl())
-        .type(clothesDto.getType().toString())
-        .attributes(clothMapper.toAttributeDefDto(ootd.getCloth().getClothesWithAttributes()))
+        .clothesId(cloth.getId())
+        .name(cloth.getName())
+        .imageUrl(imageUrl)
+        .type(cloth.getClothType().toString())
+        .attributes(clothMapper.toAttributeDefDto(cloth.getClothesWithAttributes()))
         .build();
   }
 
