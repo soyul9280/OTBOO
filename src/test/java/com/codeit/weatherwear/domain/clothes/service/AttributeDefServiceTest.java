@@ -13,9 +13,9 @@ import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
-import com.codeit.weatherwear.domain.clothes.exception.AttributeAlreadyExistsException;
-import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.SelectableDuplicateException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeAlreadyExistsException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.SelectableDuplicateException;
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;

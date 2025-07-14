@@ -17,7 +17,7 @@ public class MusinsaParser implements SiteParser {
 
   @Override
   public boolean supports(String url) {
-    return url.contains("musinsa");
+    return url != null && url.matches("https?://(www\\.)?musinsa\\.com/.*");
   }
 
   @Override
@@ -41,7 +41,9 @@ public class MusinsaParser implements SiteParser {
       WebElement imageElement = mainImageContainer.findElement(By.tagName("img"));
       imageUrl = imageElement.getAttribute("src");
       productName = imageElement.getAttribute("alt");
-    } catch (NoSuchElementException ignored) {
+    } catch (NoSuchElementException e) {
+      log.warn("[Fail Extracting Cloth] Not Found Information From Musinsa");
+      throw e;
     }
 
     log.info("[Extracting Cloth Completed : {}, Name: {}", "무신사", productName);
@@ -51,4 +53,5 @@ public class MusinsaParser implements SiteParser {
         .imageUrl(imageUrl)
         .build();
   }
+
 }

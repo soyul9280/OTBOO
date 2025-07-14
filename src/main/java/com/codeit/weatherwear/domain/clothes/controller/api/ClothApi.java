@@ -29,100 +29,98 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/clothes")
 public interface ClothApi {
 
-    @Operation(summary = "옷 등록", description = "옷 등록 API")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "201",
-            description = "옷 등록 성공",
-            content = @Content(schema = @Schema(implementation = ClothesDto.class))),
-        @ApiResponse(
-            responseCode = "400",
-            description = "옷 등록 실패",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        )
-    })
-    @PostMapping
-    ResponseEntity<ClothesDto> create(
-        @RequestPart("request") ClothesCreateRequest request,
-        @RequestPart(value="image",required = false)MultipartFile image);
+  @Operation(summary = "옷 등록", description = "옷 등록 API")
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "201",
+          description = "옷 등록 성공",
+          content = @Content(schema = @Schema(implementation = ClothesDto.class))),
+      @ApiResponse(
+          responseCode = "400",
+          description = "옷 등록 실패",
+          content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+      )
+  })
+  @PostMapping
+  ResponseEntity<ClothesDto> create(
+      @RequestPart("request") ClothesCreateRequest request,
+      @RequestPart(value = "image", required = false) MultipartFile image);
 
 
-
-    @Operation(summary = "옷 목록 조회", description = "옷 목록 조회 API")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "옷 목록 조회 성공",
-            content = @Content(schema = @Schema(implementation = PageResponse.class))),
-        @ApiResponse(
-            responseCode = "400",
-            description = "옷 목록 조회 실패",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        )
-    })
-    @GetMapping
-    ResponseEntity<PageResponse<ClothesDto>> searchClothes(
-        @ParameterObject ClothesSearchRequest request);
-
+  @Operation(summary = "옷 목록 조회", description = "옷 목록 조회 API")
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "옷 목록 조회 성공",
+          content = @Content(schema = @Schema(implementation = PageResponse.class))),
+      @ApiResponse(
+          responseCode = "400",
+          description = "옷 목록 조회 실패",
+          content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+      )
+  })
+  @GetMapping
+  ResponseEntity<PageResponse<ClothesDto>> searchClothes(
+      @ParameterObject ClothesSearchRequest request);
 
 
+  @Operation(summary = "옷 수정", description = "옷 수정 API")
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "옷 수정 성공",
+          content = @Content(schema = @Schema(implementation = ClothesDto.class))),
+      @ApiResponse(
+          responseCode = "400",
+          description = "옷 수정 실패",
+          content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+      )
+  })
+  @PatchMapping("/{clothesId}")
+  ResponseEntity<ClothesDto> update(
+      @Parameter(
+          name = "clothesId",
+          required = true
+      )
+      @PathVariable(value = "clothesId") UUID clothesId,
+      @RequestPart("request") ClothesUpdateRequest request,
+      @RequestPart(value = "image", required = false) MultipartFile image);
 
-    @Operation(summary = "옷 수정", description = "옷 수정 API")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "옷 수정 성공",
-            content = @Content(schema = @Schema(implementation = ClothesDto.class))),
-        @ApiResponse(
-            responseCode = "400",
-            description = "옷 수정 실패",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        )
-    })
-    @PatchMapping("/{clothesId}")
-    ResponseEntity<ClothesDto> update(
-        @Parameter(
-            name="clothesId",
-            required = true
-        )
-        @PathVariable(value = "clothesId") UUID clothesId,
-        @RequestPart("request") ClothesUpdateRequest request,
-        @RequestPart(value="image",required = false)MultipartFile image);
 
+  @Operation(summary = "옷 삭제", description = "옷 삭제 API")
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "204",
+          description = "옷 삭제 성공"),
+      @ApiResponse(
+          responseCode = "400",
+          description = "옷 삭제 실패",
+          content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+      )
+  })
+  @DeleteMapping("/{clothesId}")
+  ResponseEntity<Void> delete(
+      @Parameter(
+          name = "clothesId",
+          required = true
+      )
+      @PathVariable(value = "clothesId") UUID clothesId);
 
-    @Operation(summary = "옷 삭제", description = "옷 삭제 API")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "204",
-            description = "옷 삭제 성공"),
-        @ApiResponse(
-            responseCode = "400",
-            description = "옷 삭제 실패",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        )
-    })
-    @DeleteMapping("/{clothesId}")
-    ResponseEntity<Void> delete(
-        @Parameter(
-            name="clothesId",
-            required = true
-        )
-        @PathVariable(value = "clothesId") UUID clothesId);
-
-    @Operation(summary = "구매 링크로 옷 정보 불러오기", description = "구매 링크로 옷 정보 불러오기 API")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "구매 링크로 옷 정보 불러오기 성공",
-            content = @Content(schema = @Schema(implementation = ClothesDto.class))),
-        @ApiResponse(
-            responseCode = "400",
-            description = "구매 링크로 옷 정보 불러오기 실패",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        )
-    })
-    @GetMapping("/extractions")
-    ResponseEntity<ClothesDto> createFromUrl(@Parameter(required = true) String url);
+  @Operation(summary = "구매 링크로 옷 정보 불러오기", description = "구매 링크로 옷 정보 불러오기 API")
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "구매 링크로 옷 정보 불러오기 성공",
+          content = @Content(schema = @Schema(implementation = ClothesDto.class))),
+      @ApiResponse(
+          responseCode = "400",
+          description = "구매 링크로 옷 정보 불러오기 실패",
+          content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+      )
+  })
+  @GetMapping("/extractions")
+  ResponseEntity<ClothesDto> getFromUrl(
+      @Parameter(required = true, description = "지원 사이트: Musinsa, Zigzag, 29cm") String url);
 
 }
 

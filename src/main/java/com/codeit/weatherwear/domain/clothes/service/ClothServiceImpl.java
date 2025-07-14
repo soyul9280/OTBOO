@@ -9,9 +9,11 @@ import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
-import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.ClothNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.InvalidAttributeValueException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionTimeOutException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.InvalidAttributeValueException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
@@ -29,12 +31,14 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.PageLoadStrategy;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -114,7 +118,7 @@ public class ClothServiceImpl implements ClothService {
    * @throws IOException
    */
   @Override
-  public ClothesDto createFromUrl(String url) {
+  public ClothesDto getFromUrl(String url) {
     log.info("[Start Getting Cloth From Url] URL: {}", url);
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--headless=new");
@@ -133,14 +137,20 @@ public class ClothServiceImpl implements ClothService {
           .filter(p -> p.supports(url))
           .findFirst()
           .orElseThrow(() -> {
-            log.warn("[Fail Creating Cloth] Site Not Support - URL: {}", url);
-            return new IllegalArgumentException("지원하지 않는 사이트입니다");
+            log.warn("[Fail Extracting Cloth] Site Not Support - URL: {}", url);
+            return new IllegalArgumentException("Not Supported Site URL: " + url);
           });
       parser.waitUntilReady(driver);
       return parser.extract(driver);
+    } catch (TimeoutException e) {
+      log.warn("Fail Extracting Cloth] Page load timed out - URL: {}", url, e);
+      throw new ExtractionTimeOutException(url);
+    } catch (NoSuchElementException e) {
+      log.warn("[Fail Extracting Cloth] Not Found Infomation - URL: {}", url, e);
+      throw new ExtractionNotFoundException(url);
     } catch (Exception e) {
-      log.warn("[Fail Creating Cloth From URL] - URL: {}", url);
-      throw new RuntimeException("네트워크 실패", e);
+      log.warn("[Fail Extracting Cloth] - URL: {}", url);
+      throw new RuntimeException("Fail Extracting Cloth From URL", e);
     } finally {
       driver.quit();
     }
@@ -223,7 +233,7 @@ public class ClothServiceImpl implements ClothService {
       try {
         cursor = Instant.parse(request.cursor());
       } catch (DateTimeParseException e) {
-        throw new IllegalArgumentException("잘못된 커서 형식입니다.");
+        throw new IllegalArgumentException("Unsupported cursor: " + request.cursor());
       }
     }
 
