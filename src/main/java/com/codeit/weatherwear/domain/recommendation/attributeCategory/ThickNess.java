@@ -21,7 +21,7 @@ public enum ThickNess {
 
   public static Optional<ThickNess> from(String label) {
     return Arrays.stream(values())
-        .filter(season -> season.label.equalsIgnoreCase(label))
+        .filter(thickNess -> thickNess.label.equalsIgnoreCase(label))
         .findFirst();
   }
 }

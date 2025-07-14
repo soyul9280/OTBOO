@@ -18,7 +18,7 @@ public enum WaterProof {
 
   public static Optional<WaterProof> from(String label) {
     return Arrays.stream(values())
-        .filter(season -> season.label.equalsIgnoreCase(label))
+        .filter(waterProof -> waterProof.label.equalsIgnoreCase(label))
         .findFirst();
   }
 }
