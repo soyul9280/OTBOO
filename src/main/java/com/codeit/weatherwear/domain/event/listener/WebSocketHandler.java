@@ -25,9 +25,9 @@ public class WebSocketHandler {
     String destination;
 
     if (receiverId.compareTo(senderId) < 0) {
-      destination = String.format("/sub/direct-message_%s_%s", receiverId, senderId);
+      destination = String.format("/sub/direct-messages_%s_%s", receiverId, senderId);
     } else {
-      destination = String.format("/sub/direct-message_%s_%s", senderId, receiverId);
+      destination = String.format("/sub/direct-messages_%s_%s", senderId, receiverId);
     }
     messagingTemplate.convertAndSend(destination, dto);
   }
