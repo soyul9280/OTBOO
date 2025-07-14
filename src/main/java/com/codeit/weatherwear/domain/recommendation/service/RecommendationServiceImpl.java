@@ -10,6 +10,7 @@ import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeType;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.ThickNess;
+import com.codeit.weatherwear.domain.recommendation.attributeCategory.WaterProof;
 import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
@@ -202,10 +203,15 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     // 3. 강수 확률 필터링: 비 올 확률이 50% 이상인데 방수 속성이 없으면 부적합
-    if (rainProb > 50 && (waterproof == null || waterproof.isBlank())) {
-      return false;
+    Optional<WaterProof> waterProofOption = WaterProof.from(waterproof);
+    if (waterProofOption.isPresent()) {
+      switch (waterProofOption.get()) {
+        case NOT_POSSIBLE:
+          if (rainProb > 50) {
+            return false;
+          }
+      }
     }
-
     return true;
   }
 
