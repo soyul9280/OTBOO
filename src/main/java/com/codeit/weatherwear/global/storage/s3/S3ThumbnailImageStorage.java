@@ -31,6 +31,7 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
 
   private final S3Client s3Client;
   private final S3Presigner s3Presigner;
+  private static final String CONTENT_TYPE_IMAGE_PREFIX = "image/";
 
   @Value("${AWS_S3_BUCKET}")
   private String bucket;
@@ -41,9 +42,14 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
   // S3에 이미지를 저장하고 해당 파일의 key를 반환
   @Override
   public String upload(MultipartFile file) {
-    String key = "image/" + UUID.randomUUID();
+    String contentType = file.getContentType();
+    if (contentType == null || !contentType.startsWith(CONTENT_TYPE_IMAGE_PREFIX)) {
+      log.warn("[S3 Upload Fail] Not Supported Media Type: {}", contentType);
+      throw new S3UploadException();
+    }
+    String key = CONTENT_TYPE_IMAGE_PREFIX + UUID.randomUUID();
 
-    PutObjectRequest request=
+    PutObjectRequest request =
         PutObjectRequest.builder()
             .bucket(bucket)
             .key(key)
@@ -53,9 +59,10 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
     try {
       s3Client.putObject(
           request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-      log.info("[S3 업로드 성공] key: {}", key);
+      log.info("[S3 Upload Success] Key: {}", key);
     } catch (IOException | SdkClientException | S3Exception e) {
-      log.error("[S3 업로드 실패] 파일명: {}, 오류: {}", file.getOriginalFilename(), e.toString());
+      log.error("[S3 Upload Fail] FileName: {}, Error: {}", file.getOriginalFilename(),
+          e.toString());
       throw new S3UploadException();
     }
     return key;
@@ -65,15 +72,15 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
   @Override
   public void delete(String url) {
     String key = extractKeyFromUrl(url);
-    log.info("[S3 삭제 요청] key: {}", key);
-    try{
+    log.info("[S3 Delete Request] Key: {}", key);
+    try {
       s3Client.deleteObject(DeleteObjectRequest.builder().
           bucket(bucket)
           .key(key)
           .build());
-      log.info("[S3 삭제 완료] key: {}", key);
-    }catch (SdkClientException | S3Exception e) {
-      log.error("[S3 삭제 실패] key: {}, 오류: {}", key, e.toString());
+      log.info("[S3 Delete Success] Key: {}", key);
+    } catch (SdkClientException | S3Exception e) {
+      log.error("[S3 Delete Fail] Key: {}, Error: {}", key, e.toString());
       throw new S3DeleteException();
     }
   }
@@ -82,7 +89,7 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
   // Presigned URL은 일시적으로 접근 가능한 S3 다운로드 링크
   @Override
   public String get(String key) {
-    GetObjectRequest getObjectRequest=
+    GetObjectRequest getObjectRequest =
         GetObjectRequest.builder()
             .bucket(bucket)
             .key(key)
@@ -94,10 +101,10 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
             .build();
     try {
       PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-      log.info("[Presigned URL 생성 완료] key: {}, url: {}", key, presignedRequest.url());
+      log.info("[Presigned URL Create Complete] Key: {}, URL: {}", key, presignedRequest.url());
       return presignedRequest.url().toString();
     } catch (SdkClientException | S3Exception e) {
-      log.error("[Presigned URL 생성 실패] key: {}, 오류: {}", key, e.toString());
+      log.error("[Presigned URL Create Fail] Key: {}, Error: {}", key, e.toString());
       throw new S3PresignedException();
     }
   }
@@ -105,8 +112,12 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
   // https://bucket.s3.region.amazonaws.com/key 형식에서 key만 추출
   private String extractKeyFromUrl(String url) {
     URI uri = URI.create(url);
-    String key=uri.getPath().substring(1);
-    log.debug("[S3 Key 추출] URL: {}, 추출된 key: {}", url, key);
+    String path = uri.getPath();
+    if (path == null || path.length() <= 1) {
+      throw new IllegalArgumentException("Not Supported S3 URL: " + url);
+    }
+    String key = path.substring(1);
+    log.debug("[S3 Key Extract] URL: {}, Extracted Key: {}", url, key);
     return key;
   }
 

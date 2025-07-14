@@ -7,6 +7,10 @@ import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
+import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeType;
+import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
+import com.codeit.weatherwear.domain.recommendation.attributeCategory.ThickNess;
+import com.codeit.weatherwear.domain.recommendation.attributeCategory.WaterProof;
 import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
@@ -70,24 +74,20 @@ public class RecommendationServiceImpl implements RecommendationService {
         .collect(Collectors.groupingBy(Cloth::getClothType));
 
     // DRESS는 먼저 랜덤 선택해본다 (선택되지 않을 수도 있음)
-    Cloth dressCandidate = getRandomCloth(groupedFilteredClothes.get(ClothType.DRESS), true);
-    boolean hasDress = (dressCandidate != null);
+    Optional<Cloth> dressCandidate = getRandomCloth(groupedFilteredClothes.get(ClothType.DRESS),
+        true);
 
     List<Cloth> finalRecommendation = new ArrayList<>();
 
     // DRESS 처리
-    if (hasDress) {
-      finalRecommendation.add(dressCandidate);
+    if (dressCandidate.isPresent()) {
+      finalRecommendation.add(dressCandidate.get());
     } else {
       // TOP, BOTTOM = DRESS 없을 때 선택
-      Cloth top = getRandomCloth(groupedFilteredClothes.get(ClothType.TOP), false);
-      Cloth bottom = getRandomCloth(groupedFilteredClothes.get(ClothType.BOTTOM), false);
-      if (top != null) {
-        finalRecommendation.add(top);
-      }
-      if (bottom != null) {
-        finalRecommendation.add(bottom);
-      }
+      Optional<Cloth> top = getRandomCloth(groupedFilteredClothes.get(ClothType.TOP), false);
+      Optional<Cloth> bottom = getRandomCloth(groupedFilteredClothes.get(ClothType.BOTTOM), false);
+      top.ifPresent(finalRecommendation::add);
+      bottom.ifPresent(finalRecommendation::add);
     }
 
     // 나머지 ClothType들 처리 (무조건 하나 선택)
@@ -95,10 +95,8 @@ public class RecommendationServiceImpl implements RecommendationService {
       if (type == ClothType.DRESS || type == ClothType.TOP || type == ClothType.BOTTOM) {
         continue;
       }
-      Cloth selected = getRandomCloth(groupedFilteredClothes.get(type), false);
-      if (selected != null) {
-        finalRecommendation.add(selected);
-      }
+      Optional<Cloth> selected = getRandomCloth(groupedFilteredClothes.get(type), false);
+      selected.ifPresent(finalRecommendation::add);
     }
 
     // DTO 변환 + 썸네일 처리
@@ -113,7 +111,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     return RecommendationDto.builder()
         .weatherId(weatherId)
         .userId(user.getId())
-        .clothes(recommendedClothes)
+        .clothes(List.copyOf(recommendedClothes))//불변성 보장
         .build();
   }
 
@@ -148,28 +146,29 @@ public class RecommendationServiceImpl implements RecommendationService {
             attr -> attr.getValue().toLowerCase()// 속성 값
         ));
 
-    String thickness = attributeMap.get("두께");
-    String season = attributeMap.get("계절");
-    String waterproof = attributeMap.get("방수");
+    String thickness = attributeMap.get(AttributeType.THICKNESS.getKey());
+    String season = attributeMap.get(AttributeType.SEASON.getKey());
+    String waterproof = attributeMap.get(AttributeType.WATERPROOF.getKey());
 
-    if (season != null) {
-      switch (season) {
-        case "봄":
+    Optional<Season> seasonOption = Season.from(season);
+    if (seasonOption.isPresent()) {
+      switch (seasonOption.get()) {
+        case SPRING:
           if (temp < 5 || temp > 20) {
             return false;
           }
           break;
-        case "여름":
+        case SUMMER:
           if (temp < 20) {
             return false;
           }
           break;
-        case "가을":
+        case FALL:
           if (temp < 10 || temp > 25) {
             return false;
           }
           break;
-        case "겨울":
+        case WINTER:
           if (temp > 10) {
             return false;
           }
@@ -177,24 +176,25 @@ public class RecommendationServiceImpl implements RecommendationService {
       }
     }
 
-    if (thickness != null) {
-      switch (thickness) {
-        case "아주 두꺼움":
+    Optional<ThickNess> thickOption = ThickNess.from(thickness);
+    if (thickOption.isPresent()) {
+      switch (thickOption.get()) {
+        case VERY_THICK:
           if (temp > 5) {
             return false; // 5도 초과면 아주 두꺼운 옷은 부적합
           }
           break;
-        case "약간 두꺼움":
+        case THICK:
           if (temp > 12 || temp < 0) {
             return false; // 0~12도 범위
           }
           break;
-        case "약간 얇음":
+        case THICK_NESS:
           if (temp < 15 || temp > 25) {
             return false; // 15~25도 범위
           }
           break;
-        case "아주 얇음":
+        case VERY_THICK_NESS:
           if (temp < 20) {
             return false; // 20도 미만이면 아주 얇은 옷은 부적합
           }
@@ -203,26 +203,31 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     // 3. 강수 확률 필터링: 비 올 확률이 50% 이상인데 방수 속성이 없으면 부적합
-    if (rainProb > 50 && waterproof.isBlank()) {
-      return false;
+    Optional<WaterProof> waterProofOption = WaterProof.from(waterproof);
+    if (waterProofOption.isPresent()) {
+      switch (waterProofOption.get()) {
+        case NOT_POSSIBLE:
+          if (rainProb > 50) {
+            return false;
+          }
+      }
     }
-
     return true;
   }
 
-  private Cloth getRandomCloth(List<Cloth> clothes, boolean allowSkip) {
+  private Optional<Cloth> getRandomCloth(List<Cloth> clothes, boolean allowSkip) {
     if (clothes == null || clothes.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
 
     if (allowSkip) {
       // 예: 50% 확률로 선택 안 할 수 있음
       boolean skip = ThreadLocalRandom.current().nextBoolean();
       if (skip) {
-        return null;
+        return Optional.empty();
       }
     }
 
-    return clothes.get(ThreadLocalRandom.current().nextInt(clothes.size()));
+    return Optional.of(clothes.get(ThreadLocalRandom.current().nextInt(clothes.size())));
   }
 }

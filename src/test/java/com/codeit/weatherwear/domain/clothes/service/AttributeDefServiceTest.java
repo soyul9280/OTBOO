@@ -13,9 +13,9 @@ import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
-import com.codeit.weatherwear.domain.clothes.exception.AttributeAlreadyExistsException;
-import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.SelectableDuplicateException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeAlreadyExistsException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.SelectableDuplicateException;
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
@@ -71,6 +71,7 @@ public class AttributeDefServiceTest {
   class RegisterAttributeDef {
 
     @Test
+    @DisplayName("속성 등록 성공")
     void createAttributes_Success() {
       //given
       ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(
@@ -165,7 +166,7 @@ public class AttributeDefServiceTest {
       //then
       assertThatThrownBy(() -> sut.update(attributeId, request))
           .isInstanceOf(IllegalStateException.class)
-          .hasMessage("이미 사용 중인 속성은 수정할 수 없습니다.");
+          .hasMessage("Already Used AttributeDef By Cloth: 빨강");
       verify(attributeRepository).findById(attributeId);
       verify(clothWithAttributesRepository).findUsedValuesByAttribute(attributeId);
     }

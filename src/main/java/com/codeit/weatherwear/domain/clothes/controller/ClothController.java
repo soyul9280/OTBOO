@@ -58,8 +58,8 @@ public class ClothController implements ClothApi {
    */
   @Override
   @GetMapping("/extractions")
-  public ResponseEntity<ClothesDto> createFromUrl(@RequestParam String url) {
-    ClothesDto urlCloth = clothService.createFromUrl(url);
+  public ResponseEntity<ClothesDto> getFromUrl(@RequestParam String url) {
+    ClothesDto urlCloth = clothService.getFromUrl(url);
     return ResponseEntity.ok(urlCloth);
   }
 

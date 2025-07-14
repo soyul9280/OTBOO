@@ -5,9 +5,9 @@ import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCrea
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
-import com.codeit.weatherwear.domain.clothes.exception.AttributeAlreadyExistsException;
-import com.codeit.weatherwear.domain.clothes.exception.AttributeNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.SelectableDuplicateException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeAlreadyExistsException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.SelectableDuplicateException;
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
@@ -84,7 +84,7 @@ public class AttributeServiceImpl implements AttributeService {
       log.warn("[Fail Updating AttributeDef] Selectable Duplicate. ID : {}", id);
       throw new SelectableDuplicateException();
     }
-    
+
     // 기존 값과 중복 검사
     List<String> existingValues = attribute.getSelectableValues();
     for (String newValue : newValues) {
@@ -100,7 +100,7 @@ public class AttributeServiceImpl implements AttributeService {
         attribute.getId());
     for (String value : usedValues) {
       if (!newValues.contains(value)) {
-        throw new IllegalStateException("이미 사용 중인 속성은 수정할 수 없습니다.");
+        throw new IllegalStateException("Already Used AttributeDef By Cloth: " + value);
       }
     }
 
@@ -175,7 +175,7 @@ public class AttributeServiceImpl implements AttributeService {
           nextCursor = last.getCreatedAt();
           break;
         default:
-          throw new IllegalArgumentException("지원하지 않는 정렬 기준입니다.");
+          throw new IllegalArgumentException("Unsupported cursor: " + request.cursor());
       }
       nextIdAfter = last.getId();
     }
