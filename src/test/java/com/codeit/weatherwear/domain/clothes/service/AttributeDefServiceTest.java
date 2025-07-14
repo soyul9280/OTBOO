@@ -71,6 +71,7 @@ public class AttributeDefServiceTest {
   class RegisterAttributeDef {
 
     @Test
+    @DisplayName("속성 등록 성공")
     void createAttributes_Success() {
       //given
       ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(

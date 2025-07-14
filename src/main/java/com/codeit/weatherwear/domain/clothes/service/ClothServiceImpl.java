@@ -99,11 +99,11 @@ public class ClothServiceImpl implements ClothService {
 
     applyAttributesToCloth(request.attributes(), attrMap, cloth);
 
-    Cloth saveCloth = clothRepository.save(cloth);
-    log.info("[Creating Cloth Completed] Id: {}, Cloth Name: {}", saveCloth.getId(),
-        saveCloth.getName());
+    Cloth savedCloth = clothRepository.save(cloth);
+    log.info("[Creating Cloth Completed] Id: {}, Cloth Name: {}", savedCloth.getId(),
+        savedCloth.getName());
     String imageUrl = thumbnailKey != null ? thumbnailImageStorage.get(thumbnailKey) : null;
-    return clothMapper.toDto(saveCloth, imageUrl);
+    return clothMapper.toDto(savedCloth, imageUrl);
   }
 
   /**
