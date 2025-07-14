@@ -166,7 +166,7 @@ public class AttributeDefServiceTest {
       //then
       assertThatThrownBy(() -> sut.update(attributeId, request))
           .isInstanceOf(IllegalStateException.class)
-          .hasMessage("이미 사용 중인 속성은 수정할 수 없습니다.");
+          .hasMessage("Already Used AttributeDef By Cloth: 빨강");
       verify(attributeRepository).findById(attributeId);
       verify(clothWithAttributesRepository).findUsedValuesByAttribute(attributeId);
     }
