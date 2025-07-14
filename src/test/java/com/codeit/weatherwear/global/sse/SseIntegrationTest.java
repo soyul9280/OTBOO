@@ -1,16 +1,15 @@
 package com.codeit.weatherwear.global.sse;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.NotificationDto;
-import com.codeit.weatherwear.global.config.JpaConfig;
-import com.codeit.weatherwear.global.config.TestSecurityConfig;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -22,7 +21,6 @@ import reactor.test.StepVerifier;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @AutoConfigureWebTestClient
-@Import({JpaConfig.class, TestSecurityConfig.class})
 class SseIntegrationTest {
 
   @Autowired
@@ -41,7 +39,7 @@ class SseIntegrationTest {
         .returnResult(new ParameterizedTypeReference<ServerSentEvent<NotificationDto>>() {})
         .getResponseBody();
 
-    UUID userId = UUID.randomUUID();
+    UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
     NotificationDto notificationDto = new NotificationDto(
         UUID.randomUUID(),
         Instant.now(),
@@ -51,10 +49,12 @@ class SseIntegrationTest {
         Level.INFO
     );
 
-    StepVerifier.create(responseBody)
+    StepVerifier.create(responseBody.filter(e -> e.data() != null))
         .then(() -> sseService.send(userId, notificationDto))
-        .expectNextMatches(e ->
-            e.event().equals("notifications") && e.data().equals(notificationDto))
+        .assertNext(e -> {
+          assertThat(e.event()).isEqualTo("notifications");
+          assertThat(e.data()).isEqualTo(notificationDto);
+        })
         .thenCancel()
         .verify();
   }

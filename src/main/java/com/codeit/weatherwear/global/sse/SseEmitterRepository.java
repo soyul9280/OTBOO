@@ -35,6 +35,7 @@ public class SseEmitterRepository {
       sseEmitters.remove(sseEmitter);
       if (sseEmitters.isEmpty()) {
         data.remove(receiverId);
+        sseEmitter.complete();
       }
     }
   }
