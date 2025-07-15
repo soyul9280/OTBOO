@@ -33,10 +33,10 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
   private final S3Presigner s3Presigner;
   private static final String CONTENT_TYPE_IMAGE_PREFIX = "image/";
 
-  @Value("${AWS_S3_BUCKET}")
+  @Value("${weatherwear.storage.s3.bucket}")
   private String bucket;
 
-  @Value("${AWS_S3_PRESIGNED_URL_EXPIRATION}")
+  @Value("${weatherwear.storage.s3.presigned-url-expiration}")
   private long presignedUrlExpirationSeconds;
 
   // S3에 이미지를 저장하고 해당 파일의 key를 반환
