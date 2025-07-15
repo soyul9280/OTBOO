@@ -55,7 +55,7 @@ public class SseService {
     }
 
     try {
-      sseEmitter.send("sse connected");
+      sseEmitter.send(SseEmitter.event().comment("keep-alive"));
     } catch (IOException e) {
       log.error("SSE 연결 실패. receiverId={}", receiverId, e);
       sseEmitter.completeWithError(e);

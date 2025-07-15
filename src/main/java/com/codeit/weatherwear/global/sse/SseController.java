@@ -20,7 +20,7 @@ public class SseController {
   @GetMapping
   public SseEmitter connect(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestParam(value = "LastEventId",required = false)UUID lastEventId
+      @RequestParam(value = "LastEventId",required = false) UUID lastEventId
   ) {
     UUID userId = userDetails.getUserId();
     return sseService.connect(userId, lastEventId);
