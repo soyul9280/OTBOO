@@ -46,8 +46,6 @@ public class AttributeTest {
     restTemplate = restTemplate.withBasicAuth("user", "password");
   }
 
-/*
-
   @Test
   @DisplayName("속성 생성 - 성공")
   @Transactional
@@ -70,7 +68,6 @@ public class AttributeTest {
     assertEquals("색상", response.getBody().name());
     assertEquals(List.of("빨강", "파랑"), response.getBody().selectableValues());
   }
-*/
 
 
     /* TODO : 트랜잭션 문제 해결방법 고민하기
