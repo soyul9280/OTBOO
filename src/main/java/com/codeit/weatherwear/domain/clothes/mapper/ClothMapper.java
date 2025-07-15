@@ -35,29 +35,6 @@ public class ClothMapper {
 
   }
 
-  //TODO: 이미지 로직 처리로 해당 메서드 삭제해야함 -> 피드 부분 확인하기
-  public ClothesDto toDto(Cloth cloth) {
-    List<ClothesAttributeWithDefDto> clothesAttributeWithDefDtos = cloth.getClothesWithAttributes()
-        .stream()
-        .map(attr -> new ClothesAttributeWithDefDto(
-            attr.getAttribute().getId(),
-            attr.getAttribute().getName(),
-            attr.getAttribute().getSelectableValues(),
-            attr.getValue()
-        ))
-        .toList();
-
-    return ClothesDto.builder()
-        .id(cloth.getId())
-        .ownerId(cloth.getUser().getId())
-        .name(cloth.getName())
-        .imageUrl(cloth.getClothesImageUrl())
-        .type(cloth.getClothType())
-        .attributes(clothesAttributeWithDefDtos)
-        .build();
-
-  }
-
   public List<ClothesAttributeDefDto> toAttributeDefDto(List<ClothWithAttributes> attrs) {
     return attrs
         .stream().map(
