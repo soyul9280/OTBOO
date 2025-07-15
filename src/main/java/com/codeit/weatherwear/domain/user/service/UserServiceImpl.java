@@ -1,7 +1,7 @@
 package com.codeit.weatherwear.domain.user.service;
 
-import com.codeit.weatherwear.domain.event.DomainEventPublisher;
-import com.codeit.weatherwear.domain.event.dto.RoleChangedEvent;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
+import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.domain.location.dto.LocationDto;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.service.LocationService;

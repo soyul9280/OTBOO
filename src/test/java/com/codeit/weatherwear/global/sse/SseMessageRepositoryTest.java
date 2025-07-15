@@ -43,7 +43,7 @@ class SseMessageRepositoryTest {
   }
 
   @Test
-  void save_when_eventQueueCapacity_is_full() {
+  void saveWhenEventQueueCapacityIsFull() {
     SseMessage sseMessage1 = repo.save(SseMessage.create(receiverId, dummy()));
     SseMessage sseMessage2 = repo.save(SseMessage.create(receiverId, dummy()));
     SseMessage sseMessage3 = repo.save(SseMessage.create(receiverId, dummy()));
@@ -56,7 +56,7 @@ class SseMessageRepositoryTest {
   }
 
   @Test
-  void save_multi_thread() throws InterruptedException {
+  void saveMultiThread() throws InterruptedException {
     int threadCount = 100;
     ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 
