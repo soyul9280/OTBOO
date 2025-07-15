@@ -75,7 +75,8 @@ public enum ErrorCode {
   CLOTH_NOT_FOUND(HttpStatus.NOT_FOUND, "옷 확인 실패", "존재하지 않는 옷입니다."),
   CLOTH_EXTRACTION_TIME_OUT(HttpStatus.BAD_REQUEST, "옷 불러오기 실패", "옷을 불러오는데 시간이 초과하였습니다."),
   CLOTH_EXTRACTION_NOT_FOUND_ELEMENT(HttpStatus.BAD_REQUEST, "옷 불러오기 실패",
-      "옷을 불러오는데 요소를 찾을 수 없습니다.");
+      "옷을 불러오는데 요소를 찾을 수 없습니다."),
+  NOT_SUPPORT_SITE(HttpStatus.BAD_REQUEST, "옷 불러오기 실패", "지원할 수 없는 사이트입니다.");
 
   private final HttpStatus status;
   private final String message;

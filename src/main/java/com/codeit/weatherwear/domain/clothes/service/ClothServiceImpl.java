@@ -14,6 +14,7 @@ import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNotFoundExcept
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionNotFoundException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionTimeOutException;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.InvalidAttributeValueException;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.NotSupportSiteException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
@@ -138,7 +139,7 @@ public class ClothServiceImpl implements ClothService {
           .findFirst()
           .orElseThrow(() -> {
             log.warn("[Fail Extracting Cloth] Site Not Support - URL: {}", url);
-            return new IllegalArgumentException("Not Supported Site URL: " + url);
+            return new NotSupportSiteException(url);
           });
       parser.waitUntilReady(driver);
       return parser.extract(driver);
