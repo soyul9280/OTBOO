@@ -53,8 +53,8 @@ public class AttributeTest {
   void create_success() throws Exception {
     //given
     ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(
-        "색상",
-        List.of("빨강", "파랑"));
+        "사이즈",
+        List.of("S", "L"));
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     String json = objectMapper.writeValueAsString(request);
@@ -66,8 +66,8 @@ public class AttributeTest {
     //then
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertNotNull(response.getBody().id());
-    assertEquals("색상", response.getBody().name());
-    assertEquals(List.of("빨강", "파랑"), response.getBody().selectableValues());
+    assertEquals("사이즈", response.getBody().name());
+    assertEquals(List.of("S", "L"), response.getBody().selectableValues());
   }
 
   @Test
