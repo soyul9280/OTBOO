@@ -1,6 +1,7 @@
 package com.codeit.weatherwear.domain.clothes.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.global.config.JpaConfig;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -117,6 +119,38 @@ class AttributeRepositoryTest {
   }
 
   @Test
+  @DisplayName("속성 조회 성공 - 키워드 검색 적용")
+  void search_withKeyword() {
+    // given
+    int limit = 10;
+
+    // when
+    Slice<Attribute> result = sut.searchAttributes(null, null, limit, "name",
+        SortDirection.ASCENDING, "사");
+
+    // then
+    List<Attribute> content = result.getContent();
+    assertThat(content).extracting(Attribute::getName).allMatch(name -> name.contains("사"));
+  }
+
+  @Test
+  @DisplayName("속성 조회 성공 - createdAt 정렬 기준")
+  void search_createdAt_success() {
+    // given
+    int limit = 3;
+
+    // when
+    Slice<Attribute> attributes = sut.searchAttributes(null, null, limit, "createdAt",
+        SortDirection.ASCENDING, null);
+
+    // then
+    List<Attribute> content = attributes.getContent();
+    assertThat(content).hasSize(3);
+    assertThat(content.get(0).getCreatedAt()).isBeforeOrEqualTo(content.get(1).getCreatedAt());
+  }
+
+
+  @Test
   @DisplayName("속성 조회 성공 - idAfter존재")
   void search_success_cursor() {
     //given
@@ -134,4 +168,16 @@ class AttributeRepositoryTest {
     assertThat(content.get(0)).isEqualTo(touch);
     assertThat(content.get(1)).isEqualTo(size);
   }
+
+  @Test
+  @DisplayName("속성 조회 실패 - 잘못된 정렬 기준")
+  void search_fail_invalidSortBy() {
+    // expect
+    assertThatThrownBy(() ->
+        sut.searchAttributes(null, null, 10, "invalidField", SortDirection.ASCENDING, null))
+        //IllegalArgumentException->JPA의해 InvalidDataAccessApiUsageException감싸짐
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasMessageContaining("지원하지 않는 정렬 기준입니다.");
+  }
+
 }
