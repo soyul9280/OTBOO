@@ -47,7 +47,7 @@ public class SseService {
             try {
               sseEmitter.send(sseMessage.toEvent());
             } catch (IOException e) {
-              log.error("SSE 전송 실패. receiverId={}, lastEventId={}", receiverId, lastEventId, e);
+              log.error("SSE connection fail. receiverId={}, lastEventId={}", receiverId, lastEventId, e);
               sseEmitter.completeWithError(e);
               sseEmitterRepository.delete(receiverId, sseEmitter);
             }
@@ -56,8 +56,9 @@ public class SseService {
 
     try {
       sseEmitter.send(SseEmitter.event().comment("keep-alive"));
+      log.debug("SSE connected. receiverId={} ", receiverId);
     } catch (IOException e) {
-      log.error("SSE 연결 실패. receiverId={}", receiverId, e);
+      log.error("SSE connection fail. receiverId={}", receiverId, e);
       sseEmitter.completeWithError(e);
       sseEmitterRepository.delete(receiverId, sseEmitter);
     }
@@ -70,8 +71,9 @@ public class SseService {
         .forEach(sseEmitter -> {
           try {
             sseEmitter.send(message.toEvent());
+            log.info("SSE send. receiverId={}, notifications={}", receiverId, data);
           } catch (IOException e) {
-            log.error("SSE 전송 실패. receiverId={}, notificationId={}", receiverId, data.id(), e);
+            log.error("SSE connection fail. receiverId={}, notificationId={}", receiverId, data.id(), e);
             sseEmitter.completeWithError(e);
             sseEmitterRepository.delete(receiverId, sseEmitter);
           }

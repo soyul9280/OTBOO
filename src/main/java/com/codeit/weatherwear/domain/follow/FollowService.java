@@ -47,7 +47,7 @@ public class FollowService {
     Follow follow = followRepository.save(Follow.create(followee, follower));
 
     FollowDto dto = FollowDto.from(follow);
-    log.info("Follow created: {}", dto);
+    log.info("Follow created. id={}", dto.id());
 
     eventPublisher.publish(new NewFollowerEvent(followee.getId(), follower.getName()));
     return dto;
@@ -105,7 +105,7 @@ public class FollowService {
   public void delete(UUID id) {
     followRepository.findById(id).ifPresent(follow -> {
         followRepository.delete(follow);
-        log.info("Follow deleted. id: {}", id);
+        log.info("Follow deleted. id={}", id);
     });
   }
 

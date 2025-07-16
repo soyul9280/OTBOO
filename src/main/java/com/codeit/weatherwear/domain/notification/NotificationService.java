@@ -37,7 +37,7 @@ public class NotificationService {
 
     Notification notification = notificationRepository
         .save(Notification.create(receiverId, title, content, level));
-    log.info("알림 생성. id={}", notification.getId());
+    log.info("notification created. id={}", notification.getId());
     NotificationDto dto = NotificationDto.from(notification);
     eventPublisher.publish(new NotificationCreatedEvent(dto));
     return dto;
@@ -47,7 +47,11 @@ public class NotificationService {
   public List<NotificationDto> create(List<UUID> receiverIds, String title, String content, Level level) {
     List<UUID> existingIds = userRepository.findExistingIds(receiverIds);
     List<Notification> notifications = existingIds.stream()
-        .map(receiverId -> Notification.create(receiverId, title, content, level))
+        .map(receiverId -> {
+          Notification notification = Notification.create(receiverId, title, content, level);
+          log.info("notification created. id={}", notification.getId());
+          return notification;
+        })
         .toList();
 
     notificationRepository.saveAll(notifications);
@@ -62,7 +66,11 @@ public class NotificationService {
   @Transactional
   public List<NotificationDto> createAllUser(String title, String content, Level level) {
     List<Notification> notifications = userRepository.findAllId().stream()
-        .map(receiverId -> Notification.create(receiverId, title, content, level))
+        .map(receiverId -> {
+          Notification notification = Notification.create(receiverId, title, content, level);
+          log.info("notification created. id={}", notification.getId());
+          return notification;
+        })
         .toList();
 
     notificationRepository.saveAll(notifications);
@@ -85,7 +93,7 @@ public class NotificationService {
   public void delete(UUID id) {
     notificationRepository.findById(id).ifPresent(notification -> {
       notificationRepository.delete(notification);
-      log.info("알림 삭제. id={}", id);
+      log.info("notification deleted. id={}", id);
     });
   }
 
