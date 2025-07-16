@@ -8,6 +8,8 @@ import com.codeit.weatherwear.domain.follow.repository.FollowRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
+import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.time.Instant;
@@ -28,6 +30,7 @@ public class FollowService {
 
   private final FollowRepository followRepository;
   private final UserRepository userRepository;
+  private final DomainEventPublisher eventPublisher;
 
   @Transactional
   public FollowDto create(FollowCreateRequest request) {
@@ -44,8 +47,9 @@ public class FollowService {
     Follow follow = followRepository.save(Follow.create(followee, follower));
 
     FollowDto dto = FollowDto.from(follow);
-    log.info("Follow 생성: {}", dto);
+    log.info("Follow created: {}", dto);
 
+    eventPublisher.publish(new NewFollowerEvent(followee.getId(), follower.getName()));
     return dto;
   }
 
@@ -101,7 +105,7 @@ public class FollowService {
   public void delete(UUID id) {
     followRepository.findById(id).ifPresent(follow -> {
         followRepository.delete(follow);
-        log.info("Follow 삭제. id: {}", id);
+        log.info("Follow deleted. id: {}", id);
     });
   }
 
