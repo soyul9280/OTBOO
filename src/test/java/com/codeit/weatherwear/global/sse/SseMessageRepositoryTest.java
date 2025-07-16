@@ -3,7 +3,7 @@ package com.codeit.weatherwear.global.sse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.weatherwear.domain.notification.Notification.Level;
-import com.codeit.weatherwear.domain.notification.NotificationDto;
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

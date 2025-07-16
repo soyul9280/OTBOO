@@ -1,6 +1,6 @@
 package com.codeit.weatherwear.domain.notification.repository;
 
-import com.codeit.weatherwear.domain.notification.NotificationDto;
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;

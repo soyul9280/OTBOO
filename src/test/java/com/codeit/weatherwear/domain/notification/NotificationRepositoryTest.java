@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.notification;
 import static org.assertj.core.api.Assertions.*;
 
 import com.codeit.weatherwear.domain.notification.Notification.Level;
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import com.codeit.weatherwear.domain.notification.repository.NotificationRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
