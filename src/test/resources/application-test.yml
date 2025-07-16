@@ -23,7 +23,6 @@ logging:
   level:
     com.codeit.weatherwear: debug
     org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
 
 weather:
   api-url: ${WEATHER_INFO_API_URL}

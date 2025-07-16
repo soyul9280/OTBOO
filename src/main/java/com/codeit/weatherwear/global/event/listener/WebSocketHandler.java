@@ -29,6 +29,7 @@ public class WebSocketHandler {
     } else {
       destination = String.format("/sub/direct-messages_%s_%s", senderId, receiverId);
     }
+    log.info("send direct message to {}. content={}", destination ,dto.content());
     messagingTemplate.convertAndSend(destination, dto);
   }
 }
