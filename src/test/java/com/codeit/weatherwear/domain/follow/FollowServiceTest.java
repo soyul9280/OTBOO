@@ -15,6 +15,8 @@ import com.codeit.weatherwear.domain.follow.exception.SelfFollowNotAllowedExcept
 import com.codeit.weatherwear.domain.follow.repository.FollowRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
+import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.exception.ErrorCode;
 import java.time.Instant;
 import java.util.Optional;
@@ -35,6 +37,8 @@ class FollowServiceTest {
   FollowRepository followRepository;
   @Mock
   UserRepository userRepository;
+  @Mock
+  DomainEventPublisher eventPublisher;
 
   @InjectMocks
   FollowService followService;
@@ -85,6 +89,7 @@ class FollowServiceTest {
     then(userRepository).should().findById(request.followerId());
     then(userRepository).should().findById(request.followeeId());
     then(followRepository).should().existsByFolloweeAndFollower(bob, alice);
+    then(eventPublisher).should().publish(any(NewFollowerEvent.class));
 
     then(followRepository).should().save(any());
   }
