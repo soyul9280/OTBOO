@@ -3,6 +3,8 @@ package com.codeit.weatherwear.domain.follow;
 import com.codeit.weatherwear.domain.follow.dto.FollowDto;
 import com.codeit.weatherwear.domain.follow.dto.FollowSummaryDto;
 import com.codeit.weatherwear.domain.follow.dto.request.FollowCreateRequest;
+import com.codeit.weatherwear.domain.follow.dto.request.FollowerRequest;
+import com.codeit.weatherwear.domain.follow.dto.request.FollowingRequest;
 import com.codeit.weatherwear.domain.follow.exception.FollowDuplicatedException;
 import com.codeit.weatherwear.domain.follow.repository.FollowRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
@@ -53,22 +55,20 @@ public class FollowService {
     return followRepository.getSummary(userId, myId);
   }
 
-  public PageResponse<FollowDto> getFollowings(UUID followerId, String cursor,
-      UUID idAfter, String nameLike, Pageable pageable
-  ) {
+  public PageResponse<FollowDto> getFollowings(FollowingRequest followingRequest, Pageable pageable) {
     Slice<FollowDto> followings = followRepository
-        .getFollowings(followerId, cursor, idAfter, nameLike, pageable);
-    long totalCount = followRepository.countByFollower_Id(followerId);
+        .getFollowings(followingRequest.followerId(), followingRequest.cursor(),
+            followingRequest.idAfter(), followingRequest.nameLike(), pageable);
+    long totalCount = followRepository.countByFollower_Id(followingRequest.followerId());
 
     return toPageResponse(followings, totalCount);
   }
 
-  public PageResponse<FollowDto> getFollowers(UUID followeeId, String cursor,
-      UUID idAfter, String nameLike, Pageable pageable
-  ) {
+  public PageResponse<FollowDto> getFollowers(FollowerRequest followerRequest, Pageable pageable) {
     Slice<FollowDto> followers = followRepository
-        .getFollowers(followeeId, cursor, idAfter, nameLike, pageable);
-    long totalCount = followRepository.countByFollowee_Id(followeeId);
+        .getFollowers(followerRequest.followeeId(), followerRequest.cursor(),
+            followerRequest.idAfter(), followerRequest.nameLike(), pageable);
+    long totalCount = followRepository.countByFollowee_Id(followerRequest.followeeId());
     return toPageResponse(followers, totalCount);
   }
 
