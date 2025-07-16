@@ -1,4 +1,4 @@
-package com.codeit.weatherwear.domain.clothes.exception;
+package com.codeit.weatherwear.domain.clothes.exception.attribute;
 
 import com.codeit.weatherwear.global.exception.CustomException;
 import com.codeit.weatherwear.global.exception.ErrorCode;

@@ -1,5 +1,9 @@
 package com.codeit.weatherwear.global.config;
 
+import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
+import com.codeit.weatherwear.domain.user.entity.Role;
+import java.time.Instant;
+import java.util.UUID;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -9,12 +13,10 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -40,11 +42,21 @@ public class TestSecurityConfig {
   @Bean
   public UserDetailsService userDetailsService() {
     // 가짜 인증 객체 설정
-    UserDetails user = User.withUsername("user")
-        .password("password") // NoOpPasswordEncoder를 사용하므로 암호화하지 않고 사용
-        .roles("ADMIN") // 관리자 권한 -> 모든 테스트에서 인가 통과 가능
-        .build();
-    return new InMemoryUserDetailsManager(user);  // 메모리에 저장
+    UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    CustomUserDetails customUser = new CustomUserDetails(
+        userId,
+        "user",
+        "password",
+        Role.ADMIN,
+        false,
+        Instant.now().plusSeconds(100)
+    );
+    return username -> {
+      if (!customUser.getUsername().equals(username)) {
+        throw new UsernameNotFoundException(username);
+      }
+      return customUser;
+    };
   }
 
   // 인증을 수행할 AuthenticationManager 등록

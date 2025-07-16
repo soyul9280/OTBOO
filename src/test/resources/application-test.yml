@@ -34,3 +34,13 @@ app:
     email: admin_test@mail.com
     name: admin
     password: admintest1!
+
+weatherwear:
+  storage:
+    type: s3
+    s3:
+      access-key: asd
+      secret-key: asd
+      region: ap-northeast-2
+      bucket: asd
+      presigned-url-expiration: 600

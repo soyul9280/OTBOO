@@ -58,7 +58,7 @@ spring:
 
 server:
   shutdown: graceful
-  forward-headers-strategy: native
+  forward-headers-strategy: framework
 
 weather:
   api-url: ${WEATHER_INFO_API_URL}
