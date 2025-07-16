@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.directmessage.controller;
 import com.codeit.weatherwear.domain.directmessage.DirectMessageService;
 import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.directmessage.dto.request.DirectMessageCreateRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -18,7 +19,7 @@ public class WebSocketController {
 
   @MessageMapping("direct-messages_send")
   public DirectMessageDto sendDirectMessage(
-      @Payload DirectMessageCreateRequest directMessageCreateRequest
+      @Payload @Valid DirectMessageCreateRequest directMessageCreateRequest
   ) {
     return directMessageService.create(directMessageCreateRequest);
   }

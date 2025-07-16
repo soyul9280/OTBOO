@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.event.dto.NotificationCreatedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;

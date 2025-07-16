@@ -1,6 +1,6 @@
 package com.codeit.weatherwear.global.sse;
 
-import com.codeit.weatherwear.domain.notification.NotificationDto;
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;

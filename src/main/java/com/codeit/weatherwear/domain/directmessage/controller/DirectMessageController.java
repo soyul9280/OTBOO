@@ -2,16 +2,17 @@ package com.codeit.weatherwear.domain.directmessage.controller;
 
 import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.directmessage.DirectMessageService;
+import com.codeit.weatherwear.domain.directmessage.dto.request.DirectMessageSearchRequest;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.global.response.PageResponse;
-import java.util.UUID;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,13 +25,10 @@ public class DirectMessageController {
   @GetMapping
   public ResponseEntity<PageResponse<DirectMessageDto>> getDirectMessages(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestParam UUID userId,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) UUID idAfter,
-      @RequestParam int limit
+      @ModelAttribute @Valid DirectMessageSearchRequest directMessageSearchRequest
   ) {
-    PageRequest pageRequest = PageRequest.of(0, limit);
+    PageRequest pageRequest = PageRequest.of(0, directMessageSearchRequest.limit());
     return ResponseEntity.ok(directMessageService
-        .findDirectMessages(userDetails.getUserId(), userId, cursor, idAfter, pageRequest));
+        .findDirectMessages(userDetails.getUserId(), directMessageSearchRequest, pageRequest));
   }
 }

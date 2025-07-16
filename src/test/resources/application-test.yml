@@ -43,3 +43,6 @@ weatherwear:
       region: ap-northeast-2
       bucket: asd
       presigned-url-expiration: 600
+
+sse:
+  timeout: 1000

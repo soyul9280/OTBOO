@@ -3,6 +3,8 @@ package com.codeit.weatherwear.domain.follow;
 import com.codeit.weatherwear.domain.follow.dto.FollowDto;
 import com.codeit.weatherwear.domain.follow.dto.FollowSummaryDto;
 import com.codeit.weatherwear.domain.follow.dto.request.FollowCreateRequest;
+import com.codeit.weatherwear.domain.follow.dto.request.FollowerSearchRequest;
+import com.codeit.weatherwear.domain.follow.dto.request.FollowingSearchRequest;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.global.response.PageResponse;
 import jakarta.validation.Valid;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,28 +49,19 @@ public class FollowController {
 
   @GetMapping("/followings")
   public ResponseEntity<PageResponse<FollowDto>> getFollowings(
-      @RequestParam UUID followerId,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) UUID idAfter,
-      @RequestParam int limit,
-      @RequestParam(required = false) String nameLike
+      @ModelAttribute @Valid FollowingSearchRequest followingSearchRequest
   ) {
-    PageRequest pageable = PageRequest.of(0, limit);
-    return ResponseEntity
-        .ok(followService.getFollowings(followerId, cursor, idAfter, nameLike, pageable));
+    PageRequest pageable = PageRequest.of(0, followingSearchRequest.limit());
+    return ResponseEntity.ok(followService.getFollowings(followingSearchRequest, pageable));
   }
 
   @GetMapping("/followers")
   public ResponseEntity<PageResponse<FollowDto>> getFollower(
-      @RequestParam UUID followeeId,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) UUID idAfter,
-      @RequestParam int limit,
-      @RequestParam(required = false) String nameLike
+      @ModelAttribute @Valid FollowerSearchRequest followerSearchRequest
   ) {
-    PageRequest pageable = PageRequest.of(0, limit);
+    PageRequest pageable = PageRequest.of(0, followerSearchRequest.limit());
     return ResponseEntity
-        .ok(followService.getFollowers(followeeId, cursor, idAfter, nameLike, pageable));
+        .ok(followService.getFollowers(followerSearchRequest, pageable));
   }
 
   @DeleteMapping("/{id}")

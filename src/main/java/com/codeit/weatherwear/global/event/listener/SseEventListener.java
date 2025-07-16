@@ -2,7 +2,7 @@ package com.codeit.weatherwear.global.event.listener;
 
 import com.codeit.weatherwear.global.event.dto.MultipleNotificationCreatedEvent;
 import com.codeit.weatherwear.global.event.dto.NotificationCreatedEvent;
-import com.codeit.weatherwear.domain.notification.NotificationDto;
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import com.codeit.weatherwear.global.sse.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

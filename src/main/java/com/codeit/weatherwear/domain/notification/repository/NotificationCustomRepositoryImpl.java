@@ -2,7 +2,7 @@ package com.codeit.weatherwear.domain.notification.repository;
 
 import static com.codeit.weatherwear.domain.notification.QNotification.notification;
 
-import com.codeit.weatherwear.domain.notification.NotificationDto;
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
