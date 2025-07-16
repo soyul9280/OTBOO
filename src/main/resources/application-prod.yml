@@ -47,6 +47,14 @@ server:
       enabled: true
       force: true
 
+# actuator
+management:
+  endpoint:
+    web:
+      exposure:
+        include: health
+    health:
+      show-details: always
 
 jwt:
   secret: ${JWT_SECRET} # 반드시 환경변수 통해 시크릿 키 주입
