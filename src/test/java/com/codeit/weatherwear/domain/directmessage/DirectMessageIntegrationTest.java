@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.directmessage.dto.request.DirectMessageCreateRequest;
+import com.codeit.weatherwear.domain.directmessage.repository.DirectMessageRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +29,6 @@ import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.transaction.TestTransaction;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -38,7 +38,6 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Transactional
 public class DirectMessageIntegrationTest {
 
   @LocalServerPort
@@ -46,6 +45,9 @@ public class DirectMessageIntegrationTest {
 
   @Autowired
   UserRepository userRepository;
+
+  @Autowired
+  DirectMessageRepository directMessageRepository;
 
   @Autowired
   ObjectMapper objectMapper;
@@ -72,11 +74,14 @@ public class DirectMessageIntegrationTest {
     userRepository.save(alice);
     userRepository.save(bob);
 
-    TestTransaction.flagForCommit();
-    TestTransaction.end();
-
     senderId = alice.getId();
     receiverId = bob.getId();
+  }
+
+  @AfterEach
+  void tearDown() {
+    directMessageRepository.deleteAll();
+    userRepository.deleteAll();
   }
 
   @Test
