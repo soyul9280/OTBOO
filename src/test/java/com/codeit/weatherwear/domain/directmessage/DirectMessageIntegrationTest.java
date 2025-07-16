@@ -102,7 +102,6 @@ public class DirectMessageIntegrationTest {
       }
       @Override
       public void handleFrame(StompHeaders headers, Object payload) {
-        System.out.println("RAW -> " + payload);
         queue.add((DirectMessageDto) payload);
       }
     });
