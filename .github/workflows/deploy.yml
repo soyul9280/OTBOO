@@ -105,7 +105,7 @@ jobs:
             --desired-status RUNNING \
             --query 'taskArns' --output text | grep -q .; do
             echo "Waiting for old tasks to stop..."
-            sleep 10
+            sleep 30
           done
 
       - name: Get current ECS task definition # task-definition.json 파일 받기
