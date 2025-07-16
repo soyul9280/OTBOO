@@ -1,7 +1,7 @@
-package com.codeit.weatherwear.domain.event.listener;
+package com.codeit.weatherwear.global.event.listener;
 
 import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
-import com.codeit.weatherwear.domain.event.dto.DirectMessageReceivedEvent;
+import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -29,6 +29,7 @@ public class WebSocketHandler {
     } else {
       destination = String.format("/sub/direct-messages_%s_%s", senderId, receiverId);
     }
+    log.info("send direct message to {}. content={}", destination ,dto.content());
     messagingTemplate.convertAndSend(destination, dto);
   }
 }

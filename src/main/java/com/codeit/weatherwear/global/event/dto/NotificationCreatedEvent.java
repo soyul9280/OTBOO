@@ -1,4 +1,4 @@
-package com.codeit.weatherwear.domain.event.dto;
+package com.codeit.weatherwear.global.event.dto;
 
 import com.codeit.weatherwear.domain.notification.NotificationDto;
 
