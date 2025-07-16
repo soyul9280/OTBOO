@@ -2,6 +2,7 @@ package com.codeit.weatherwear.domain.directmessage;
 
 import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.directmessage.dto.request.DirectMessageCreateRequest;
+import com.codeit.weatherwear.domain.directmessage.dto.request.DirectMessageSearchRequest;
 import com.codeit.weatherwear.domain.directmessage.repository.DirectMessageRepository;
 import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
@@ -47,11 +48,12 @@ public class DirectMessageService {
     return DirectMessageDto.from(directMessage);
   }
 
-  public PageResponse<DirectMessageDto> findDirectMessages(UUID myId, UUID peerId,
-      String cursor, UUID idAfter, Pageable pageable) {
+  public PageResponse<DirectMessageDto> findDirectMessages(
+      UUID myId, DirectMessageSearchRequest request, Pageable pageable
+  ) {
     Slice<DirectMessageDto> directMessages = directMessageRepository
-        .findDirectMessages(myId, peerId, cursor, idAfter, pageable);
-    long totalCount = directMessageRepository.getTotalCount(myId, peerId);
+        .findDirectMessages(myId, request.userId(), request.cursor(), request.idAfter(), pageable);
+    long totalCount = directMessageRepository.getTotalCount(myId, request.userId());
     return toPageResponse(directMessages, totalCount);
   }
 
