@@ -1,7 +1,7 @@
 package com.codeit.weatherwear.domain.notification;
 
 import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
-import com.codeit.weatherwear.domain.notification.dto.request.NotificationRequest;
+import com.codeit.weatherwear.domain.notification.dto.request.NotificationSearchRequest;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.global.response.PageResponse;
 import jakarta.validation.Valid;
@@ -27,11 +27,11 @@ public class NotificationController {
   @GetMapping
   public ResponseEntity<PageResponse<NotificationDto>> getNotifications(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @Valid @ModelAttribute NotificationRequest notificationRequest
+      @ModelAttribute @Valid NotificationSearchRequest notificationSearchRequest
   ) {
-    PageRequest pageable = PageRequest.of(0, notificationRequest.limit());
+    PageRequest pageable = PageRequest.of(0, notificationSearchRequest.limit());
     return ResponseEntity
-        .ok(notificationService.findNotification(userDetails.getUserId(), notificationRequest, pageable));
+        .ok(notificationService.findNotification(userDetails.getUserId(), notificationSearchRequest, pageable));
   }
 
   @DeleteMapping("/{id}")

@@ -1,17 +1,24 @@
-package com.codeit.weatherwear.domain.notification.dto.request;
+package com.codeit.weatherwear.domain.follow.dto.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
-public record NotificationRequest(
+public record FollowingSearchRequest(
+    @NotNull
+    UUID followerId,
+
     String cursor,
 
     UUID idAfter,
 
     @NotNull @Min(1) @Max(100)
-    int limit
+    int limit,
+
+    @Size(max = 255)
+    String nameLike
 ) {
 
 }

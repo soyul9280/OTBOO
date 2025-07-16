@@ -3,8 +3,8 @@ package com.codeit.weatherwear.domain.follow;
 import com.codeit.weatherwear.domain.follow.dto.FollowDto;
 import com.codeit.weatherwear.domain.follow.dto.FollowSummaryDto;
 import com.codeit.weatherwear.domain.follow.dto.request.FollowCreateRequest;
-import com.codeit.weatherwear.domain.follow.dto.request.FollowerRequest;
-import com.codeit.weatherwear.domain.follow.dto.request.FollowingRequest;
+import com.codeit.weatherwear.domain.follow.dto.request.FollowerSearchRequest;
+import com.codeit.weatherwear.domain.follow.dto.request.FollowingSearchRequest;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.global.response.PageResponse;
 import jakarta.validation.Valid;
@@ -49,19 +49,19 @@ public class FollowController {
 
   @GetMapping("/followings")
   public ResponseEntity<PageResponse<FollowDto>> getFollowings(
-      @Valid @ModelAttribute FollowingRequest followingRequest
+      @ModelAttribute @Valid FollowingSearchRequest followingSearchRequest
   ) {
-    PageRequest pageable = PageRequest.of(0, followingRequest.limit());
-    return ResponseEntity.ok(followService.getFollowings(followingRequest, pageable));
+    PageRequest pageable = PageRequest.of(0, followingSearchRequest.limit());
+    return ResponseEntity.ok(followService.getFollowings(followingSearchRequest, pageable));
   }
 
   @GetMapping("/followers")
   public ResponseEntity<PageResponse<FollowDto>> getFollower(
-      @Valid @ModelAttribute FollowerRequest followerRequest
+      @ModelAttribute @Valid FollowerSearchRequest followerSearchRequest
   ) {
-    PageRequest pageable = PageRequest.of(0, followerRequest.limit());
+    PageRequest pageable = PageRequest.of(0, followerSearchRequest.limit());
     return ResponseEntity
-        .ok(followService.getFollowers(followerRequest, pageable));
+        .ok(followService.getFollowers(followerSearchRequest, pageable));
   }
 
   @DeleteMapping("/{id}")

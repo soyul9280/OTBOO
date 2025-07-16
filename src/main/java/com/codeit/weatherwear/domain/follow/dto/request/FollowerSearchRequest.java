@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
-public record FollowingRequest(
+public record FollowerSearchRequest(
     @NotNull
-    UUID followerId,
+    UUID followeeId,
 
     String cursor,
 

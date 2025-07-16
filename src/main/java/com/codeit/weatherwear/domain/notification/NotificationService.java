@@ -1,7 +1,7 @@
 package com.codeit.weatherwear.domain.notification;
 
 import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
-import com.codeit.weatherwear.domain.notification.dto.request.NotificationRequest;
+import com.codeit.weatherwear.domain.notification.dto.request.NotificationSearchRequest;
 import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.event.dto.MultipleNotificationCreatedEvent;
 import com.codeit.weatherwear.global.event.dto.NotificationCreatedEvent;
@@ -77,10 +77,10 @@ public class NotificationService {
   }
 
   public PageResponse<NotificationDto> findNotification(UUID receiverId,
-      NotificationRequest notificationRequest, Pageable pageable
+      NotificationSearchRequest notificationSearchRequest, Pageable pageable
   ) {
     Slice<NotificationDto> dtos = notificationRepository
-        .findNotification(receiverId, notificationRequest.cursor(), notificationRequest.idAfter(), pageable);
+        .findNotification(receiverId, notificationSearchRequest.cursor(), notificationSearchRequest.idAfter(), pageable);
     long totalCount = notificationRepository.countByReceiverId(receiverId);
     return toPageResponse(dtos, totalCount);
   }
