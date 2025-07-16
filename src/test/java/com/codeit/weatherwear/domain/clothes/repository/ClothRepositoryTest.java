@@ -306,4 +306,27 @@ public class ClothRepositoryTest {
     }
   }
 
+  @Test
+  @DisplayName("searchCloths - 타입 지정하지 않으면 모든 옷 조회")
+  void search_allTypes() {
+    // given
+    int limit = 10;
+
+    // when
+    Slice<Cloth> cloths = sut.searchCloths(null, null, limit, null, user.getId());
+
+    // then
+    assertThat(cloths.getContent()).hasSize(3);
+  }
+
+  @Test
+  @DisplayName("getTotalCount - 특정 타입에 해당하는 개수 조회")
+  void getTotalCount() {
+    // when
+    Long total = sut.getTotalCount(user.getId(), ClothType.SCARF);
+
+    // then
+    assertThat(total).isEqualTo(3L);
+  }
+
 }
