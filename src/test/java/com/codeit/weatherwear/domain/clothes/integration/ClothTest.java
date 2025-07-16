@@ -18,7 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import({JpaConfig.class, TestSecurityConfig.class})
 public class ClothTest {
 
   @Autowired

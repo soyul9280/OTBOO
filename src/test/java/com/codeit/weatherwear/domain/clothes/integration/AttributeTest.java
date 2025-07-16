@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import({JpaConfig.class, TestSecurityConfig.class})
 public class AttributeTest {
 
   @Autowired
