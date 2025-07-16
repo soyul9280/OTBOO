@@ -1,6 +1,8 @@
 package com.codeit.weatherwear.global.event.listener;
 
 import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
+import com.codeit.weatherwear.domain.notification.Notification.Level;
+import com.codeit.weatherwear.domain.notification.NotificationService;
 import com.codeit.weatherwear.global.event.dto.ClothAttributeAddedEvent;
 import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
 import com.codeit.weatherwear.global.event.dto.FeedLikeEvent;
@@ -8,9 +10,6 @@ import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
-import com.codeit.weatherwear.domain.notification.Notification.Level;
-import com.codeit.weatherwear.domain.notification.NotificationService;
-import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class NotificationEventListener {
 
   private final NotificationService notificationService;
-  private final UserRepository userRepository;
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
