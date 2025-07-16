@@ -18,12 +18,14 @@ import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.attribute.InvalidAttributeValueException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNotFoundException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
 import com.codeit.weatherwear.domain.user.entity.User;
+import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.exception.s3.S3DeleteException;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
@@ -160,6 +162,45 @@ public class ClothServiceTest {
       verify(clothRepository, never()).save(any());
       verify(thumbnailImageStorage, never()).upload(any());
     }
+
+    @Test
+    @DisplayName("직접 의상 등록 실패 - 사용자 없음")
+    void create_fail_userNotFound() {
+      // given
+      UUID id = UUID.randomUUID();
+      ClothesCreateRequest request = new ClothesCreateRequest(id, "후드티",
+          ClothType.TOP, List.of(new ClothesAttributeDto(colorId, "파랑")));
+      given(userRepository.findById(id)).willReturn(Optional.empty());
+
+      // when & then
+      assertThatThrownBy(() -> sut.create(request, null))
+          .isInstanceOf(UserNotFoundException.class)
+          .hasMessageContaining("사용자 확인 실패");
+
+      verify(attributeRepository, never()).findAllById(any());
+      verify(clothRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("직접 등록 실패 - value가 selectableValues에 없음")
+    void create_fail_invalidAttributeValue() {
+      // given
+      ClothesAttributeDto invalid = new ClothesAttributeDto(colorId, "초록");
+      ClothesCreateRequest request = new ClothesCreateRequest(
+          ownerId, "후드티", ClothType.TOP, List.of(invalid)
+      );
+
+      given(userRepository.findById(ownerId)).willReturn(Optional.of(mockUser));
+      given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef));
+
+      // when & then
+      assertThatThrownBy(() -> sut.create(request, null))
+          .isInstanceOf(InvalidAttributeValueException.class)
+          .hasMessage("잘못된 속성값입니다.");
+
+      verify(clothRepository, never()).save(any());
+    }
+
 
     @Test
     @DisplayName("직접 의상 등록 성공 - 이미지 존재")
@@ -476,5 +517,22 @@ public class ClothServiceTest {
       verify(thumbnailImageStorage).delete(newImageUrl);
       verify(mapper, never()).toDto(any(), any());
     }
+
+    @Test
+    @DisplayName("수정 실패 - 존재하지 않는 의상")
+    void update_fail_clothNotFound() {
+      // given
+      ClothesUpdateRequest request = new ClothesUpdateRequest("후드티", ClothType.TOP, List.of());
+      given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(Optional.empty());
+
+      // when & then
+      assertThatThrownBy(() -> sut.update(clothesId, request, null))
+          .isInstanceOf(ClothNotFoundException.class)
+          .hasMessageContaining("옷 확인 실패");
+
+      verify(clothRepository).findByIdWithAttributes(clothesId);
+      verify(attributeRepository, never()).findAllById(any());
+    }
+
   }
 }
