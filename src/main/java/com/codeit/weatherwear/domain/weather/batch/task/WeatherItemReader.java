@@ -4,7 +4,7 @@ import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.weather.batch.config.WeatherBatchProperties;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ public class WeatherItemReader {
    * @return JpaPagingItemReader<Location>
    */
   @Bean
-  public JpaPagingItemReader<Location> locationReader() {
+  public ItemReader<Location> locationReader() {
     return new JpaPagingItemReaderBuilder<Location>()
         .name("locationReader")
         .entityManagerFactory(emf)

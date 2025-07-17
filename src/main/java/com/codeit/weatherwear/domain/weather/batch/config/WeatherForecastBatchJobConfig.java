@@ -42,13 +42,18 @@ public class WeatherForecastBatchJobConfig {
    * @return Step
    */
   @Bean
-  public Step weatherFetchStep(WeatherBatchProperties weatherBatchProperties) {
+  public Step weatherFetchStep(WeatherBatchProperties weatherBatchProperties,
+      WeatherSkipListener weatherSkipListener) {
     // 한 Step(청크) 마다 트랜잭션 적용
     return new StepBuilder("weatherFetchStep", jobRepository)
         .<Location, List<Weather>>chunk(weatherBatchProperties.getChunkSize(), transactionManager)
         .reader(weatherItemReader.locationReader())
         .processor(weatherItemProcessor.locationWeatherProcessor())
         .writer(weatherItemWriter.weatherWriter())
+        .faultTolerant()  // 예외 발생 시 대처
+        .skip(Exception.class)  // 해당 예외 타입이 발생하면 SKip
+        .skipLimit(10)  // Skip 제한 횟수는 10회 (필요 시 최대 10번 스킵 가능)
+        .listener(weatherSkipListener)
         .build();
   }
 
