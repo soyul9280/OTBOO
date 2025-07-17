@@ -1,5 +1,6 @@
-package com.codeit.weatherwear.domain.notification;
+package com.codeit.weatherwear.domain.notification.dto;
 
+import com.codeit.weatherwear.domain.notification.Notification;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import java.time.Instant;
 import java.util.UUID;

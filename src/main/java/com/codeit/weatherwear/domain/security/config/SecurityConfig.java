@@ -50,7 +50,7 @@ public class SecurityConfig {
       JwtLogoutHandler jwtLogoutHandler,
       CustomOAuth2UserService customOAuth2UserService,
       @Qualifier("customOAuth2SuccessHandler") AuthenticationSuccessHandler customOAuth2SuccessHandler,
-      AuthenticationFailureHandler customAuthenticationFailureHandler)
+      @Qualifier("customOAuth2FailureHandler") AuthenticationFailureHandler customOAuth2FailureHandler)
       throws Exception {
 
     httpSecurity
@@ -65,7 +65,7 @@ public class SecurityConfig {
             .userInfoEndpoint(userInfo -> userInfo
                 .userService(customOAuth2UserService))
             .successHandler(customOAuth2SuccessHandler)
-            .failureHandler(customAuthenticationFailureHandler)
+            .failureHandler(customOAuth2FailureHandler)
         )
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -113,7 +113,7 @@ public class SecurityConfig {
   public CustomAuthenticationFilter customAuthenticationFilter(
       ObjectMapper objectMapper,
       @Qualifier("customAuthenticationSuccessHandler") AuthenticationSuccessHandler authenticationSuccessHandler,
-      AuthenticationFailureHandler authenticationFailureHandler,
+      @Qualifier("customAuthenticationFailureHandler") AuthenticationFailureHandler authenticationFailureHandler,
       AuthenticationManager authenticationManager) {
 
     CustomAuthenticationFilter filter = new CustomAuthenticationFilter(objectMapper);
@@ -135,6 +135,7 @@ public class SecurityConfig {
   }
 
   @Bean
+  @Qualifier("customAuthenticationFailureHandler")
   public AuthenticationFailureHandler customAuthenticationFailureHandler(
       ObjectMapper objectMapper) {
     return new CustomAuthenticationFailureHandler(objectMapper);

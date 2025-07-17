@@ -1,8 +1,10 @@
 package com.codeit.weatherwear.domain.notification;
 
-import com.codeit.weatherwear.domain.event.DomainEventPublisher;
-import com.codeit.weatherwear.domain.event.dto.MultipleNotificationCreatedEvent;
-import com.codeit.weatherwear.domain.event.dto.NotificationCreatedEvent;
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
+import com.codeit.weatherwear.domain.notification.dto.request.NotificationSearchRequest;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
+import com.codeit.weatherwear.global.event.dto.MultipleNotificationCreatedEvent;
+import com.codeit.weatherwear.global.event.dto.NotificationCreatedEvent;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.repository.NotificationRepository;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
@@ -37,7 +39,7 @@ public class NotificationService {
 
     Notification notification = notificationRepository
         .save(Notification.create(receiverId, title, content, level));
-    log.info("알림 생성. id={}", notification.getId());
+    log.info("notification created. id={}", notification.getId());
     NotificationDto dto = NotificationDto.from(notification);
     eventPublisher.publish(new NotificationCreatedEvent(dto));
     return dto;
@@ -47,7 +49,11 @@ public class NotificationService {
   public List<NotificationDto> create(List<UUID> receiverIds, String title, String content, Level level) {
     List<UUID> existingIds = userRepository.findExistingIds(receiverIds);
     List<Notification> notifications = existingIds.stream()
-        .map(receiverId -> Notification.create(receiverId, title, content, level))
+        .map(receiverId -> {
+          Notification notification = Notification.create(receiverId, title, content, level);
+          log.info("notification created. id={}", notification.getId());
+          return notification;
+        })
         .toList();
 
     notificationRepository.saveAll(notifications);
@@ -62,7 +68,11 @@ public class NotificationService {
   @Transactional
   public List<NotificationDto> createAllUser(String title, String content, Level level) {
     List<Notification> notifications = userRepository.findAllId().stream()
-        .map(receiverId -> Notification.create(receiverId, title, content, level))
+        .map(receiverId -> {
+          Notification notification = Notification.create(receiverId, title, content, level);
+          log.info("notification created. id={}", notification.getId());
+          return notification;
+        })
         .toList();
 
     notificationRepository.saveAll(notifications);
@@ -74,9 +84,11 @@ public class NotificationService {
     return dtos;
   }
 
-  public PageResponse<NotificationDto> findNotification(UUID receiverId, String cursor, UUID idAfter, Pageable pageable) {
+  public PageResponse<NotificationDto> findNotification(UUID receiverId,
+      NotificationSearchRequest notificationSearchRequest, Pageable pageable
+  ) {
     Slice<NotificationDto> dtos = notificationRepository
-        .findNotification(receiverId, cursor, idAfter, pageable);
+        .findNotification(receiverId, notificationSearchRequest.cursor(), notificationSearchRequest.idAfter(), pageable);
     long totalCount = notificationRepository.countByReceiverId(receiverId);
     return toPageResponse(dtos, totalCount);
   }
@@ -85,7 +97,7 @@ public class NotificationService {
   public void delete(UUID id) {
     notificationRepository.findById(id).ifPresent(notification -> {
       notificationRepository.delete(notification);
-      log.info("알림 삭제. id={}", id);
+      log.info("notification deleted. id={}", id);
     });
   }
 

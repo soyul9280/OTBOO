@@ -1,6 +1,5 @@
 package com.codeit.weatherwear.global.sse;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,14 +21,14 @@ public class SseMessageRepository {
   public SseMessage save(SseMessage message) {
     synchronized (saveLock) {
       makeAvailableCapacity();
-      eventIdQueue.addLast(message.getEventId());
       messages.put(message.getEventId(), message);
+      eventIdQueue.addLast(message.getEventId());
       return message;
     }
   }
 
   public List<SseMessage> findAllByEventIdAfterAndReceiverId(UUID eventId, UUID receiverId) {
-    return new ArrayList<>(eventIdQueue).stream()
+    return eventIdQueue.stream()
         .dropWhile(id -> !id.equals(eventId))
         .skip(1)
         .map(messages::get)
