@@ -1,9 +1,6 @@
 package com.codeit.weatherwear.domain.recommendation.service;
 
-import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
-import com.codeit.weatherwear.domain.clothes.entity.ClothType;
-import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeType;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
@@ -16,17 +13,14 @@ import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeedType;
 import com.codeit.weatherwear.domain.weather.exception.WeatherNotFoundException;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
-import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +37,7 @@ public class RecommendationServiceImpl implements RecommendationService {
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
   private final ClothRepository clothRepository;
-  private final ThumbnailImageStorage thumbnailImageStorage;
-  private final RecommendClothesMapper recommendClothesMapper;
+  private final FallbackRecommendationService fallbackService;
 
   /**
    * 의상 추천
@@ -73,52 +66,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     List<Cloth> filtered = filterCloth(user, weather, clothes);
     log.info("[Recommendation] Filter Cloth Completed");
 
-    // 타입별로 필터링된 옷을 그룹화
-    Map<ClothType, List<Cloth>> groupedFilteredClothes = filtered.stream()
-        .collect(Collectors.groupingBy(Cloth::getClothType));
-
-    // DRESS는 먼저 랜덤 선택해본다 (선택되지 않을 수도 있음)
-    Optional<Cloth> dressCandidate = getRandomCloth(groupedFilteredClothes.get(ClothType.DRESS),
-        true);
-
-    List<Cloth> finalRecommendation = new ArrayList<>();
-
-    // DRESS 처리
-    if (dressCandidate.isPresent()) {
-      finalRecommendation.add(dressCandidate.get());
-    } else {
-      // TOP, BOTTOM = DRESS 없을 때 선택
-      Optional<Cloth> top = getRandomCloth(groupedFilteredClothes.get(ClothType.TOP), false);
-      Optional<Cloth> bottom = getRandomCloth(groupedFilteredClothes.get(ClothType.BOTTOM), false);
-      top.ifPresent(finalRecommendation::add);
-      bottom.ifPresent(finalRecommendation::add);
-    }
-
-    // 나머지 ClothType들 처리 (무조건 하나 선택)
-    for (ClothType type : ClothType.values()) {
-      if (type == ClothType.DRESS || type == ClothType.TOP || type == ClothType.BOTTOM) {
-        continue;
-      }
-      Optional<Cloth> selected = getRandomCloth(groupedFilteredClothes.get(type), false);
-      selected.ifPresent(finalRecommendation::add);
-    }
-
-    // DTO 변환 + 썸네일 처리
-    List<RecommendClothesDto> recommendedClothes = finalRecommendation.stream()
-        .map(cloth -> {
-          String imageUrl = cloth.getClothesImageUrl() != null
-              ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
-              : null;
-          return recommendClothesMapper.toDto(cloth, imageUrl);
-        })
-        .toList();
-
-    log.info("[Recommendation] Recommendation Completed");
-    return RecommendationDto.builder()
-        .weatherId(weatherId)
-        .userId(user.getId())
-        .clothes(List.copyOf(recommendedClothes))//불변성 보장
-        .build();
+    return fallbackService.recommend(filtered, user, weather);
   }
 
   private List<Cloth> filterCloth(User user, Weather weather, List<Cloth> cloths) {
@@ -229,22 +177,5 @@ public class RecommendationServiceImpl implements RecommendationService {
           };
         })
         .orElse(true); // 두께 속성이 없으면 통과
-  }
-
-
-  private Optional<Cloth> getRandomCloth(List<Cloth> clothes, boolean allowSkip) {
-    if (clothes == null || clothes.isEmpty()) {
-      return Optional.empty();
-    }
-
-    if (allowSkip) {
-      // 예: 50% 확률로 선택 안 할 수 있음
-      boolean skip = ThreadLocalRandom.current().nextBoolean();
-      if (skip) {
-        return Optional.empty();
-      }
-    }
-
-    return Optional.of(clothes.get(ThreadLocalRandom.current().nextInt(clothes.size())));
   }
 }
