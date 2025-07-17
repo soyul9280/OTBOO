@@ -11,15 +11,17 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID>, UserCustomRepository {
 
-    boolean existsByName(String name);
+  boolean existsByName(String name);
 
-    boolean existsByEmail(String email);
+  boolean existsByEmail(String email);
 
-    Optional<User> findByEmail(String email);
+  Optional<User> findByEmail(String email);
 
-    @Query("SELECT u.id FROM User u")
-    List<UUID> findAllId();
+  @Query("SELECT u.id FROM User u")
+  List<UUID> findAllId();
 
-    @Query("SELECT u.id FROM User u WHERE u.id IN :ids")
-    List<UUID> findExistingIds(List<UUID> ids);
+  @Query("SELECT u.id FROM User u WHERE u.id IN :ids")
+  List<UUID> findExistingIds(List<UUID> ids);
+
+  Optional<User> findByEmailAndName(String email, String name);
 }

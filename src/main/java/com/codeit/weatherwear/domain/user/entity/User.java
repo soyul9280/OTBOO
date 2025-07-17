@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -159,6 +160,15 @@ public class User {
     if (password != null && !password.isBlank()) {
       this.password = password;
       this.tempPasswordExpirationTime = tempPasswordExpirationTime;
+    }
+  }
+
+  public void addLinkedOAuthProvider(OAuthProvider oAuthProvider) {
+    if (this.linkedOAuthProviders == null) {
+      this.linkedOAuthProviders = new ArrayList<>();
+    }
+    if (!this.linkedOAuthProviders.contains(oAuthProvider)) {
+      this.linkedOAuthProviders.add(oAuthProvider);
     }
   }
 }
