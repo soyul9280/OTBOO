@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.security.service;
 
+import com.codeit.weatherwear.domain.security.JwtBlacklist;
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.dto.TokenRotationResult;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
@@ -36,6 +37,7 @@ public class JwtSessionService {
 
   private final JwtSessionRepository jwtSessionRepository;
   private final JwtProperties jwtProperties;
+  private final JwtBlacklist jwtBlacklist;
   private final Clock clock;
   private SecretKey signingKey;
   private final UserRepository userRepository;
@@ -112,7 +114,13 @@ public class JwtSessionService {
           .build();
       parser.parseClaimsJws(token);
 
+      // 블랙리스트에 있는 토큰이면 유효하지 않음
+      if (jwtBlacklist.existsInBlacklist(token)) {
+        return false;
+      }
+
       return true;
+
     } catch (ExpiredJwtException e) {
       log.debug("JWT expired: {}", e.getMessage());
     } catch (JwtException e) {
@@ -164,7 +172,8 @@ public class JwtSessionService {
   public void invalidateToken(String refreshToken) {
     jwtSessionRepository.findByRefreshToken(refreshToken).ifPresentOrElse(
         jwtSession -> {
-          // TODO: 블랙리스트 추가
+          // 더 이상 사용하지 않을 액세스 토큰을 블랙리스트에 저장
+          jwtBlacklist.addBlacklist(jwtSession.getAccessToken(), jwtSession.getExpirationTime());
           jwtSessionRepository.delete(jwtSession);
         },
         () -> log.debug("No active JwtSession found for refreshToken: {}", refreshToken)
@@ -176,7 +185,8 @@ public class JwtSessionService {
   public void invalidateToken(UUID userId) {
     jwtSessionRepository.findByUserId(userId).ifPresentOrElse(
         jwtSession -> {
-          // TODO: 블랙리스트 추가
+          // 더 이상 사용하지 않을 액세스 토큰을 블랙리스트에 저장
+          jwtBlacklist.addBlacklist(jwtSession.getAccessToken(), jwtSession.getExpirationTime());
           jwtSessionRepository.delete(jwtSession);
         },
         () -> log.debug("No active JwtSession found for userId: {}", userId)
@@ -191,6 +201,9 @@ public class JwtSessionService {
     }
     JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
         .orElseThrow(() -> new JwtSessionNotFoundException());
+
+    // 기존 액세스 토큰을 블랙리스트에 추가
+    jwtBlacklist.addBlacklist(jwtSession.getAccessToken(), jwtSession.getExpirationTime());
 
     User user = userRepository.findById(jwtSession.getUserId())
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));

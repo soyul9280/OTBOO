@@ -26,28 +26,46 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
   private final UserRepository userRepository;
 
+  private static final String KAKAO_EMAIL_DOMAIN = "@kakao.com";
+
   @Override
   @Transactional
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+
     OAuth2User oAuth2User = super.loadUser(userRequest);
-    String provider = userRequest.getClientRegistration().getRegistrationId();  // google / kakao
-    OAuthProvider oauthProvider = OAuthProvider.valueOf(provider);
+
+    String provider = userRequest.getClientRegistration().getRegistrationId();
+    OAuthProvider oauthProvider = switch (provider.toLowerCase()) {
+      case "google" -> OAuthProvider.google;
+      case "kakao" -> OAuthProvider.kakao;
+      default ->
+          throw new OAuth2AuthenticationException("Unsupported OAuth2 Provider: " + provider);
+    };
 
     String email = null;
     String name = null;
 
-    if (provider.equals("google")) {
+    if (oauthProvider.equals(OAuthProvider.google)) {
+
       email = oAuth2User.getAttribute("email");
       name = oAuth2User.getAttribute("name");
-    } else if (provider.equals("kakao")) {
+
+    } else if (oauthProvider.equals(OAuthProvider.kakao)) {
+
       Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
       Map<String, Object> profile =
           kakaoAccount != null ? (Map<String, Object>) kakaoAccount.get("profile") : null;
-      name = profile != null ? (String) profile.get("nickname") : "kakao_user";
+      name = profile != null ? (String) profile.get("nickname") : null;
       // 카카오의 경우 이메일을 닉네임+kakao.com으로
-      email = name + "@kakao.com";
-    } else {
-      throw new OAuth2AuthenticationException("지원하지 않는 소셜 로그인입니다: " + provider);
+      email = name + KAKAO_EMAIL_DOMAIN;
+    }
+
+    // email, name은 필수로 필요함
+    if (email == null || email.isBlank()) {
+      throw new OAuth2AuthenticationException("Failed to get email");
+    }
+    if (name == null || name.isBlank()) {
+      throw new OAuth2AuthenticationException("Failed to get name");
     }
 
     Optional<User> optionalUser = userRepository.findByEmail(email);
@@ -61,6 +79,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     // findByEmail을 했을 때 없다면 신규 가입
     try {
+      log.info("Start Creating New User From OAuth2 Provider: {}", oauthProvider.name());
       User newUser = userRepository.save(User.builder()
           .name(name)
           .email(email)
