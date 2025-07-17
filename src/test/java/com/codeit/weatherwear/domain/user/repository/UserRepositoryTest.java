@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.global.config.JpaConfig;
+import com.codeit.weatherwear.global.config.TestContainerConfig;
 import com.codeit.weatherwear.global.request.SortDirection;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,7 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 @DataJpaTest
 @ActiveProfiles("test")
 @Slf4j
-@Import({JpaConfig.class})
+@Import({JpaConfig.class, TestContainerConfig.class})
 class UserRepositoryTest {
 
   @Autowired

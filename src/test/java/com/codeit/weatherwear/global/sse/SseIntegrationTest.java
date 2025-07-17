@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
+import com.codeit.weatherwear.global.config.TestContainerConfig;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -23,6 +25,7 @@ import reactor.test.StepVerifier;
 @ActiveProfiles("test")
 @AutoConfigureWebTestClient
 @Transactional
+@Import(TestContainerConfig.class)
 class SseIntegrationTest {
 
   @Autowired

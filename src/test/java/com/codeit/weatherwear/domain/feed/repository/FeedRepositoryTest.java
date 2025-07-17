@@ -14,6 +14,7 @@ import com.codeit.weatherwear.domain.weather.entity.Temperature;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeed;
 import com.codeit.weatherwear.global.config.JpaConfig;
+import com.codeit.weatherwear.global.config.TestContainerConfig;
 import com.codeit.weatherwear.global.request.SortDirection;
 import java.time.Instant;
 import java.util.UUID;
@@ -30,7 +31,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({JpaConfig.class})
+@Import({JpaConfig.class, TestContainerConfig.class})
 class FeedRepositoryTest {
 
   @Autowired

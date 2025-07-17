@@ -8,6 +8,7 @@ import com.codeit.weatherwear.domain.notification.repository.NotificationReposit
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.config.JpaConfig;
+import com.codeit.weatherwear.global.config.TestContainerConfig;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -23,7 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @DataJpaTest
-@Import(JpaConfig.class)
+@Import({JpaConfig.class, TestContainerConfig.class})
 class NotificationRepositoryTest {
 
   @Autowired
