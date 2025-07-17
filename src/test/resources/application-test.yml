@@ -11,6 +11,10 @@ spring:
     database:
       replace: none
 
+  batch:
+    jdbc:
+      initialize-schema: always
+
 logging:
   level:
     com.codeit.weatherwear: debug

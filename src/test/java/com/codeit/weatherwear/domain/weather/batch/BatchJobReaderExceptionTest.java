@@ -6,6 +6,7 @@ import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.repository.LocationRepository;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
+import com.codeit.weatherwear.global.config.TestContainerConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBatchTest  // 배치 테스트용 유틸 사용을 위함
 @ActiveProfiles({"test", "reader-exception"})
 @TestInstance(Lifecycle.PER_CLASS)
-@Import(FailingReaderConfig.class)
+@Import({FailingReaderConfig.class, TestContainerConfig.class})
 public class BatchJobReaderExceptionTest {
 
   @Autowired
