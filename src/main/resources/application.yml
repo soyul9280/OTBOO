@@ -57,8 +57,6 @@ spring:
   batch:
     job:
       enabled: false    # 수동 실행만 진행
-    jdbc:
-      initialize-schema: always   # Batch 테이블 자동 생성
 
 server:
   shutdown: graceful
