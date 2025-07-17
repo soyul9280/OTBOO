@@ -6,6 +6,7 @@ import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.repository.LocationRepository;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+@Slf4j
 @SpringBootTest
 @SpringBatchTest  // 배치 테스트용 유틸 사용을 위함
 @ActiveProfiles("test")
@@ -87,6 +89,7 @@ public class WeatherBatchJobIntegrationTest {
 
     // then
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
+    log.info("count success: {}", weatherRepository.findAll().size());
     assertThat(weatherRepository.findAll()).isNotEmpty();
   }
 
@@ -109,6 +112,7 @@ public class WeatherBatchJobIntegrationTest {
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
     // 정상 저장된 수
+    log.info("count success - skip: {}", weatherRepository.findAll().size());
     assertThat(weatherRepository.findAll().size()).isEqualTo(5);
   }
 }
