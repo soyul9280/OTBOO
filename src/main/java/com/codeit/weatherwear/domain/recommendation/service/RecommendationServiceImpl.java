@@ -1,6 +1,5 @@
 package com.codeit.weatherwear.domain.recommendation.service;
 
-
 import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
