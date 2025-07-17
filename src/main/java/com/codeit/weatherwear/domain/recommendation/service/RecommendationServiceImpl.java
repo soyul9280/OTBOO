@@ -56,6 +56,7 @@ public class RecommendationServiceImpl implements RecommendationService {
   @Override
   public RecommendationDto recommendClothes(UUID weatherId) {
     //사용자 조회
+    log.info("[Recommendation Start]");
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
     User user = userRepository.findByEmail(email).orElseThrow(() -> {
       log.warn("[Fail Searching Recommendation] User Not Found, Email: {}", email);
@@ -65,11 +66,13 @@ public class RecommendationServiceImpl implements RecommendationService {
       log.warn("[Fail Searching Recommendation] Weather Not Found, ID: {}", weatherId);
       return new WeatherNotFoundException();
     });
+    log.debug("[Recommendation] User: {}, Weather: {}", user.getId(), weather.getId());
 
     List<Cloth> clothes = clothRepository.findAllWithAttributesByUserId(user.getId());
 
     //날씨에 적당한 옷 타입마다 필터링하기
     List<Cloth> filtered = filterCloth(user, weather, clothes);
+    log.info("[Recommendation] Filter Cloth Completed");
 
     // 타입별로 필터링된 옷을 그룹화
     Map<ClothType, List<Cloth>> groupedFilteredClothes = filtered.stream()
@@ -110,6 +113,8 @@ public class RecommendationServiceImpl implements RecommendationService {
           return recommendClothesMapper.toDto(cloth, imageUrl);
         })
         .toList();
+
+    log.info("[Recommendation] Recommendation Completed");
     return RecommendationDto.builder()
         .weatherId(weatherId)
         .userId(user.getId())
@@ -130,6 +135,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     WindSpeedType windSpeedType = weather.getWindSpeed().getSpeedAsWord();
 
     //옷 필터링
+    log.info("[Recommendation] filterCloth start");
     return cloths.stream()
         .filter(c -> isSuitable(c, adjusted))
         .toList();
