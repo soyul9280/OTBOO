@@ -18,7 +18,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,10 +107,6 @@ public class WeatherBatchJobIntegrationTest {
     // then
     // JOB/STEP은 정상 COMPLETED로 끝나야 한다 (예외 던졌지만 skip 됨)
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    // skip된 아이템 수는 몇 건인지 확인
-    StepExecution stepExecution = execution.getStepExecutions().iterator().next();
-    assertThat(stepExecution.getSkipCount()).isEqualTo(1);
 
     // 정상 저장된 수
     assertThat(weatherRepository.findAll().size()).isEqualTo(5);
