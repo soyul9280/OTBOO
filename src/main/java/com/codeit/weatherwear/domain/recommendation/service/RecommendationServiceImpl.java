@@ -73,9 +73,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     //체감온도 계산
     double apparent = calculateApparentTemperature(weather);
 
-    //민감도 보정( 사용자 민감도 가져오기, 없다면 기본값 2 )
-    int sensitivity = Optional.ofNullable(user.getTemperatureSensitivity()).orElse(2);
-    double adjusted = apparent + (sensitivity - 2) * 2;
+    //민감도 보정( 사용자 민감도 가져오기, 없다면 기본값 3 )
+    int sensitivity = Optional.ofNullable(user.getTemperatureSensitivity()).orElse(3);
+    double adjusted = apparent + (sensitivity - 3) * 2;
 
     //날씨 조건 추출
     double rainProb = weather.getPrecipitation().getProbability();
