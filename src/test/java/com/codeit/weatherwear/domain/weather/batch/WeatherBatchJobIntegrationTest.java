@@ -89,7 +89,6 @@ public class WeatherBatchJobIntegrationTest {
 
     // then
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    log.info("count success: {}", weatherRepository.findAll().size());
     assertThat(weatherRepository.findAll()).isNotEmpty();
   }
 
@@ -112,7 +111,6 @@ public class WeatherBatchJobIntegrationTest {
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
     // 정상 저장된 수
-    log.info("count success - skip: {}", weatherRepository.findAll().size());
     assertThat(weatherRepository.findAll().size()).isEqualTo(5);
   }
 }

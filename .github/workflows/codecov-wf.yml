@@ -3,6 +3,10 @@ name: Codecov
 on:
   pull_request:
 
+env:
+  WEATHER_INFO_API_URL: ${{ secrets.WEATHER_INFO_API_URL }}
+  WEATHER_INFO_SERVICE_KEY: ${{ secrets.WEATHER_INFO_SERVICE_KEY }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
