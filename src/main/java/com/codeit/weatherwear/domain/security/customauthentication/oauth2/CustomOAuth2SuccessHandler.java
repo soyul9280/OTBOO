@@ -39,6 +39,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     refreshTokenCookie.setSecure(false);
     refreshTokenCookie.setPath("/");
     refreshTokenCookie.setMaxAge(30 * 24 * 60 * 60); // 30일
+    refreshTokenCookie.setAttribute("SameSite", "Lax");
     response.addCookie(refreshTokenCookie);
 
     getRedirectStrategy().sendRedirect(request, response, "/#/recommendation");

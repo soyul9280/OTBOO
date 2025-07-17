@@ -52,9 +52,10 @@ public enum ErrorCode {
       "단기 예보 JSON 파싱 중 오류가 발생하여 실패하였습니다."),
   WEATHER_NOT_FOUND(HttpStatus.NOT_FOUND, "날씨 확인 실패", "존재하지 않는 날씨입니다."),
 
-  // JWT
+  // SECURITY
   JWTSESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "인증 정보 확인 실패", "토큰이 만료되거나 로그아웃되었습니다."),
   INVALID_JWT(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT", "JWT 토큰이 손상되었거나 유효하지 않습니다."),
+  ACCOUNT_LOCKED(HttpStatus.UNAUTHORIZED, "잠금 계정", "계정이 잠겨있어 로그인이 불가능합니다."),
 
   //ATTRIBUTE
   ATTRIBUTE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "속성 등록 실패", "속성이 이미 존재합니다."),

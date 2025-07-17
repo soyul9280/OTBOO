@@ -50,13 +50,13 @@ public class AuthServiceImpl implements AuthService {
   // 임시 비밀번호 생성
   // 8자리, 영문, 숫자
   private String generateTempPassword() {
-    StringBuffer stringBuffer = new StringBuffer();
+    StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < 8; i++) {
       // 무작위 인덱스 반환
       int index = secureRandom.nextInt(CHARS.length());
-      stringBuffer.append(CHARS.charAt(index));
+      stringBuilder.append(CHARS.charAt(index));
     }
-    return stringBuffer.toString();
+    return stringBuilder.toString();
   }
 
 
