@@ -3,6 +3,7 @@ package com.codeit.weatherwear.domain.security.service;
 import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.dto.TokenRotationResult;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
+import com.codeit.weatherwear.domain.security.exception.AccountLockedException;
 import com.codeit.weatherwear.domain.security.exception.InvalidJwtException;
 import com.codeit.weatherwear.domain.security.exception.JwtSessionNotFoundException;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
@@ -113,9 +114,9 @@ public class JwtSessionService {
 
       return true;
     } catch (ExpiredJwtException e) {
-      log.warn("JWT expired: {}", e.getMessage());
+      log.debug("JWT expired: {}", e.getMessage());
     } catch (JwtException e) {
-      log.warn("JWT validation failed: {}", e.getMessage());
+      log.debug("JWT validation failed: {}", e.getMessage());
     }
     return false;
   }
@@ -150,7 +151,7 @@ public class JwtSessionService {
       String userId = claims.get("userId", String.class);
       return UUID.fromString(userId);
     } catch (JwtException e) {
-      log.error("Failed to extract user ID from token", e);
+      log.debug("Failed to extract user ID from token", e);
       throw new InvalidJwtException();
     } catch (IllegalArgumentException e) {
       log.error("Invalid UUID format in token subject", e);
@@ -166,7 +167,7 @@ public class JwtSessionService {
           // TODO: 블랙리스트 추가
           jwtSessionRepository.delete(jwtSession);
         },
-        () -> log.info("No active JwtSession found for refreshToken: {}", refreshToken)
+        () -> log.debug("No active JwtSession found for refreshToken: {}", refreshToken)
     );
   }
 
@@ -178,7 +179,7 @@ public class JwtSessionService {
           // TODO: 블랙리스트 추가
           jwtSessionRepository.delete(jwtSession);
         },
-        () -> log.info("No active JwtSession found for userId: {}", userId)
+        () -> log.debug("No active JwtSession found for userId: {}", userId)
     );
   }
 
@@ -193,6 +194,12 @@ public class JwtSessionService {
 
     User user = userRepository.findById(jwtSession.getUserId())
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+    // 잠금 계정이면 로그인 방지 -> 토큰 재발급 실패
+    if (user.isLocked()) {
+      invalidateToken(refreshToken);
+      throw new AccountLockedException(user.getId());
+    }
 
     Instant now = clock.instant();
     Instant newAccessTokenExpirationTime = now.plusSeconds(
@@ -211,7 +218,6 @@ public class JwtSessionService {
 
   // 리프레시 토큰으로 액세스 토큰 조회
   public String findAccessToken(String refreshToken) {
-    log.info("리프레시 토큰으로 액세스 토큰 찾기");
     JwtSession jwtSession = jwtSessionRepository.findByRefreshToken(refreshToken)
         .orElseThrow(() -> new JwtSessionNotFoundException());
     return jwtSession.getAccessToken();
