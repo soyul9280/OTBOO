@@ -57,6 +57,8 @@ public class WeatherBatchJobIntegrationTest {
   static void registerProperties(DynamicPropertyRegistry registry) {
     registry.add("weather.api-url", () -> System.getenv("WEATHER_INFO_API_URL"));
     registry.add("weather.api-service-key", () -> System.getenv("WEATHER_INFO_SERVICE_KEY"));
+    registry.add("location.api-url", () -> System.getenv("LOCATION_API_URL"));
+    registry.add("location.api-key", () -> System.getenv("LOCATION_API_KEY"));
   }
 
   @BeforeEach

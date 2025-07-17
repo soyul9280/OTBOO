@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.repository.LocationRepository;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
-import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
 import com.codeit.weatherwear.global.config.TestContainerConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.mockito.Mock;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.test.JobLauncherTestUtils;
@@ -41,9 +39,6 @@ public class BatchJobReaderExceptionTest {
 
   @Autowired
   private Job weatherFetchJob;
-
-  @Mock
-  private WeatherFetchService weatherFetchService;
 
   private double latitude, longitude;
   private int nx, ny;

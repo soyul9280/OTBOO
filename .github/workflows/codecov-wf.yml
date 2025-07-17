@@ -6,6 +6,8 @@ on:
 env:
   WEATHER_INFO_API_URL: ${{ secrets.WEATHER_INFO_API_URL }}
   WEATHER_INFO_SERVICE_KEY: ${{ secrets.WEATHER_INFO_SERVICE_KEY }}
+  LOCATION_API_URL: ${{ secrets.LOCATION_API_URL }}
+  LOCATION_API_KEY: ${{ secrets.LOCATION_API_KEY }}
 
 jobs:
   build:
