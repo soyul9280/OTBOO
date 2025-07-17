@@ -43,6 +43,15 @@ public class JwtSessionService {
     ACCESS, REFRESH
   }
 
+  public class JwtClaimNames {
+
+    public static final String TYPE = "type";
+    public static final String USER_ID = "userId";
+    public static final String NAME = "name";
+    public static final String ROLE = "role";
+    public static final String EMAIL = "email";
+  }
+
   @Transactional
   public JwtSession createJwtSession(UUID userId) {
     Instant now = clock.instant();
@@ -82,11 +91,11 @@ public class JwtSessionService {
         .subject(user.getEmail())
         .issuedAt(Date.from(now))
         .expiration(Date.from(expirationTime))
-        .claim("type", tokenType.name())
-        .claim("userId", user.getId().toString())
-        .claim("name", user.getName())
-        .claim("role", user.getRole().name())
-        .claim("email", user.getEmail());
+        .claim(JwtClaimNames.TYPE, tokenType.name())
+        .claim(JwtClaimNames.USER_ID, user.getId().toString())
+        .claim(JwtClaimNames.NAME, user.getName())
+        .claim(JwtClaimNames.ROLE, user.getRole().name())
+        .claim(JwtClaimNames.EMAIL, user.getEmail());
 
     return builder
         .signWith(getSigningKey(), SIG.HS256)
