@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.global.config.JpaConfig;
+import com.codeit.weatherwear.global.config.TestContainerConfig;
 import com.codeit.weatherwear.global.request.SortDirection;
 import java.util.List;
 
@@ -21,7 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({JpaConfig.class})
+@Import({JpaConfig.class, TestContainerConfig.class})
 class AttributeRepositoryTest {
 
   @Autowired
