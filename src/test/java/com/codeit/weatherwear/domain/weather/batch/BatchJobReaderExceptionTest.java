@@ -50,7 +50,7 @@ public class BatchJobReaderExceptionTest {
   private Location location;
 
   @BeforeEach
-  void setUp(@Autowired Job weatherFetchJob) {
+  void setUp() {
     // 데이터 독립성 유지를 위함
     weatherRepository.deleteAll();
     locationRepository.deleteAll();

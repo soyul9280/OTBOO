@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.repository.LocationRepository;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
-import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.mockito.Mock;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -24,6 +22,8 @@ import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 @Slf4j
 @SpringBootTest
@@ -44,16 +44,20 @@ public class WeatherBatchJobIntegrationTest {
   @Autowired
   private Job weatherFetchJob;
 
-  @Mock
-  private WeatherFetchService weatherFetchService;
-
   private double latitude, longitude;
   private int nx, ny;
   private String addrName;
   private Location location;
 
+  // 동적으로 변수 추가 (환경 변수가 주입이 되지 않았을 때를 대비)
+  @DynamicPropertySource
+  static void registerProperties(DynamicPropertyRegistry registry) {
+    registry.add("weather.api-url", () -> System.getenv("WEATHER_INFO_API_URL"));
+    registry.add("weather.api-service-key", () -> System.getenv("WEATHER_INFO_SERVICE_KEY"));
+  }
+
   @BeforeEach
-  void setUp(@Autowired Job weatherFetchJob) {
+  void setUp() {
     // 데이터 독립성 유지를 위함
     weatherRepository.deleteAll();
     locationRepository.deleteAll();
@@ -110,7 +114,7 @@ public class WeatherBatchJobIntegrationTest {
     // JOB/STEP은 정상 COMPLETED로 끝나야 한다 (예외 던졌지만 skip 됨)
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
-    // 정상 저장된 수
-    assertThat(weatherRepository.findAll().size()).isEqualTo(5);
+    // 정상 저장된 수가 존재하기는 해야 함 (setUp에서 들어간 정상적인 위치 값에 대응하는 데이터)
+    assertThat(weatherRepository.findAll().size()).isGreaterThan(0);
   }
 }

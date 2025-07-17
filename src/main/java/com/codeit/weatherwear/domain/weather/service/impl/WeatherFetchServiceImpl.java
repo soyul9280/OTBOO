@@ -117,7 +117,7 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
     LocalTime localTime = LocalDateTime.ofInstant(base, KST).toLocalTime();
 
     // 현재 시각 이전(baseTime ≤ 현재시간) 중 가장 가까운 baseTime 을 찾아 "HHmm" 형식으로 반환
-    // 단, 없을 경우 기본값 "2300" 반환
+    // 단, 없을 경우 기본값 "0200" 반환
     return ALLOWED_BASE_TIME.stream()
         .map(t -> LocalTime.parse(t, TIME_FORMATTER))
         // 현재보다 이전/같은 시간만 필터링
@@ -127,7 +127,7 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
             t -> Math.abs((int) Duration.between(localTime, t).toMinutes())))
         .map(t -> t.format(DateTimeFormatter.ofPattern("HHmm")))
         // 아무것도 없으면 기본 값 제공
-        .orElse("2300");
+        .orElse("0200");
   }
 
 }
