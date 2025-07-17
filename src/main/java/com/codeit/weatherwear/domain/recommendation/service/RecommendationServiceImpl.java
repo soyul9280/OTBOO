@@ -4,13 +4,11 @@ package com.codeit.weatherwear.domain.recommendation.service;
 import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
-import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeType;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
-import com.codeit.weatherwear.domain.recommendation.attributeCategory.ThickNess;
-import com.codeit.weatherwear.domain.recommendation.attributeCategory.WaterProof;
+import com.codeit.weatherwear.domain.recommendation.attributeCategory.Thickness;
 import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
@@ -20,6 +18,10 @@ import com.codeit.weatherwear.domain.weather.entity.WindSpeedType;
 import com.codeit.weatherwear.domain.weather.exception.WeatherNotFoundException;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -116,11 +118,8 @@ public class RecommendationServiceImpl implements RecommendationService {
   }
 
   private List<Cloth> filterCloth(User user, Weather weather, List<Cloth> cloths) {
-    //체감온도 계산 t:온도 v:풍속
-    double t = weather.getTemperature().getCurrent();
-    double v = weather.getWindSpeed().getSpeed();
-    double apparent =
-        13.12 + 0.6215 * t - 11.37 * Math.pow(v, 0.16) + 0.3965 * Math.pow(v, 0.16) * t;
+    //체감온도 계산
+    double apparent = calculateApparentTemperature(weather);
 
     //민감도 보정( 사용자 민감도 가져오기, 없다면 기본값 2 )
     int sensitivity = Optional.ofNullable(user.getTemperatureSensitivity()).orElse(2);
@@ -132,88 +131,101 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     //옷 필터링
     return cloths.stream()
-        .filter(c -> isSuitable(c, adjusted, rainProb, windSpeedType))
+        .filter(c -> isSuitable(c, adjusted))
         .toList();
   }
 
-  private boolean isSuitable(Cloth cloth, double temp, double rainProb,
-      WindSpeedType windSpeedType) {
-    // 옷의 속성 리스트를 가져와 Map 형태로 변환하여 쉽게 접근
-    List<ClothWithAttributes> clothesWithAttributes = cloth.getClothesWithAttributes();
-    Map<String, String> attributeMap = clothesWithAttributes.stream()
-        .collect(Collectors.toMap(
-            attr -> attr.getAttribute().getName().toLowerCase(), // 속성 정의 이름
-            attr -> attr.getValue().toLowerCase()// 속성 값
-        ));
+  /**
+   * 계절별 체감온도를 계산합니다. ta: 기온(°C) rh: 상대습도(%) v : 풍속(km/h), tw: 습구온도
+   * <p>
+   * 여름 (5월 ~ 9월) 겨울 (10월 ~ 다음해 4월)
+   * <p>
+   * v는 겨울철에만 사용합니다.(km/h로 변환)
+   *
+   * @param weather
+   * @return
+   */
+  private double calculateApparentTemperature(Weather weather) {
+    Instant forecastAt = weather.getForecastAt();
+    Month month = LocalDateTime.ofInstant(forecastAt, ZoneId.systemDefault()).getMonth();
+    double ta = weather.getTemperature().getCurrent();
+    double rh = weather.getHumidity().getCurrent();
+    double v = weather.getWindSpeed().getSpeed();
 
-    String thickness = attributeMap.get(AttributeType.THICKNESS.getKey());
-    String season = attributeMap.get(AttributeType.SEASON.getKey());
-    String waterproof = attributeMap.get(AttributeType.WATERPROOF.getKey());
-
-    Optional<Season> seasonOption = Season.from(season);
-    if (seasonOption.isPresent()) {
-      switch (seasonOption.get()) {
-        case SPRING:
-          if (temp < 5 || temp > 20) {
-            return false;
-          }
-          break;
-        case SUMMER:
-          if (temp < 20) {
-            return false;
-          }
-          break;
-        case FALL:
-          if (temp < 10 || temp > 25) {
-            return false;
-          }
-          break;
-        case WINTER:
-          if (temp > 10) {
-            return false;
-          }
-          break;
-      }
+    //여름철
+    if (isSummerMonth(month)) {
+      double tw = calculateWetBulbTemperature(ta, rh);
+      return -0.2442 + 0.55399 * tw + 0.45535 * ta
+          - 0.0022 * tw * tw + 0.00278 * tw * ta + 3.0;
     }
 
-    Optional<ThickNess> thickOption = ThickNess.from(thickness);
-    if (thickOption.isPresent()) {
-      switch (thickOption.get()) {
-        case VERY_THICK:
-          if (temp > 5) {
-            return false; // 5도 초과면 아주 두꺼운 옷은 부적합
-          }
-          break;
-        case THICK:
-          if (temp > 12 || temp < 0) {
-            return false; // 0~12도 범위
-          }
-          break;
-        case THICK_NESS:
-          if (temp < 15 || temp > 25) {
-            return false; // 15~25도 범위
-          }
-          break;
-        case VERY_THICK_NESS:
-          if (temp < 20) {
-            return false; // 20도 미만이면 아주 얇은 옷은 부적합
-          }
-          break;
-      }
+    //겨울철 만족하기 위한 조건
+    if (ta <= 10 && v >= 1.3) {
+      double vk = v * 3.6; // 풍속 m/s → km/h
+      return 13.12 + 0.6215 * ta - 11.37 * Math.pow(vk, 0.16)
+          + 0.3965 * Math.pow(vk, 0.16) * ta;
     }
 
-    // 3. 강수 확률 필터링: 비 올 확률이 50% 이상인데 방수 속성이 없으면 부적합
-    Optional<WaterProof> waterProofOption = WaterProof.from(waterproof);
-    if (waterProofOption.isPresent()) {
-      switch (waterProofOption.get()) {
-        case NOT_POSSIBLE:
-          if (rainProb > 50) {
-            return false;
-          }
-      }
-    }
-    return true;
+    return ta;
   }
+
+  //여름철인지 확인
+  private boolean isSummerMonth(Month month) {
+    return month.getValue() >= 5 && month.getValue() <= 9;
+  }
+
+  //습구온도 계산
+  private double calculateWetBulbTemperature(double ta, double rh) {
+    return ta * Math.atan(0.151977 * Math.sqrt(rh + 8.313659))
+        + Math.atan(ta + rh)
+        - Math.atan(rh - 1.67633)
+        + 0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh)
+        - 4.686035;
+  }
+
+  private boolean isSuitable(Cloth cloth, double temp) {
+    // 옷의 속성 리스트를 가져와 Map 형태로 변환하여 쉽게 접근
+    Map<String, String> attributeMap = toAttributeMap(cloth);
+
+    //체감온도에 따른 계절, 두께 조건 적용
+    return matchSeasonConstraint(attributeMap.get(AttributeType.SEASON.getKey()), temp)
+        && matchThicknessConstraint(attributeMap.get(AttributeType.THICKNESS.getKey()), temp);
+  }
+
+  private Map<String, String> toAttributeMap(Cloth cloth) {
+    return cloth.getClothesWithAttributes().stream()
+        .collect(Collectors.toMap(
+            attr -> attr.getAttribute().getName().toLowerCase(),
+            attr -> attr.getValue().toLowerCase()
+        ));
+  }
+
+  private boolean matchSeasonConstraint(String seasonAttr, double temp) {
+    return Season.from(seasonAttr)
+        .map(season -> {
+          return switch (season) {
+            case SPRING -> temp >= 5 && temp <= 20;
+            case SUMMER -> temp >= 20;
+            case FALL -> temp >= 10 && temp <= 25;
+            case WINTER -> temp <= 10;
+          };
+        })
+        .orElse(true); // season 속성이 없으면 통과
+  }
+
+  private boolean matchThicknessConstraint(String thicknessAttr, double temp) {
+    return Thickness.from(thicknessAttr)
+        .map(thickness -> {
+          return switch (thickness) {
+            case VERY_THICK -> temp <= 5;
+            case THICK -> temp >= 0 && temp <= 12;
+            case LIGHT -> temp >= 15 && temp <= 25;
+            case VERY_LIGHT -> temp >= 20;
+          };
+        })
+        .orElse(true); // 두께 속성이 없으면 통과
+  }
+
 
   private Optional<Cloth> getRandomCloth(List<Cloth> clothes, boolean allowSkip) {
     if (clothes == null || clothes.isEmpty()) {
