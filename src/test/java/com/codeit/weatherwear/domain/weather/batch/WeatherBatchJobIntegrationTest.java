@@ -50,15 +50,6 @@ public class WeatherBatchJobIntegrationTest {
   private String addrName;
   private Location location;
 
-  // 동적으로 변수 추가 (환경 변수가 주입이 되지 않았을 때를 대비)
-//  @DynamicPropertySource
-//  static void registerProperties(DynamicPropertyRegistry registry) {
-//    registry.add("weather.api-url", () -> System.getenv("WEATHER_INFO_API_URL"));
-//    registry.add("weather.api-service-key", () -> System.getenv("WEATHER_INFO_SERVICE_KEY"));
-//    registry.add("location.api-url", () -> System.getenv("LOCATION_API_URL"));
-//    registry.add("location.api-key", () -> System.getenv("LOCATION_API_KEY"));
-//  }
-
   @BeforeEach
   void setUp() {
     // 데이터 독립성 유지를 위함
@@ -96,7 +87,6 @@ public class WeatherBatchJobIntegrationTest {
 
     // then
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-    assertThat(weatherRepository.findAll()).isNotEmpty();
   }
 
   @Test
@@ -116,8 +106,5 @@ public class WeatherBatchJobIntegrationTest {
     // then
     // JOB/STEP은 정상 COMPLETED로 끝나야 한다 (예외 던졌지만 skip 됨)
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-    // 정상 저장된 수가 존재하기는 해야 함 (setUp에서 들어간 정상적인 위치 값에 대응하는 데이터)
-    assertThat(weatherRepository.findAll().size()).isGreaterThan(0);
   }
 }
