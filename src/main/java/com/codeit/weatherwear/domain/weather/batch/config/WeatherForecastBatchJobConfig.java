@@ -46,7 +46,7 @@ public class WeatherForecastBatchJobConfig {
       WeatherSkipListener weatherSkipListener) {
     // 한 Step(청크) 마다 트랜잭션 적용
     return new StepBuilder("weatherFetchStep", jobRepository)
-        .<Location, List<Weather>>chunk(weatherBatchProperties.getChunkSize(), transactionManager)
+        .<Location, List<Weather>>chunk(weatherBatchProperties.chunkSize(), transactionManager)
         .reader(weatherItemReader.locationReader())
         .processor(weatherItemProcessor.locationWeatherProcessor())
         .writer(weatherItemWriter.weatherWriter())

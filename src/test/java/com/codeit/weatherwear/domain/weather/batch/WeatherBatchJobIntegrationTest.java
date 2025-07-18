@@ -24,8 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
 @Slf4j
 @SpringBootTest
@@ -53,13 +51,13 @@ public class WeatherBatchJobIntegrationTest {
   private Location location;
 
   // 동적으로 변수 추가 (환경 변수가 주입이 되지 않았을 때를 대비)
-  @DynamicPropertySource
-  static void registerProperties(DynamicPropertyRegistry registry) {
-    registry.add("weather.api-url", () -> System.getenv("WEATHER_INFO_API_URL"));
-    registry.add("weather.api-service-key", () -> System.getenv("WEATHER_INFO_SERVICE_KEY"));
-    registry.add("location.api-url", () -> System.getenv("LOCATION_API_URL"));
-    registry.add("location.api-key", () -> System.getenv("LOCATION_API_KEY"));
-  }
+//  @DynamicPropertySource
+//  static void registerProperties(DynamicPropertyRegistry registry) {
+//    registry.add("weather.api-url", () -> System.getenv("WEATHER_INFO_API_URL"));
+//    registry.add("weather.api-service-key", () -> System.getenv("WEATHER_INFO_SERVICE_KEY"));
+//    registry.add("location.api-url", () -> System.getenv("LOCATION_API_URL"));
+//    registry.add("location.api-key", () -> System.getenv("LOCATION_API_KEY"));
+//  }
 
   @BeforeEach
   void setUp() {

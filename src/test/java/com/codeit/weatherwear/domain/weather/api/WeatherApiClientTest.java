@@ -57,8 +57,8 @@ class WeatherApiClientTest {
 
     String responseBody = getResponseJson();
 
-    given(apiProperties.getApiUrl()).willReturn("http://test.api");
-    given(apiProperties.getApiServiceKey()).willReturn("mock-test-service-key");
+    given(apiProperties.apiUrl()).willReturn("http://test.api");
+    given(apiProperties.apiServiceKey()).willReturn("mock-test-service-key");
     given(httpClient.send(any(HttpRequest.class),
         eq(HttpResponse.BodyHandlers.ofString()))).willReturn(httpResponse);
     given(httpResponse.body()).willReturn(responseBody);
@@ -77,8 +77,8 @@ class WeatherApiClientTest {
     // given
     String errorResponse = getErrorResponseBodyJson();
 
-    given(apiProperties.getApiUrl()).willReturn("http://test.api");
-    given(apiProperties.getApiServiceKey()).willReturn("mock-test-service-key");
+    given(apiProperties.apiUrl()).willReturn("http://test.api");
+    given(apiProperties.apiServiceKey()).willReturn("mock-test-service-key");
     given(httpClient.send(any(HttpRequest.class),
         eq(HttpResponse.BodyHandlers.ofString()))).willReturn(httpResponse);
     given(httpResponse.body()).willReturn(errorResponse); // 응답 코드: 10 (00이 아님)
@@ -93,8 +93,8 @@ class WeatherApiClientTest {
   @DisplayName("네트워크 등의 이유로 API 요청 도중 예외가 발생한다")
   void fetchWeatherData_failed_request_error() throws IOException, InterruptedException {
     // given
-    given(apiProperties.getApiUrl()).willReturn("http://test.api");
-    given(apiProperties.getApiServiceKey()).willReturn("mock-test-service-key");
+    given(apiProperties.apiUrl()).willReturn("http://test.api");
+    given(apiProperties.apiServiceKey()).willReturn("mock-test-service-key");
     given(httpClient.send(any(HttpRequest.class), any())).willThrow(new InterruptedException());
 
     // when & then

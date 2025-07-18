@@ -46,7 +46,7 @@ public class WeatherApiClient {
     // 요청 URL 세팅
     String requestUrl = String.format(
         "%s?serviceKey=%s&numOfRows=%d&dataType=%s&base_date=%s&base_time=%s&nx=%d&ny=%d",
-        apiProperties.getApiUrl(), apiProperties.getApiServiceKey(),
+        apiProperties.apiUrl(), apiProperties.apiServiceKey(),
         REQUEST_PARAM_NUM_OF_ROWS, REQUEST_PARAM_DATA_TYPE, baseDate, baseTime, nx, ny
     );
 
