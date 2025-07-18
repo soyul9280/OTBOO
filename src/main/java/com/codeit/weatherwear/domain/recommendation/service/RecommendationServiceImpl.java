@@ -158,9 +158,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         .map(season -> {
           return switch (season) {
             case SPRING -> temp >= 5 && temp <= 20;
-            case SUMMER -> temp >= 20;
+            case SUMMER -> temp > 20;
             case FALL -> temp >= 10 && temp <= 25;
-            case WINTER -> temp <= 10;
+            case WINTER -> temp < 10;
           };
         })
         .orElse(true); // season 속성이 없으면 통과
@@ -170,10 +170,10 @@ public class RecommendationServiceImpl implements RecommendationService {
     return Thickness.from(thicknessAttr)
         .map(thickness -> {
           return switch (thickness) {
-            case VERY_THICK -> temp <= 5;
-            case THICK -> temp >= 0 && temp <= 12;
-            case LIGHT -> temp >= 15 && temp <= 25;
-            case VERY_LIGHT -> temp >= 20;
+            case VERY_THICK -> temp <= 0;
+            case THICK -> temp > 0 && temp <= 12;
+            case LIGHT -> temp > 12 && temp <= 20;
+            case VERY_LIGHT -> temp > 20;
           };
         })
         .orElse(true); // 두께 속성이 없으면 통과
