@@ -5,7 +5,7 @@ import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeType;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Thickness;
-import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
+import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;

@@ -141,8 +141,6 @@ dependencies {
     // thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
-    //Gemini
-    implementation("com.google.genai:google-genai:1.8.0")
 }
 
 tasks.named('test') {
