@@ -54,7 +54,9 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
-
+  batch:
+    job:
+      enabled: false    # 수동 실행만 진행
 
 server:
   shutdown: graceful
@@ -63,6 +65,8 @@ server:
 weather:
   api-url: ${WEATHER_INFO_API_URL}
   api-service-key: ${WEATHER_INFO_SERVICE_KEY}
+  batch:
+    chunk-size: 50
 
 location:
   api-url: ${LOCATION_API_URL}

@@ -29,6 +29,10 @@ spring:
   transaction:
     default-timeout: 30
 
+  batch:
+    jdbc:
+      initialize-schema: always   # Batch 테이블 자동 생성
+
 # logging
 logging:
   level:
