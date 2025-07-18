@@ -19,7 +19,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Jwts.SIG;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
@@ -38,7 +37,6 @@ public class JwtSessionService {
   private final JwtSessionRepository jwtSessionRepository;
   private final JwtProperties jwtProperties;
   private final JwtBlacklist jwtBlacklist;
-  private final Clock clock;
   private SecretKey signingKey;
   private final UserRepository userRepository;
 
@@ -46,7 +44,7 @@ public class JwtSessionService {
     ACCESS, REFRESH
   }
 
-  public class JwtClaimNames {
+  public static class JwtClaimNames {
 
     public static final String TYPE = "type";
     public static final String USER_ID = "userId";
@@ -57,7 +55,7 @@ public class JwtSessionService {
 
   @Transactional
   public JwtSession createJwtSession(UUID userId) {
-    Instant now = clock.instant();
+    Instant now = Instant.now();
     Instant accessTokenExpirationTime = now.plusSeconds(
         jwtProperties.getAccessToken().getValiditySeconds());
     Instant refreshTokenExpirationTime = now.plusSeconds(
@@ -84,7 +82,7 @@ public class JwtSessionService {
 
   // 토큰 생성
   private String createTokenWithClaims(User user, TokenType tokenType, Instant expirationTime) {
-    Instant now = clock.instant();
+    Instant now = Instant.now();
 
     JwtBuilder builder = Jwts.builder()
         .header()
@@ -136,7 +134,7 @@ public class JwtSessionService {
 
 
   // 서명키 생성
-  private SecretKey getSigningKey() {
+  public SecretKey getSigningKey() {
     if (this.signingKey == null) {
 
       byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
@@ -214,7 +212,7 @@ public class JwtSessionService {
       throw new AccountLockedException(user.getId());
     }
 
-    Instant now = clock.instant();
+    Instant now = Instant.now();
     Instant newAccessTokenExpirationTime = now.plusSeconds(
         jwtProperties.getAccessToken().getValiditySeconds());
     Instant newRefreshTokenExpirationTime = now.plusSeconds(
