@@ -1,17 +1,11 @@
 package com.codeit.weatherwear;
 
-import com.codeit.weatherwear.domain.weather.batch.config.WeatherBatchProperties;
-import com.codeit.weatherwear.global.properties.LocationApiProperties;
-import com.codeit.weatherwear.global.properties.WeatherApiProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
-//
-@EnableConfigurationProperties({
-    LocationApiProperties.class, WeatherApiProperties.class, WeatherBatchProperties.class
-})
+@ConfigurationPropertiesScan
 public class WeatherwearApplication {
 
   public static void main(String[] args) {
