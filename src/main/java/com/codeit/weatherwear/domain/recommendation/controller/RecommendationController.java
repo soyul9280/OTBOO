@@ -1,6 +1,6 @@
 package com.codeit.weatherwear.domain.recommendation.controller;
 
-import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
+import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
 import com.codeit.weatherwear.domain.recommendation.service.RecommendationService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/recommendations")
-public class RecommendationController implements RecommendationApi{
+public class RecommendationController implements RecommendationApi {
 
   private final RecommendationService recommendationService;
 

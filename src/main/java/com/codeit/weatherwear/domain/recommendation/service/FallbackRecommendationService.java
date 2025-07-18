@@ -4,7 +4,7 @@ import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
-import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
+import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;

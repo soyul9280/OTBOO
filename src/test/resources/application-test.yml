@@ -47,3 +47,7 @@ weatherwear:
 
 sse:
   timeout: 1000
+
+gemini:
+  api:
+    key: asd
