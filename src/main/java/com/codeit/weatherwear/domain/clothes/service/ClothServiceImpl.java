@@ -80,7 +80,7 @@ public class ClothServiceImpl implements ClothService {
 
     //이름 중복 방지
     if (clothRepository.existsByName(request.name())) {
-      throw new RuntimeException("이미 존재하는 이름읍니다.");
+      throw new RuntimeException("이미 존재하는 이름입니다.");
     }
 
     // 썸네일 S3 업로드
