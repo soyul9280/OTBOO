@@ -51,8 +51,8 @@ class LocationApiClientTest {
     String response = getResponseJson();
     List<String> addrList = getAddrList();
 
-    given(apiProperties.getApiUrl()).willReturn("http://test.api");
-    given(apiProperties.getApiKey()).willReturn("mock-test-service-key");
+    given(apiProperties.apiUrl()).willReturn("http://test.api");
+    given(apiProperties.apiKey()).willReturn("mock-test-service-key");
     given(httpClient.send(any(HttpRequest.class),
         eq(HttpResponse.BodyHandlers.ofString()))).willReturn(httpResponse);
     given(locationApiParser.parse(response)).willReturn(addrList);
@@ -76,8 +76,8 @@ class LocationApiClientTest {
     double latitude = 37.5759;
     double longitude = 126.9768;
 
-    given(apiProperties.getApiUrl()).willReturn("http://test.api");
-    given(apiProperties.getApiKey()).willReturn("mock-test-service-key");
+    given(apiProperties.apiUrl()).willReturn("http://test.api");
+    given(apiProperties.apiKey()).willReturn("mock-test-service-key");
     given(httpClient.send(any(HttpRequest.class),
         eq(HttpResponse.BodyHandlers.ofString()))).willReturn(httpResponse);
     given(httpResponse.statusCode()).willReturn(400);
@@ -95,8 +95,8 @@ class LocationApiClientTest {
     double latitude = 37.5759;
     double longitude = 126.9768;
 
-    given(apiProperties.getApiUrl()).willReturn("http://test.api");
-    given(apiProperties.getApiKey()).willReturn("mock-test-service-key");
+    given(apiProperties.apiUrl()).willReturn("http://test.api");
+    given(apiProperties.apiKey()).willReturn("mock-test-service-key");
     given(httpClient.send(any(HttpRequest.class),
         eq(HttpResponse.BodyHandlers.ofString()))).willThrow(new IOException("Network Error"));
 

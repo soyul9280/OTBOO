@@ -36,13 +36,13 @@ public class LocationApiClient {
   public List<String> getRegionNames(double latitude, double longitude) {
     // api 요청 URL 등록
     String requestUrl = String.format(
-        "%s?x=%f&y=%f&input_coord=%s", apiProperties.getApiUrl(), longitude, latitude, INPUT_COORD
+        "%s?x=%f&y=%f&input_coord=%s", apiProperties.apiUrl(), longitude, latitude, INPUT_COORD
     );
 
     // HTTP 요청 생성
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(requestUrl))
-        .header("Authorization", "KakaoAK " + apiProperties.getApiKey())
+        .header("Authorization", "KakaoAK " + apiProperties.apiKey())
         .GET()
         .build();
 

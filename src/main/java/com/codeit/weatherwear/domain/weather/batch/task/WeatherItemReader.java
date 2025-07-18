@@ -32,7 +32,7 @@ public class WeatherItemReader {
         .name("locationReader")
         .entityManagerFactory(emf)
         .queryString("SELECT l FROM Location l")  // todo: 추후 쿼리 로직 수정해야 함
-        .pageSize(weatherBatchProperties.getChunkSize())
+        .pageSize(weatherBatchProperties.chunkSize())
         .build();
   }
 
