@@ -33,7 +33,7 @@ public record GeminiResponse(
   public record UsageMetadata(
       int promptTokenCount,
       int candidatesTokenCount,
-      int totaltokenCount,
+      int totalTokenCount,
       List<PromptTokensDetail> promptTokensDetails,
       int thoughtsTokenCount
   ) {

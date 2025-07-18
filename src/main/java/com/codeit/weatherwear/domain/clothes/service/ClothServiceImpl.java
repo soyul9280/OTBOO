@@ -78,6 +78,11 @@ public class ClothServiceImpl implements ClothService {
           return new UserNotFoundException();
         });
 
+    //이름 중복 방지
+    if (clothRepository.existsByName(request.name())) {
+      throw new IllegalArgumentException("이미 존재하는 이름의 의상입니다.");
+    }
+
     // 썸네일 S3 업로드
     log.debug("[Start Uploading Thumbnail Image]");
     String thumbnailKey = (image != null && !image.isEmpty())
