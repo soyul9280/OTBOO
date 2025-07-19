@@ -1,6 +1,6 @@
 package com.codeit.weatherwear.domain.recommendation.controller;
 
-import com.codeit.weatherwear.domain.recommendation.dto.RecommendationDto;
+import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
 import com.codeit.weatherwear.global.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

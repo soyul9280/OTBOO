@@ -3,15 +3,15 @@ package com.codeit.weatherwear.domain.recommendation.attributeCategory;
 import java.util.Arrays;
 import java.util.Optional;
 
-public enum ThickNess {
+public enum Thickness {
   VERY_THICK("아주 두꺼움"),
   THICK("두꺼움"),
-  THICK_NESS("얇음"),
-  VERY_THICK_NESS("아주 얇음");
+  LIGHT("얇음"),
+  VERY_LIGHT("아주 얇음");
 
   private final String label;
 
-  ThickNess(String label) {
+  Thickness(String label) {
     this.label = label;
   }
 
@@ -19,9 +19,9 @@ public enum ThickNess {
     return label;
   }
 
-  public static Optional<ThickNess> from(String label) {
+  public static Optional<Thickness> from(String label) {
     return Arrays.stream(values())
-        .filter(thickNess -> thickNess.label.equalsIgnoreCase(label))
+        .filter(thickness -> thickness.label.equalsIgnoreCase(label))
         .findFirst();
   }
 }

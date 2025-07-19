@@ -56,12 +56,29 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
   @Transactional
   @Override
   public List<Weather> fetchAndStoreWeather(double latitude, double longitude) {
+    // 외부 API에서 데이터를 받아 변환 수행
+    List<Weather> weatherList = fetchWeather(latitude, longitude);
+
+    // 데이터 저장
+    weatherRepository.saveAll(weatherList);
+
+    // Weather 리스트 반환
+    return weatherList;
+  }
+
+  /**
+   * 외부 API (단기 예보 API) 에서 데이터를 받아 변환만 수행 (저장 X)
+   *
+   * @param latitude  위도
+   * @param longitude 경도
+   * @return 날씨 엔티티 리스트
+   */
+  public List<Weather> fetchWeather(double latitude, double longitude) {
     Instant now = Instant.now();
     String baseDate = getBaseDate(now);
     String baseTime = getBaseTime(now);
 
     ObjectMapper mapper = new ObjectMapper();
-
     // 위치 엔티티 조회, 존재하지 않을 시 생성
     Location location = locationService.findOrCreateByGeoPoint(latitude, longitude);
 
@@ -73,12 +90,8 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
     Map<String, Map<String, List<WeatherApiData>>> parsedWeatherApi = weatherApiParser.parse(mapper,
         responseBody);
 
-    // 파싱한 데이터를 Weather 엔티티에 맞게 변환 후 저장
-    List<Weather> weatherList = weatherConvertService.convert(parsedWeatherApi, location);
-    weatherRepository.saveAll(weatherList);
-
-    // Weather 리스트 반환
-    return weatherList;
+    // 파싱한 데이터를 Weather 엔티티에 맞게 변환
+    return weatherConvertService.convert(parsedWeatherApi, location);
   }
 
   /**
@@ -104,7 +117,7 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
     LocalTime localTime = LocalDateTime.ofInstant(base, KST).toLocalTime();
 
     // 현재 시각 이전(baseTime ≤ 현재시간) 중 가장 가까운 baseTime 을 찾아 "HHmm" 형식으로 반환
-    // 단, 없을 경우 기본값 "2300" 반환
+    // 단, 없을 경우 기본값 "0200" 반환
     return ALLOWED_BASE_TIME.stream()
         .map(t -> LocalTime.parse(t, TIME_FORMATTER))
         // 현재보다 이전/같은 시간만 필터링
@@ -114,7 +127,7 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
             t -> Math.abs((int) Duration.between(localTime, t).toMinutes())))
         .map(t -> t.format(DateTimeFormatter.ofPattern("HHmm")))
         // 아무것도 없으면 기본 값 제공
-        .orElse("2300");
+        .orElse("0200");
   }
 
 }
