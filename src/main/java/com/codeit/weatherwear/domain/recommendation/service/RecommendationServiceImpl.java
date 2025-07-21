@@ -1,28 +1,17 @@
 package com.codeit.weatherwear.domain.recommendation.service;
 
-import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
-import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeType;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Thickness;
 import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
-import com.codeit.weatherwear.domain.recommendation.external.GeminiApiClient;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
-import com.codeit.weatherwear.domain.weather.entity.Humidity;
-import com.codeit.weatherwear.domain.weather.entity.Precipitation;
-import com.codeit.weatherwear.domain.weather.entity.Temperature;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
-import com.codeit.weatherwear.domain.weather.entity.WindSpeed;
 import com.codeit.weatherwear.domain.weather.exception.WeatherNotFoundException;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
-import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -78,7 +67,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     log.info("[Recommendation] Filter Cloth Completed");
 
     try {
-      return aiRecommendationService.recommendByLLM(weather, user, filtered);
+      List<Cloth> filteredByAI = aiRecommendationService.recommendByLLM(weather, user, filtered);
+      log.info("[Recommendation] Filter AI Completed");
+      return fallbackService.recommend(filteredByAI, user, weather);
     } catch (Exception e) {
       log.info("[Recommendation] AI Failed", e);
       return fallbackService.recommend(filtered, user, weather);

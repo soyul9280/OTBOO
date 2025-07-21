@@ -31,28 +31,15 @@ public class AIRecommendationService {
   private final RecommendClothesMapper recommendClothesMapper;
   private final ThumbnailImageStorage thumbnailImageStorage;
 
-  public RecommendationDto recommendByLLM(Weather weather, User user, List<Cloth> filtered) {
+  public List<Cloth> recommendByLLM(Weather weather, User user, List<Cloth> filtered) {
     //Gemini 프롬포트 생성 + 응답
     String text = getText(weather, user, filtered);
     String response = geminiApiClient.getInfo(text);
     //응답 파싱
     List<String> filteredNameByLLM = getOptions(response);
-    List<Cloth> filteredClothes = clothRepository.findAllByNames(filteredNameByLLM);
-    // DTO 변환 + 썸네일 처리
-    List<RecommendClothesDto> recommendedClothes = filteredClothes.stream()
-        .map(cloth -> {
-          String imageUrl = cloth.getClothesImageUrl() != null
-              ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
-              : null;
-          return recommendClothesMapper.toDto(cloth, imageUrl);
-        })
-        .toList();
     log.info("[Recommendation] AI");
-    return RecommendationDto.builder()
-        .weatherId(weather.getId())
-        .userId(user.getId())
-        .clothes(List.copyOf(recommendedClothes))//불변성 보장
-        .build();
+
+    return clothRepository.findAllByNames(filteredNameByLLM);
   }
 
   private String getText(Weather weather, User user, List<Cloth> cloth) {
