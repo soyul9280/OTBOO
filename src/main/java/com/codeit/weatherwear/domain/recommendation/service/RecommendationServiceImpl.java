@@ -66,6 +66,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     List<Cloth> filtered = filterCloth(user, weather, clothes);
     log.info("[Recommendation] Filter Cloth By Thick & Season Completed");
 
+    if (!isWeatherReady(weather)) {
+      log.debug("Weather Not Fully Loaded");
+      return randomRecommendService.recommend(filtered, user, weather);
+    }
+
     try {
       List<Cloth> filteredByAI = aiRecommendationService.getRecommendationCandidates(weather, user,
           filtered);
@@ -183,4 +188,13 @@ public class RecommendationServiceImpl implements RecommendationService {
         })
         .orElse(true); // 두께 속성이 없으면 통과
   }
+
+  private boolean isWeatherReady(Weather weather) {
+    return weather.getSkyStatus() != null &&
+        weather.getTemperature() != null &&
+        weather.getHumidity() != null &&
+        weather.getWindSpeed() != null &&
+        weather.getPrecipitation() != null;
+  }
+
 }

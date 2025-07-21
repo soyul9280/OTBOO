@@ -69,7 +69,7 @@ class RecommendationServiceImplTest {
   private RecommendClothesMapper recommendClothesMapper;
 
   @Mock
-  private FallbackRecommendationService fallbackService;
+  private RandomRecommendService randomRecommendService;
 
   @InjectMocks
   private RecommendationServiceImpl sut;

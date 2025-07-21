@@ -34,6 +34,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -115,8 +116,7 @@ public class ClothServiceImpl implements ClothService {
     log.info("[Creating Cloth Completed] Id: {}, Cloth Name: {}", savedCloth.getId(),
         savedCloth.getName());
     String imageUrl = thumbnailKey != null ? thumbnailImageStorage.get(thumbnailKey) : null;
-    aiRecommendationService.evictRecommendationCache(request.ownerId(),
-        user.getTemperatureSensitivity());
+    aiRecommendationService.evictRecommendationCache(user);
     return clothMapper.toDto(savedCloth, imageUrl);
   }
 
@@ -230,8 +230,7 @@ public class ClothServiceImpl implements ClothService {
     }
     User user = cloth.getUser();
     if (user != null) {
-      aiRecommendationService.evictRecommendationCache(cloth.getId(),
-          user.getTemperatureSensitivity());
+      aiRecommendationService.evictRecommendationCache(user);
     }
     log.info("[Updating Cloth Completed] ID : {}, Name: {}", clothesId, cloth.getName());
     return clothMapper.toDto(cloth, imageUrl);
@@ -325,8 +324,7 @@ public class ClothServiceImpl implements ClothService {
     clothRepository.delete(cloth);
     User user = cloth.getUser();
     if (user != null) {
-      aiRecommendationService.evictRecommendationCache(cloth.getId(),
-          user.getTemperatureSensitivity());
+      aiRecommendationService.evictRecommendationCache(user);
     }
     log.info("[Deleting Cloth Completed] ID: {}", clothesId);
   }

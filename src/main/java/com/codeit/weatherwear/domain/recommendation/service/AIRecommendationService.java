@@ -28,7 +28,9 @@ public class AIRecommendationService {
   private final ClothRepository clothRepository;
   private final GeminiApiClient geminiApiClient;
 
-  @Cacheable(value = "recommendations", key = "#weather.id.toString() + '_' + #user.temperatureSensitivity")
+  @Cacheable(value = "recommendations",
+      key = "#user.id.toString() + '_' + #user.temperatureSensitivity",
+      condition = "#weather.skyStatus != null && #weather.temperature != null && #weather.humidity != null && #weather.windSpeed != null && #weather.precipitation != null")
   public List<Cloth> getRecommendationCandidates(Weather weather, User user,
       List<Cloth> filtered) {
     log.info("[CACHE CHECK] - Cache Start");
@@ -40,10 +42,10 @@ public class AIRecommendationService {
     return clothRepository.findAllByNames(filteredNameByLLM);
   }
 
-  @CacheEvict(value = "recommendations", key = "#userId + '_' + #sensitivity")
-  public void evictRecommendationCache(UUID userId, int sensitivity) {
-    log.info("[CacheEvict] Cleared recommendation cache for user {}, sensitivity {}", userId,
-        sensitivity);
+  @CacheEvict(value = "recommendations", key = "#user.id.toString() + '_' + #user.temperatureSensitivity")
+  public void evictRecommendationCache(User user) {
+    log.info("[CacheEvict] Cleared recommendation cache for user {}, sensitivity {}", user.getId(),
+        user.getTemperatureSensitivity());
   }
 
   private String buildPrompt(Weather weather, User user, List<Cloth> cloth) {
