@@ -1,28 +1,17 @@
 package com.codeit.weatherwear.domain.recommendation.service;
 
-import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
-import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeType;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Thickness;
 import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
-import com.codeit.weatherwear.domain.recommendation.external.GeminiApiClient;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
-import com.codeit.weatherwear.domain.weather.entity.Humidity;
-import com.codeit.weatherwear.domain.weather.entity.Precipitation;
-import com.codeit.weatherwear.domain.weather.entity.Temperature;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
-import com.codeit.weatherwear.domain.weather.entity.WindSpeed;
 import com.codeit.weatherwear.domain.weather.exception.WeatherNotFoundException;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
-import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -47,7 +36,7 @@ public class RecommendationServiceImpl implements RecommendationService {
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
   private final ClothRepository clothRepository;
-  private final FallbackRecommendationService fallbackService;
+  private final RandomRecommendService randomRecommendService;
   private final AIRecommendationService aiRecommendationService;
 
   /**
@@ -75,13 +64,22 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     //날씨에 적당한 옷 타입마다 필터링하기
     List<Cloth> filtered = filterCloth(user, weather, clothes);
-    log.info("[Recommendation] Filter Cloth Completed");
+    log.info("[Recommendation] Filter Cloth By Thick & Season Completed");
+
+    if (!isWeatherReady(weather)) {
+      log.debug("Weather Not Fully Loaded");
+      return randomRecommendService.recommend(filtered, user, weather);
+    }
 
     try {
-      return aiRecommendationService.recommendByLLM(weather, user, filtered);
+      List<Cloth> filteredByAI = aiRecommendationService.getRecommendationCandidates(weather, user,
+          filtered);
+      log.info("[Recommendation] Filtered Candidates By LLM Completed");
+      return randomRecommendService.recommend(filteredByAI, user, weather);
     } catch (Exception e) {
+      //실패 시, 옷의 두께, 날씨 조건으로 필터링 된 옷만 랜덤 추천
       log.info("[Recommendation] AI Failed", e);
-      return fallbackService.recommend(filtered, user, weather);
+      return randomRecommendService.recommend(filtered, user, weather);
     }
   }
 
@@ -94,7 +92,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     double adjusted = apparent + (sensitivity - 3) * 2;
 
     //옷 필터링
-    log.info("[Recommendation] filterCloth start");
+    log.info("[Recommendation] Filter Cloth start");
     return cloths.stream()
         .filter(c -> isSuitable(c, adjusted))
         .toList();
@@ -190,4 +188,13 @@ public class RecommendationServiceImpl implements RecommendationService {
         })
         .orElse(true); // 두께 속성이 없으면 통과
   }
+
+  private boolean isWeatherReady(Weather weather) {
+    return weather.getSkyStatus() != null &&
+        weather.getTemperature() != null &&
+        weather.getHumidity() != null &&
+        weather.getWindSpeed() != null &&
+        weather.getPrecipitation() != null;
+  }
+
 }

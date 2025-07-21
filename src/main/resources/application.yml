@@ -58,6 +58,9 @@ spring:
     job:
       enabled: false    # 수동 실행만 진행
 
+  cache:
+    type: caffeine
+
 server:
   shutdown: graceful
   forward-headers-strategy: framework

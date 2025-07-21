@@ -1,10 +1,7 @@
 package com.codeit.weatherwear.domain.recommendation.service;
 
-import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
-import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
-import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
 import com.codeit.weatherwear.domain.recommendation.external.GeminiApiClient;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.weather.entity.Humidity;
@@ -12,13 +9,15 @@ import com.codeit.weatherwear.domain.weather.entity.Precipitation;
 import com.codeit.weatherwear.domain.weather.entity.Temperature;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeed;
-import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -28,34 +27,28 @@ public class AIRecommendationService {
 
   private final ClothRepository clothRepository;
   private final GeminiApiClient geminiApiClient;
-  private final RecommendClothesMapper recommendClothesMapper;
-  private final ThumbnailImageStorage thumbnailImageStorage;
 
-  public RecommendationDto recommendByLLM(Weather weather, User user, List<Cloth> filtered) {
+  @Cacheable(value = "recommendations",
+      key = "#user.id.toString() + '_' + #user.temperatureSensitivity",
+      condition = "#weather.skyStatus != null && #weather.temperature != null && #weather.humidity != null && #weather.windSpeed != null && #weather.precipitation != null")
+  public List<Cloth> getRecommendationCandidates(Weather weather, User user,
+      List<Cloth> filtered) {
+    log.info("[CACHE CHECK] - Cache Start");
     //Gemini 프롬포트 생성 + 응답
-    String text = getText(weather, user, filtered);
-    String response = geminiApiClient.getInfo(text);
+    String prompt = buildPrompt(weather, user, filtered);
+    String response = geminiApiClient.getInfo(prompt);
     //응답 파싱
-    List<String> filteredNameByLLM = getOptions(response);
-    List<Cloth> filteredClothes = clothRepository.findAllByNames(filteredNameByLLM);
-    // DTO 변환 + 썸네일 처리
-    List<RecommendClothesDto> recommendedClothes = filteredClothes.stream()
-        .map(cloth -> {
-          String imageUrl = cloth.getClothesImageUrl() != null
-              ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
-              : null;
-          return recommendClothesMapper.toDto(cloth, imageUrl);
-        })
-        .toList();
-    log.info("[Recommendation] AI");
-    return RecommendationDto.builder()
-        .weatherId(weather.getId())
-        .userId(user.getId())
-        .clothes(List.copyOf(recommendedClothes))//불변성 보장
-        .build();
+    List<String> filteredNameByLLM = parseResponse(response);
+    return clothRepository.findAllByNames(filteredNameByLLM);
   }
 
-  private String getText(Weather weather, User user, List<Cloth> cloth) {
+  @CacheEvict(value = "recommendations", key = "#user.id.toString() + '_' + #user.temperatureSensitivity")
+  public void evictRecommendationCache(User user) {
+    log.info("[CacheEvict] Cleared recommendation cache for user {}, sensitivity {}", user.getId(),
+        user.getTemperatureSensitivity());
+  }
+
+  private String buildPrompt(Weather weather, User user, List<Cloth> cloth) {
     String weatherInfo = getWeatherInfo(weather, user);
     String clothesInfo = getClothesInfo(cloth);
     String prompt = "너는 날씨와 사용자의 특성을 기반으로 옷을 추천해주는 전문가야. "
@@ -106,7 +99,7 @@ public class AIRecommendationService {
 
   }
 
-  private List<String> getOptions(String response) {
+  private List<String> parseResponse(String response) {
     String cleaned = response.replaceAll("(?i)```json\\s*", "")  // ```json 또는 ```JSON 제거
         .replaceAll("```", "") // 닫는 ``` 제거
         .trim(); // 양쪽 공백 제거

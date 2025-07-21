@@ -15,11 +15,13 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class FallbackRecommendationService {
+public class RandomRecommendService {
 
   private final RecommendClothesMapper recommendClothesMapper;
   private final ThumbnailImageStorage thumbnailImageStorage;
@@ -62,6 +64,7 @@ public class FallbackRecommendationService {
         })
         .toList();
 
+    log.info("[Recommendation] Recommendation Completed");
     return RecommendationDto.builder()
         .weatherId(weather.getId())
         .userId(user.getId())

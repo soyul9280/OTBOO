@@ -15,6 +15,9 @@ spring:
     jdbc:
       initialize-schema: always
 
+  cache:
+    type: simple
+
 logging:
   level:
     com.codeit.weatherwear: debug
