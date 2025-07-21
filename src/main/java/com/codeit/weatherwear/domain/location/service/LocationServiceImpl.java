@@ -7,6 +7,8 @@ import com.codeit.weatherwear.domain.location.exception.LocationNotFoundExceptio
 import com.codeit.weatherwear.domain.location.repository.LocationRepository;
 import com.codeit.weatherwear.domain.location.util.LamcUtils;
 import com.codeit.weatherwear.domain.location.util.LamcUtils.GridPoint;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +36,8 @@ public class LocationServiceImpl implements LocationService {
 
     // 과도한 정밀도를 깎아내서 저장
     Location location = new Location(
-        Math.round(locationDto.latitude() * 1000) / 1000.0,
-        Math.round(locationDto.longitude() * 1000) / 1000.0,
+        BigDecimal.valueOf(locationDto.latitude()).setScale(3, RoundingMode.HALF_UP).doubleValue(),
+        BigDecimal.valueOf(locationDto.longitude()).setScale(3, RoundingMode.HALF_UP).doubleValue(),
         locationDto.x(),
         locationDto.y(),
         locationName
