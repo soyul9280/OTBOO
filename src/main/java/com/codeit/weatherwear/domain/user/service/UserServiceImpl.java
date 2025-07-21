@@ -1,7 +1,5 @@
 package com.codeit.weatherwear.domain.user.service;
 
-import com.codeit.weatherwear.global.event.DomainEventPublisher;
-import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.domain.location.dto.LocationDto;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.service.LocationService;
@@ -20,6 +18,8 @@ import com.codeit.weatherwear.domain.user.exception.UserAlreadyExistsException;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.mapper.UserMapper;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
+import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.global.response.PageResponse;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.util.List;
@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
   public ProfileDto findProfile(UUID userId) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
-    return userMapper.toProfileDto(user);
+    return userMapper.toProfileDto(user, thumbnailImageStorage.get(user.getProfileImageUrl()));
   }
 
   @Transactional
@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserService {
     String profileImageUrl = null;
     if (profileImage != null && !profileImage.isEmpty()) {
       log.debug("[Start Uploading Profile Image On S3] - userId: {}", userId);
-      profileImageUrl = thumbnailImageStorage.get(thumbnailImageStorage.upload(profileImage));
+      profileImageUrl = thumbnailImageStorage.upload(profileImage);
       log.debug("[Uploading Profile Image On S3 Completed] - userId: {}, url: {}", userId,
           profileImageUrl);
     }
@@ -108,7 +108,7 @@ public class UserServiceImpl implements UserService {
         profileUpdateRequest.temperatureSensitivity(),
         profileImageUrl);
 
-    return userMapper.toProfileDto(user);
+    return userMapper.toProfileDto(user, thumbnailImageStorage.get(user.getProfileImageUrl()));
   }
 
   @Transactional

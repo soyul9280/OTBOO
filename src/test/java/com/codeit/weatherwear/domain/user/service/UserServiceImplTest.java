@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.domain.location.service.LocationService;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.codeit.weatherwear.domain.user.dto.request.ChangePasswordRequest;
@@ -24,6 +23,7 @@ import com.codeit.weatherwear.domain.user.exception.UserAlreadyExistsException;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.mapper.UserMapper;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.time.Instant;
@@ -140,7 +140,7 @@ class UserServiceImplTest {
     );
 
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    when(userMapper.toProfileDto(user)).thenReturn(dto);
+    when(userMapper.toProfileDto(user, any())).thenReturn(dto);
 
     // when
     ProfileDto result = userService.updateProfile(userId, request, null);
@@ -200,7 +200,7 @@ class UserServiceImplTest {
     ProfileDto dto = new ProfileDto(userId, "test", null, null, null, null, null);
 
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    when(userMapper.toProfileDto(user)).thenReturn(dto);
+    when(userMapper.toProfileDto(user, any())).thenReturn(dto);
 
     // when
     ProfileDto result = userService.findProfile(userId);
