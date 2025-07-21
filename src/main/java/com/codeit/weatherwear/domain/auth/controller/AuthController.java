@@ -2,7 +2,7 @@ package com.codeit.weatherwear.domain.auth.controller;
 
 import com.codeit.weatherwear.domain.auth.controller.api.AuthApi;
 import com.codeit.weatherwear.domain.auth.dto.ResetPasswordRequest;
-import com.codeit.weatherwear.domain.auth.dto.SignInRequest;
+import com.codeit.weatherwear.domain.security.dto.SignInRequest;
 import com.codeit.weatherwear.domain.auth.service.AuthService;
 import com.codeit.weatherwear.domain.security.dto.TokenRotationResult;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
