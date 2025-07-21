@@ -9,8 +9,8 @@ import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.config.ContainerInitializer;
 import com.codeit.weatherwear.global.config.JpaConfig;
-import com.codeit.weatherwear.global.config.TestContainerConfig;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -25,10 +25,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({JpaConfig.class, TestContainerConfig.class})
+@Import({JpaConfig.class})
+@ContextConfiguration(initializers = ContainerInitializer.class)
 public class ClothRepositoryTest {
 
   @Autowired

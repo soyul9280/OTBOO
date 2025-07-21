@@ -3,21 +3,21 @@ package com.codeit.weatherwear.domain.clothes.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import com.codeit.weatherwear.global.config.TestContainerConfig;
+import com.codeit.weatherwear.global.config.ContainerInitializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(TestContainerConfig.class)
+@ContextConfiguration(initializers = ContainerInitializer.class)
 public class ClothTest {
 
   @Autowired

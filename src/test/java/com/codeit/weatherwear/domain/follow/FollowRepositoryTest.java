@@ -7,8 +7,8 @@ import com.codeit.weatherwear.domain.follow.dto.FollowSummaryDto;
 import com.codeit.weatherwear.domain.follow.repository.FollowRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.config.ContainerInitializer;
 import com.codeit.weatherwear.global.config.JpaConfig;
-import com.codeit.weatherwear.global.config.TestContainerConfig;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -23,10 +23,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @ActiveProfiles("test")
 @DataJpaTest
-@Import({JpaConfig.class, TestContainerConfig.class})
+@Import({JpaConfig.class})
+@ContextConfiguration(initializers = ContainerInitializer.class)
 class FollowRepositoryTest {
 
   @Autowired

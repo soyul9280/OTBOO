@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.repository.LocationRepository;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
-import com.codeit.weatherwear.global.config.TestContainerConfig;
+import com.codeit.weatherwear.global.config.ContainerInitializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,12 +20,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
 @SpringBatchTest  // 배치 테스트용 유틸 사용을 위함
 @ActiveProfiles({"test", "reader-exception"})
 @TestInstance(Lifecycle.PER_CLASS)
-@Import({FailingReaderConfig.class, TestContainerConfig.class})
+@Import({FailingReaderConfig.class})
+@ContextConfiguration(initializers = ContainerInitializer.class)
 public class BatchJobReaderExceptionTest {
 
   @Autowired

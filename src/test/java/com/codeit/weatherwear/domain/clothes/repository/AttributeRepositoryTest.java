@@ -4,11 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
+import com.codeit.weatherwear.global.config.ContainerInitializer;
 import com.codeit.weatherwear.global.config.JpaConfig;
-import com.codeit.weatherwear.global.config.TestContainerConfig;
 import com.codeit.weatherwear.global.request.SortDirection;
 import java.util.List;
-
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,10 +18,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({JpaConfig.class, TestContainerConfig.class})
+@Import({JpaConfig.class})
+@ContextConfiguration(initializers = ContainerInitializer.class)
 class AttributeRepositoryTest {
 
   @Autowired
