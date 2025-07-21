@@ -16,4 +16,8 @@ public interface WeatherRepository extends JpaRepository<Weather, UUID> {
   @Query("SELECT w FROM Weather w WHERE w.location = :location AND w.forecastedAt >= :start AND w.forecastAt >= :start")
   List<Weather> findRecentWeathers(@Param("location") Location location,
       @Param("start") Instant todayStart);
+
+  @Query("SELECT w FROM Weather w WHERE w.location = :location AND w.forecastAt < :target")
+  List<Weather> getOldForecast(@Param("location") Location location,
+      @Param("target") Instant cutoffTime);
 }
