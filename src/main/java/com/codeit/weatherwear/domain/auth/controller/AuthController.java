@@ -1,6 +1,8 @@
 package com.codeit.weatherwear.domain.auth.controller;
 
+import com.codeit.weatherwear.domain.auth.controller.api.AuthApi;
 import com.codeit.weatherwear.domain.auth.dto.ResetPasswordRequest;
+import com.codeit.weatherwear.domain.auth.dto.SignInRequest;
 import com.codeit.weatherwear.domain.auth.service.AuthService;
 import com.codeit.weatherwear.domain.security.dto.TokenRotationResult;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
@@ -23,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/api/auth")
-public class AuthController {
+public class AuthController implements AuthApi {
 
   private final AuthService authService;
   private final JwtSessionService jwtSessionService;
@@ -65,4 +67,13 @@ public class AuthController {
     return ResponseEntity.ok(csrfToken);
   }
 
+  @PostMapping("/sign-in")
+  public void signIn(SignInRequest signInRequest) {
+    throw new UnsupportedOperationException("Only for Documentation");
+  }
+
+  @PostMapping("/sign-out")
+  public void signOut() {
+    throw new UnsupportedOperationException("Only for Documentation");
+  }
 }
