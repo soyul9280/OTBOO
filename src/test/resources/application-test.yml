@@ -15,9 +15,8 @@ spring:
     jdbc:
       initialize-schema: always
 
-  spring:
-    cache:
-      type: simple
+  cache:
+    type: simple
 
 logging:
   level:
