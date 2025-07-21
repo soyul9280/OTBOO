@@ -108,3 +108,7 @@ weatherwear:
       bucket: ${AWS_S3_BUCKET}
       presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION}
 
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+
