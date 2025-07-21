@@ -32,21 +32,20 @@ public class LocationServiceImpl implements LocationService {
         .filter(s -> s != null && !s.isBlank())
         .collect(Collectors.joining(" "));
 
+    // 과도한 정밀도를 깎아내서 저장
     Location location = new Location(
-        locationDto.latitude(),
-        locationDto.longitude(),
+        Math.round(locationDto.latitude() * 1000) / 1000.0,
+        Math.round(locationDto.longitude() * 1000) / 1000.0,
         locationDto.x(),
         locationDto.y(),
         locationName
     );
 
     // 이미 존재하면 기존 객체 반환
-    Location resultLocation = locationRepository.findByLatitudeAndLongitudeAndXAndYAndName(
+    Location resultLocation = locationRepository.findLocationByNameAndLatitudeAndLongitude(
+        location.getName(),
         location.getLatitude(),
-        location.getLongitude(),
-        location.getX(),
-        location.getY(),
-        location.getName()
+        location.getLongitude()
     ).orElseGet(() -> locationRepository.save(location));
 
     log.info("Find Or Create Location Success");
