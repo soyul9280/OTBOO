@@ -12,15 +12,18 @@ import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,11 +56,24 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
    * @param longitude 경도
    * @return 날씨 엔티티 리스트
    */
+  @Modifying(clearAutomatically = true)
   @Transactional
   @Override
   public List<Weather> fetchAndStoreWeather(double latitude, double longitude) {
+
     // 외부 API에서 데이터를 받아 변환 수행
     List<Weather> weatherList = fetchWeather(latitude, longitude);
+
+    // 예외 상황 방지
+    if (weatherList.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // 이전 데이터 삭제
+    Instant cutoffTime = LocalDate.now(KST).atStartOfDay(KST).toInstant();
+    List<Weather> oldForecast = weatherRepository.getOldForecast(weatherList.get(0).getLocation(),
+        cutoffTime);
+    weatherRepository.deleteAll(oldForecast);
 
     // 데이터 저장
     weatherRepository.saveAll(weatherList);
@@ -77,6 +93,8 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
     Instant now = Instant.now();
     String baseDate = getBaseDate(now);
     String baseTime = getBaseTime(now);
+
+    log.info("baseDate: {}, baseTime: {}", baseDate, baseTime);
 
     ObjectMapper mapper = new ObjectMapper();
     // 위치 엔티티 조회, 존재하지 않을 시 생성
@@ -115,6 +133,7 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
     final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HHmm");
 
     LocalTime localTime = LocalDateTime.ofInstant(base, KST).toLocalTime();
+    log.info("localTime: {}", localTime);
 
     // 현재 시각 이전(baseTime ≤ 현재시간) 중 가장 가까운 baseTime 을 찾아 "HHmm" 형식으로 반환
     // 단, 없을 경우 기본값 "0200" 반환

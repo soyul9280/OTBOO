@@ -63,6 +63,7 @@ class WeatherConvertServiceImplTest {
     WeatherApiDataId id = new WeatherApiDataId(baseDate, baseTime, categoryTmp);
     WeatherApiData apiData = mock(WeatherApiData.class);
     when(apiData.getId()).thenReturn(id);
+    when(apiData.getFcstValue()).thenReturn("24.3");
 
     WeatherApiDataId id2 = new WeatherApiDataId(baseDate, baseTime, categorySky);
     WeatherApiData apiData2 = mock(WeatherApiData.class);
@@ -103,6 +104,7 @@ class WeatherConvertServiceImplTest {
     WeatherApiDataId id = new WeatherApiDataId(baseDate, baseTime, categoryTmp);
     WeatherApiData apiData = mock(WeatherApiData.class);
     when(apiData.getId()).thenReturn(id);
+    when(apiData.getFcstValue()).thenReturn("24.3");
 
     WeatherApiDataId id2 = new WeatherApiDataId(baseDate, baseTime, categorySky);
     WeatherApiData apiData2 = mock(WeatherApiData.class);
@@ -163,7 +165,7 @@ class WeatherConvertServiceImplTest {
 
     // WeatherAssembler가 호출될 때 결과 반환
     given(weatherAssembler.assemble(
-        eq(fcstDate), eq(baseDate), eq(expectedCategoryMap), eq(location), eq(groupedApiData)
+        eq(fcstDate), eq(baseDate), anyMap(), eq(location), eq(groupedApiData)
     )).willReturn(weather);
 
     // when
@@ -182,8 +184,10 @@ class WeatherConvertServiceImplTest {
 
     // 캡처된 categoryMap을 꺼내서 기대한 값과 일치하는지 확인
     Map<String, WeatherApiData> actualCategoryMap = captor.getValue();
-    assertThat(actualCategoryMap).isEqualTo(expectedCategoryMap);
-
+    assertThat(actualCategoryMap)
+        .containsEntry("TMP", tmp2)
+        .containsEntry("POP", pop1)
+        .containsEntry("SKY", sky);
   }
 
   // private method -------------------

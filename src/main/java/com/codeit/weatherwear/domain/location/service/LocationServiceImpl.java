@@ -7,6 +7,8 @@ import com.codeit.weatherwear.domain.location.exception.LocationNotFoundExceptio
 import com.codeit.weatherwear.domain.location.repository.LocationRepository;
 import com.codeit.weatherwear.domain.location.util.LamcUtils;
 import com.codeit.weatherwear.domain.location.util.LamcUtils.GridPoint;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -32,21 +34,20 @@ public class LocationServiceImpl implements LocationService {
         .filter(s -> s != null && !s.isBlank())
         .collect(Collectors.joining(" "));
 
+    // 과도한 정밀도를 깎아내서 저장
     Location location = new Location(
-        locationDto.latitude(),
-        locationDto.longitude(),
+        BigDecimal.valueOf(locationDto.latitude()).setScale(3, RoundingMode.HALF_UP).doubleValue(),
+        BigDecimal.valueOf(locationDto.longitude()).setScale(3, RoundingMode.HALF_UP).doubleValue(),
         locationDto.x(),
         locationDto.y(),
         locationName
     );
 
     // 이미 존재하면 기존 객체 반환
-    Location resultLocation = locationRepository.findByLatitudeAndLongitudeAndXAndYAndName(
+    Location resultLocation = locationRepository.findLocationByNameAndLatitudeAndLongitude(
+        location.getName(),
         location.getLatitude(),
-        location.getLongitude(),
-        location.getX(),
-        location.getY(),
-        location.getName()
+        location.getLongitude()
     ).orElseGet(() -> locationRepository.save(location));
 
     log.info("Find Or Create Location Success");

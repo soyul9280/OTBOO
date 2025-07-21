@@ -4,6 +4,7 @@ import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.weather.assembler.WeatherAssembler;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WeatherApiData;
+import com.codeit.weatherwear.domain.weather.entity.WeatherApiDataId;
 import com.codeit.weatherwear.domain.weather.service.WeatherConvertService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -80,6 +82,14 @@ public class WeatherConvertServiceImpl implements WeatherConvertService {
     // 카테고리 별 최신 값만 추출
     Map<String, WeatherApiData> categoryMap = toLatestCategoryMap(flatList);
 
+    // 최고/최저기온 없으면 집어넣어주기
+    if (!categoryMap.containsKey("TMN")) {
+      addTmntoCategoryMap(categoryMap, flatList, baseDate, fcstDate);
+    }
+    if (!categoryMap.containsKey("TMX")) {
+      addTmxtoCategoryMap(categoryMap, flatList, baseDate, fcstDate);
+    }
+
     try {
       // WeatherAssembler를 이용하여 Weather 객체 생성
       return Optional.ofNullable(
@@ -119,4 +129,61 @@ public class WeatherConvertServiceImpl implements WeatherConvertService {
         (d1, d2) -> d1.getFcstTime().compareTo(d2.getFcstTime()) >= 0 ? d1 : d2
     ));
   }
+
+  private void addTmntoCategoryMap(
+      Map<String, WeatherApiData> categoryMap, List<WeatherApiData> flatList, String baseDate,
+      String fcstDate) {
+    // 최저 기온이 없을 때, 해당 날짜의 데이터에서 최저 기온을 뽑아서 전달
+    if (!categoryMap.containsKey("TMN")) {
+      OptionalDouble minTempOpt = flatList.stream()
+          .filter(data -> "TMP".equals(data.getId().getCategory()))
+          .mapToDouble(data -> Double.parseDouble(data.getFcstValue()))
+          .min();
+      minTempOpt.ifPresent(min -> {
+        WeatherApiDataId id = WeatherApiDataId.builder()
+            .baseDate(baseDate)
+            .baseTime("0000")
+            .category("TMN")
+            .build();
+        WeatherApiData tmnData = WeatherApiData.builder()
+            .id(id)
+            .fcstDate(fcstDate)
+            .fcstTime("0000")
+            .fcstValue(String.valueOf(min))
+            .nx(flatList.get(0).getNx())
+            .ny(flatList.get(0).getNy())
+            .build();
+        categoryMap.put("TMN", tmnData);
+      });
+    }
+  }
+
+  private void addTmxtoCategoryMap(
+      Map<String, WeatherApiData> categoryMap, List<WeatherApiData> flatList, String baseDate,
+      String fcstDate) {
+    // 최고 기온이 없을 때, 해당 날짜의 데이터에서 최고 기온을 뽑아서 전달
+    if (!categoryMap.containsKey("TMX")) {
+      OptionalDouble maxTempOpt = flatList.stream()
+          .filter(data -> "TMP".equals(data.getId().getCategory()))
+          .mapToDouble(data -> Double.parseDouble(data.getFcstValue()))
+          .max();
+      maxTempOpt.ifPresent(max -> {
+        WeatherApiDataId id = WeatherApiDataId.builder()
+            .baseDate(baseDate)
+            .baseTime("0000")
+            .category("TMX")
+            .build();
+        WeatherApiData tmnData = WeatherApiData.builder()
+            .id(id)
+            .fcstDate(fcstDate)
+            .fcstTime("0000")
+            .fcstValue(String.valueOf(max))
+            .nx(flatList.get(0).getNx())
+            .ny(flatList.get(0).getNy())
+            .build();
+        categoryMap.put("TMX", tmnData);
+      });
+    }
+  }
 }
+
