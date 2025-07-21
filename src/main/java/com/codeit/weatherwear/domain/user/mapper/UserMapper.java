@@ -10,8 +10,9 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = LocationMapper.class)
 public interface UserMapper {
 
-    UserDto toUserDto(User user);
+  UserDto toUserDto(User user);
 
-    @Mapping(source = "id", target = "userId")
-    ProfileDto toProfileDto(User user);
+  @Mapping(source = "user.id", target = "userId")
+  @Mapping(source = "imageUrl", target = "profileImageUrl")
+  ProfileDto toProfileDto(User user, String imageUrl);
 }

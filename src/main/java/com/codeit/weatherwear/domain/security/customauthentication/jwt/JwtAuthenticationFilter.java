@@ -72,8 +72,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       ErrorResponse errorResponse = new ErrorResponse("JwtValidationException", null, null);
       objectMapper.writeValue(response.getWriter(), errorResponse);
     } else {
-      // 토큰이 없는 경우
-      // TODO: 인증이 필요없는 경로면 다음 필터 진행, 아니면 401 응답
+      // 토큰 없음 → 그냥 다음 필터로 넘김
+      // 이후 Security에서 permitAll 여부에 따라 접근 허용 또는 401 반환
       filterChain.doFilter(request, response);
     }
 

@@ -41,7 +41,7 @@ public class EmailServiceImpl implements EmailService {
 
       javaMailSender.send(mimeMessage);
     } catch (Exception e) {
-      log.error("임시 비밀번호 이메일 전송 실패", e);
+      log.error("Fail to send reset-password email", e.getMessage());
     }
   }
 }
