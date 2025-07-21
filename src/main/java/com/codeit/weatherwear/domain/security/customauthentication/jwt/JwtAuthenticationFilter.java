@@ -73,7 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       objectMapper.writeValue(response.getWriter(), errorResponse);
     } else {
       // 토큰이 없는 경우
-      // TODO: 인증이 필요없는 경로면 다음 필터 진행, 아니면 401 응답
+      log.debug("JWT Token doesn't exist");
       filterChain.doFilter(request, response);
     }
 
