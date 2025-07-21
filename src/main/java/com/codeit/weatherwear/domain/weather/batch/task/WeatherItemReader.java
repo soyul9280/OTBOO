@@ -31,7 +31,7 @@ public class WeatherItemReader {
     return new JpaPagingItemReaderBuilder<Location>()
         .name("locationReader")
         .entityManagerFactory(emf)
-        .queryString("SELECT l FROM Location l")  // todo: 추후 쿼리 로직 수정해야 함
+        .queryString("SELECT l FROM Location l")
         .pageSize(weatherBatchProperties.chunkSize())
         .build();
   }
