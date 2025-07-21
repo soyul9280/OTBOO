@@ -71,7 +71,7 @@ class AuthControllerTest extends BaseControllerTest {
   }
 
   @Test
-  @DisplayName("비밀번호 초기화 요청 시 NoContent status")
+  @DisplayName("비밀번호 초기화 요청 시 NoContent status을 반환한다.")
   void resetPassword() throws Exception {
     // given
     ResetPasswordRequest request = new ResetPasswordRequest("test@mail.com");
@@ -86,6 +86,7 @@ class AuthControllerTest extends BaseControllerTest {
 
 
   @Test
+  @DisplayName("csrf토큰을 조회한다.")
   void getCsrfToken_shouldReturnCsrfToken() throws Exception {
     CsrfToken csrfToken = new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "csrf-token-value");
 
