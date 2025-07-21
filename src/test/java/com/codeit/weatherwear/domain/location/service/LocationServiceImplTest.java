@@ -82,9 +82,9 @@ class LocationServiceImplTest {
     LocationDto mockLocationDto = createMockLocationDto(40.2, 127.9, 10, 20,
         List.of("서울", "송파구", "신천동"));
     Location existingLocation = createMockLocationByDto(mockLocationDto);
-    given(locationRepository.findByLatitudeAndLongitudeAndXAndYAndName(
-        existingLocation.getLatitude(), existingLocation.getLongitude(),
-        existingLocation.getX(), existingLocation.getY(), existingLocation.getName())).willReturn(
+    given(locationRepository.findLocationByNameAndLatitudeAndLongitude(
+        existingLocation.getName(), existingLocation.getLatitude(),
+        existingLocation.getLongitude())).willReturn(
         Optional.of(existingLocation));
 
     // when
@@ -102,9 +102,9 @@ class LocationServiceImplTest {
     LocationDto mockLocationDto = createMockLocationDto(40.2, 127.9, 10, 20,
         List.of("서울", "송파구", "신천동"));
     Location createLocation = createMockLocationByDto(mockLocationDto);
-    given(locationRepository.findByLatitudeAndLongitudeAndXAndYAndName(
-        createLocation.getLatitude(), createLocation.getLongitude(),
-        createLocation.getX(), createLocation.getY(), createLocation.getName())).willReturn(
+    given(locationRepository.findLocationByNameAndLatitudeAndLongitude(
+        createLocation.getName(), createLocation.getLatitude(),
+        createLocation.getLongitude())).willReturn(
         Optional.empty());
     given(locationRepository.save(any(Location.class))).willReturn(createLocation);
 
@@ -124,9 +124,9 @@ class LocationServiceImplTest {
     List<String> names = Arrays.asList("서울", null, " ", "", "송파구", "   ", "신천동");
     LocationDto mockLocationDto = createMockLocationDto(40.2, 127.9, 10, 20, names);
     Location createLocation = createMockLocationByDto(mockLocationDto);
-    given(locationRepository.findByLatitudeAndLongitudeAndXAndYAndName(
-        createLocation.getLatitude(), createLocation.getLongitude(),
-        createLocation.getX(), createLocation.getY(), createLocation.getName())).willReturn(
+    given(locationRepository.findLocationByNameAndLatitudeAndLongitude(
+        createLocation.getName(), createLocation.getLatitude(),
+        createLocation.getLongitude())).willReturn(
         Optional.empty());
     given(locationRepository.save(any(Location.class))).willReturn(createLocation);
 
@@ -153,9 +153,8 @@ class LocationServiceImplTest {
 
     given(lamcUtils.convertToGrid(latitude, longitude)).willReturn(point);
     given(locationApiClient.getRegionNames(latitude, longitude)).willReturn(addrList);
-    given(locationRepository.findByLatitudeAndLongitudeAndXAndYAndName(
-        location.getLatitude(), location.getLongitude(),
-        location.getX(), location.getY(), location.getName())).willReturn(
+    given(locationRepository.findLocationByNameAndLatitudeAndLongitude(
+        location.getName(), location.getLatitude(), location.getLongitude())).willReturn(
         Optional.of(location));
 
     // when
