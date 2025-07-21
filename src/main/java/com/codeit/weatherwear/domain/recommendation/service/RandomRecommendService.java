@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FallbackRecommendationService {
+public class RandomRecommendService {
 
   private final RecommendClothesMapper recommendClothesMapper;
   private final ThumbnailImageStorage thumbnailImageStorage;

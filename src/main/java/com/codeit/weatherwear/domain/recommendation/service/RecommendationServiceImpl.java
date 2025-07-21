@@ -36,7 +36,7 @@ public class RecommendationServiceImpl implements RecommendationService {
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
   private final ClothRepository clothRepository;
-  private final FallbackRecommendationService fallbackService;
+  private final RandomRecommendService randomRecommendService;
   private final AIRecommendationService aiRecommendationService;
 
   /**
@@ -64,15 +64,17 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     //날씨에 적당한 옷 타입마다 필터링하기
     List<Cloth> filtered = filterCloth(user, weather, clothes);
-    log.info("[Recommendation] Filter Cloth Completed");
+    log.info("[Recommendation] Filter Cloth By Thick & Season Completed");
 
     try {
-      List<Cloth> filteredByAI = aiRecommendationService.recommendByLLM(weather, user, filtered);
-      log.info("[Recommendation] Filter AI Completed");
-      return fallbackService.recommend(filteredByAI, user, weather);
+      List<Cloth> filteredByAI = aiRecommendationService.getRecommendationCandidates(weather, user,
+          filtered);
+      log.info("[Recommendation] Filtered Candidates By LLM Completed");
+      return randomRecommendService.recommend(filteredByAI, user, weather);
     } catch (Exception e) {
+      //실패 시, 옷의 두께, 날씨 조건으로 필터링 된 옷만 랜덤 추천
       log.info("[Recommendation] AI Failed", e);
-      return fallbackService.recommend(filtered, user, weather);
+      return randomRecommendService.recommend(filtered, user, weather);
     }
   }
 
@@ -85,7 +87,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     double adjusted = apparent + (sensitivity - 3) * 2;
 
     //옷 필터링
-    log.info("[Recommendation] filterCloth start");
+    log.info("[Recommendation] Filter Cloth start");
     return cloths.stream()
         .filter(c -> isSuitable(c, adjusted))
         .toList();

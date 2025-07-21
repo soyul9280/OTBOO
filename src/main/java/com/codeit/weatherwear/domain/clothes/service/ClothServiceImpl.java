@@ -19,6 +19,7 @@ import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
+import com.codeit.weatherwear.domain.recommendation.service.AIRecommendationService;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -60,6 +61,7 @@ public class ClothServiceImpl implements ClothService {
   private final ThumbnailImageStorage thumbnailImageStorage;
   private final ClothMapper clothMapper;
   private final List<SiteParser> siteParsers;
+  private final AIRecommendationService aiRecommendationService;
 
   /**
    * 의상 등록
@@ -113,6 +115,8 @@ public class ClothServiceImpl implements ClothService {
     log.info("[Creating Cloth Completed] Id: {}, Cloth Name: {}", savedCloth.getId(),
         savedCloth.getName());
     String imageUrl = thumbnailKey != null ? thumbnailImageStorage.get(thumbnailKey) : null;
+    aiRecommendationService.evictRecommendationCache(request.ownerId(),
+        user.getTemperatureSensitivity());
     return clothMapper.toDto(savedCloth, imageUrl);
   }
 
@@ -224,7 +228,11 @@ public class ClothServiceImpl implements ClothService {
       applyAttributesToCloth(request.attributes(), attributeMap, cloth);
 
     }
-
+    User user = cloth.getUser();
+    if (user != null) {
+      aiRecommendationService.evictRecommendationCache(cloth.getId(),
+          user.getTemperatureSensitivity());
+    }
     log.info("[Updating Cloth Completed] ID : {}, Name: {}", clothesId, cloth.getName());
     return clothMapper.toDto(cloth, imageUrl);
   }
@@ -315,6 +323,11 @@ public class ClothServiceImpl implements ClothService {
       }
     }
     clothRepository.delete(cloth);
+    User user = cloth.getUser();
+    if (user != null) {
+      aiRecommendationService.evictRecommendationCache(cloth.getId(),
+          user.getTemperatureSensitivity());
+    }
     log.info("[Deleting Cloth Completed] ID: {}", clothesId);
   }
 
