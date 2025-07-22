@@ -4,6 +4,7 @@ import com.codeit.weatherwear.domain.location.dto.LocationDto;
 import com.codeit.weatherwear.domain.weather.dto.response.WeatherDto;
 import com.codeit.weatherwear.global.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,7 +25,7 @@ public interface WeatherApi {
       @ApiResponse(
           responseCode = "200",
           description = "날씨 조회 성공",
-          content = @Content(schema = @Schema(implementation = List.class))),
+          content = @Content(array = @ArraySchema(schema = @Schema(implementation = WeatherDto.class)))),
       @ApiResponse(
           responseCode = "400",
           description = "날씨 조회 실패",

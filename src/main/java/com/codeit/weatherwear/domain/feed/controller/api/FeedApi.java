@@ -97,7 +97,7 @@ public interface FeedApi {
   })
   @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isFeedAuthor(#feedId, authentication.principal.userId)")
   @DeleteMapping("/{feedId}")
-  ResponseEntity<FeedDto> deleteFeed(@PathVariable UUID feedId,
+  ResponseEntity<Void> deleteFeed(@PathVariable UUID feedId,
       @AuthenticationPrincipal CustomUserDetails userDetails);
 
 }
