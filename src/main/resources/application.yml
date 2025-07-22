@@ -78,6 +78,14 @@ spring:
         jaas:
           config: org.apache.kafka.common.security.plain.PlainLoginModule required username='${KAFKA_CLUSTER_API_KEY}' password='${KAFKA_CLUSTER_API_SECRET}';
         mechanism: PLAIN
+    topics:
+      new-follower: weatherwear.new_follower
+      cloth-attribute-added: weatherwear.cloth_attribute_added
+      direct-message-received: weatherwear.direct_message_received
+      feed-like: weatherwear.feed_like
+      new-feed-comment: weatherwear.new_feed_comment
+      followee-feed-posted: weatherwear.followee_feed_posted
+      role-changed: weatherwear.role_changed
 
 server:
   shutdown: graceful

@@ -8,6 +8,7 @@ import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.global.event.exception.KafkaMessageConvertException;
+import com.codeit.weatherwear.global.properties.KafkaTopics;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.CompletableFuture;
@@ -26,48 +27,49 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class KafkaHandler {
 
   private final KafkaTemplate<String, String> kafkaTemplate;
+  private final KafkaTopics kafkaTopics;
   private final ObjectMapper objectMapper;
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleNewFollowerEvent(NewFollowerEvent event) {
-    sendToKafka("weatherwear.new_follower", event);
+    sendToKafka(kafkaTopics.newFollower(), event);
   }
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleClothAttributeAddedEvent(ClothAttributeAddedEvent event) {
-    sendToKafka("weatherwear.cloth_attribute_added", event);
+    sendToKafka(kafkaTopics.clothAttributeAdded(), event);
   }
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
-    sendToKafka("weatherwear.direct_message_received", event);
+    sendToKafka(kafkaTopics.directMessageReceived(), event);
   }
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleFeedLikeEvent(FeedLikeEvent event) {
-    sendToKafka("weatherwear.feed_like", event);
+    sendToKafka(kafkaTopics.feedLike(), event);
   }
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleNewFeedCommentEvent(NewFeedCommentEvent event) {
-    sendToKafka("weatherwear.new_feed_comment", event);
+    sendToKafka(kafkaTopics.newFeedComment(), event);
   }
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleFolloweeFeedPostedEvent(FolloweeFeedPostedEvent event) {
-    sendToKafka("weatherwear.followee_feed_posted", event);
+    sendToKafka(kafkaTopics.followeeFeedPosted(), event);
   }
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handlePermissionChangedEvent(RoleChangedEvent event) {
-    sendToKafka("weatherwear.role_changed", event);
+  public void handleRoleChangedEvent(RoleChangedEvent event) {
+    sendToKafka(kafkaTopics.roleChanged(), event);
   }
 
   private <T> void sendToKafka(String topic, T event) {

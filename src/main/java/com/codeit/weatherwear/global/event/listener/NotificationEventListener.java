@@ -30,7 +30,7 @@ public class NotificationEventListener {
   private final ObjectMapper objectMapper;
 
   @Async("eventExecutor")
-  @KafkaListener(topics = "weatherwear.new_follower")
+  @KafkaListener(topics = "${spring.kafka.topics.new-follower}")
   public void handleNewFollowerEvent(String kafkaEvent) {
     NewFollowerEvent newFollowerEvent = null;
     try {
@@ -51,7 +51,7 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @KafkaListener(topics = "weatherwear.cloth_attribute_added")
+  @KafkaListener(topics = "${spring.kafka.topics.cloth-attribute-added}")
   public void handleClothAttributeAddedEvent(String kafkaEvent) {
     ClothAttributeAddedEvent clothAttributeAddedEvent = null;
     try {
@@ -73,7 +73,7 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @KafkaListener(topics = "weatherwear.direct_message_received")
+  @KafkaListener(topics = "${spring.kafka.topics.direct-message-received}")
   public void handleDirectMessageReceivedEvent(String kafkaEvent) {
     DirectMessageReceivedEvent directMessageReceivedEvent = null;
     try {
@@ -98,7 +98,7 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @KafkaListener(topics = "weatherwear.feed_like")
+  @KafkaListener(topics = "${spring.kafka.topics.feed-like}")
   public void handleFeedLikeEvent(String kafkaEvent) {
     FeedLikeEvent feedLikeEvent = null;
     try {
@@ -119,7 +119,7 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @KafkaListener(topics = "weatherwear.new_feed_comment")
+  @KafkaListener(topics = "${spring.kafka.topics.new-feed-comment}")
   public void handleNewFeedCommentEvent(String kafkaEvent) {
     NewFeedCommentEvent newFeedCommentEvent = null;
     try {
@@ -140,7 +140,7 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @KafkaListener(topics = "weatherwear.followee_feed_posted")
+  @KafkaListener(topics = "${spring.kafka.topics.followee-feed-posted}")
   public void handleFolloweeFeedPostedEvent(String kafkaEvent) {
     FolloweeFeedPostedEvent followeeFeedPostedEvent = null;
     try {
@@ -161,8 +161,8 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @KafkaListener(topics = "weatherwear.role_changed")
-  public void handlePermissionChangedEvent(String kafkaEvent) {
+  @KafkaListener(topics = "${spring.kafka.topics.role-changed}")
+  public void handleRoleChangedEvent(String kafkaEvent) {
     RoleChangedEvent roleChangedEvent = null;
     try {
       roleChangedEvent = objectMapper.readValue(kafkaEvent, RoleChangedEvent.class);
