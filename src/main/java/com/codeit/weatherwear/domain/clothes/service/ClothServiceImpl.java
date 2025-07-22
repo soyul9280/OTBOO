@@ -147,7 +147,7 @@ public class ClothServiceImpl implements ClothService {
           .filter(p -> p.supports(url))
           .findFirst()
           .orElseThrow(() -> {
-            log.warn("[Fail Extracting Cloth] Site Not Support - URL: {}", url);
+            log.debug("[Fail Extracting Cloth] Site Not Support - URL: {}", url);
             return new NotSupportSiteException(url);
           });
       parser.waitUntilReady(driver);
