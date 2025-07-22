@@ -23,7 +23,7 @@ public class WeatherAlertAnalyzer {
       reasons.add(WeatherAlertReason.TEMP_GAP);
     }
 
-    return WeatherAlertResult.builder().alertNeeded(!reasons.isEmpty()).reason(reasons).build();
+    return WeatherAlertResult.builder().alertNeeded(!reasons.isEmpty()).reasons(reasons).build();
   }
 
   private boolean isRainAlert(Weather todayForecast) {
