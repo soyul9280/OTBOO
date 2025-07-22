@@ -10,6 +10,7 @@ import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
+import com.codeit.weatherwear.global.event.dto.WeatherAlertEvent;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -119,10 +120,25 @@ public class NotificationEventListener {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handlePermissionChangedEvent(RoleChangedEvent event) {
     String title = "권한이 변경되었어요.";
-    String content = String.format("%s -> %s", event.previousRoles().name(), event.newRoles().name());
+    String content = String.format("%s -> %s", event.previousRoles().name(),
+        event.newRoles().name());
 
     notificationService.create(
         event.receiverId(),
+        title,
+        content,
+        Level.INFO
+    );
+  }
+
+  @Async("eventExecutor")
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handleWeatherEvent(WeatherAlertEvent event) {
+    String title = String.format("오늘 %s의 날씨를 유의하세요.", event.address());
+    String content = event.content();
+
+    notificationService.create(
+        event.receiverIds(),
         title,
         content,
         Level.INFO
