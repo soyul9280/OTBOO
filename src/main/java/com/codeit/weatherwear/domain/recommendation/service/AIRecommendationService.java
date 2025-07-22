@@ -2,6 +2,7 @@ package com.codeit.weatherwear.domain.recommendation.service;
 
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
+import com.codeit.weatherwear.domain.recommendation.exception.GeminiParseException;
 import com.codeit.weatherwear.domain.recommendation.external.GeminiApiClient;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.weather.entity.Humidity;
@@ -13,7 +14,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -51,13 +51,7 @@ public class AIRecommendationService {
   private String buildPrompt(Weather weather, User user, List<Cloth> cloth) {
     String weatherInfo = getWeatherInfo(weather, user);
     String clothesInfo = getClothesInfo(cloth);
-    String prompt = "너는 날씨와 사용자의 특성을 기반으로 옷을 추천해주는 전문가야. "
-        + "다음은 더위 민감도(0: 추위 많이 탐 ~ 5: 더위 많이 탐),날씨 정보, 날씨에 맞게 1차 필터링된 옷 정보야. "
-        + "각 옷은 속성 '계절'과 '두께' 조건만 고려된 상태야. "
-        + "너는 이 옷들의 나머지 속성들(예: 색상, 재질, 스타일 등) 중 사용자가 선택한 값들을 종합적으로 고려하여 "
-        + "현재 날씨 정보에 알맞는 옷들을 골라줘. "
-        + "응답은 반드시 다음과 같은 JSON 형식의 문자열 배열로 해줘:"
-        + " [\"name\"]. JSON 외에는 아무 설명도 붙이지 말고, 오직 배열만 포함시켜줘. 그리고 reason은 필요없어.";
+    String prompt = promptContent();
     return weatherInfo + clothesInfo + prompt;
   }
 
@@ -96,7 +90,16 @@ public class AIRecommendationService {
         + "하늘 상태: " + weather.getSkyStatus() + "\n"
         + "더위 민감도: " + user.getTemperatureSensitivity() + "(1~5)\n"
         + "성별: " + user.getGender() + "\n\n";
+  }
 
+  private String promptContent() {
+    return "너는 날씨와 사용자의 특성을 기반으로 옷을 추천해주는 전문가야. "
+        + "다음은 더위 민감도(0: 추위 많이 탐 ~ 5: 더위 많이 탐),날씨 정보, 날씨에 맞게 1차 필터링된 옷 정보야. "
+        + "각 옷은 속성 '계절'과 '두께' 조건만 고려된 상태야. "
+        + "너는 이 옷들의 나머지 속성들(예: 색상, 재질, 스타일 등) 중 사용자가 선택한 값들을 종합적으로 고려하여 "
+        + "현재 날씨 정보에 알맞는 옷들을 골라줘. "
+        + "응답은 반드시 다음과 같은 JSON 형식의 문자열 배열로 해줘:"
+        + " [\"name\"]. JSON 외에는 아무 설명도 붙이지 말고, 오직 배열만 포함시켜줘. 그리고 reason은 필요없어.";
   }
 
   private List<String> parseResponse(String response) {
@@ -109,7 +112,7 @@ public class AIRecommendationService {
       list = mapper.readValue(cleaned, new TypeReference<List<String>>() {
       });
     } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+      throw new GeminiParseException();
     }
     return list;
   }

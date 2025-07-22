@@ -2,6 +2,7 @@ package com.codeit.weatherwear.global.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties.Http;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -70,6 +71,10 @@ public enum ErrorCode {
       "이미지 접근 URL 생성 중 오류 발생"),
   S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 객체 삭제에 실패했습니다.", "이미지를 삭제할 수 없습니다."),
 
+  //GEMINI
+  GEMINI_API_CLIENT(HttpStatus.BAD_REQUEST, "GEMINI API 클라이언트 오류", ""),
+  GEMINI_API_SERVER(HttpStatus.INTERNAL_SERVER_ERROR, "GEMINI API 서버 오류", ""),
+  GEMINI_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "GEMINI API 응답 파싱 실패", ""),
 
   //CLOTH
   CLOTH_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "옷 등록 실패", "존재하는 옷입니다."),

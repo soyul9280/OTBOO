@@ -6,16 +6,21 @@ import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeT
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Thickness;
 import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
+import com.codeit.weatherwear.domain.recommendation.exception.GeminiApiClientException;
+import com.codeit.weatherwear.domain.recommendation.exception.GeminiApiServerException;
+import com.codeit.weatherwear.domain.recommendation.exception.GeminiParseException;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.exception.WeatherNotFoundException;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -66,9 +71,10 @@ public class RecommendationServiceImpl implements RecommendationService {
     List<Cloth> filtered = filterCloth(user, weather, clothes);
     log.info("[Recommendation] Filter Cloth By Thick & Season Completed");
 
-    if (!isWeatherReady(weather)) {
-      log.debug("Weather Not Fully Loaded");
-      return randomRecommendService.recommend(filtered, user, weather);
+    //필터링 안된 경우 옷장에 있는 모든 옷 랜덤 추천
+    if (filtered.isEmpty()) {
+      log.debug("[Recommendation] Filter Cloth By Thick & Season Failed");
+      return randomRecommendService.recommend(clothes, user, weather);
     }
 
     try {
@@ -76,9 +82,9 @@ public class RecommendationServiceImpl implements RecommendationService {
           filtered);
       log.info("[Recommendation] Filtered Candidates By LLM Completed");
       return randomRecommendService.recommend(filteredByAI, user, weather);
-    } catch (Exception e) {
+    } catch (GeminiApiClientException | GeminiApiServerException | GeminiParseException e) {
       //실패 시, 옷의 두께, 날씨 조건으로 필터링 된 옷만 랜덤 추천
-      log.info("[Recommendation] AI Failed", e);
+      log.debug("[Recommendation] Filtered Candidates By LLM Failed", e);
       return randomRecommendService.recommend(filtered, user, weather);
     }
   }
@@ -188,13 +194,4 @@ public class RecommendationServiceImpl implements RecommendationService {
         })
         .orElse(true); // 두께 속성이 없으면 통과
   }
-
-  private boolean isWeatherReady(Weather weather) {
-    return weather.getSkyStatus() != null &&
-        weather.getTemperature() != null &&
-        weather.getHumidity() != null &&
-        weather.getWindSpeed() != null &&
-        weather.getPrecipitation() != null;
-  }
-
 }
