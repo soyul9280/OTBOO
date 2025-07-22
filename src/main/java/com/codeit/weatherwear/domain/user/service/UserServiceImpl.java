@@ -74,7 +74,11 @@ public class UserServiceImpl implements UserService {
   public ProfileDto findProfile(UUID userId) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
-    return userMapper.toProfileDto(user, thumbnailImageStorage.get(user.getProfileImageUrl()));
+    if (user.getProfileImageUrl() != null) {
+      return userMapper.toProfileDto(user, thumbnailImageStorage.get(user.getProfileImageUrl()));
+    } else {
+      return userMapper.toProfileDto(user);
+    }
   }
 
   @Transactional
@@ -108,7 +112,11 @@ public class UserServiceImpl implements UserService {
         profileUpdateRequest.temperatureSensitivity(),
         profileImageUrl);
 
-    return userMapper.toProfileDto(user, thumbnailImageStorage.get(user.getProfileImageUrl()));
+    if (user.getProfileImageUrl() != null) {
+      return userMapper.toProfileDto(user, thumbnailImageStorage.get(user.getProfileImageUrl()));
+    } else {
+      return userMapper.toProfileDto(user);
+    }
   }
 
   @Transactional
