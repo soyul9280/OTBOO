@@ -10,7 +10,6 @@ import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -58,7 +57,7 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
         }
       };
     }
-    
+
     String key = CONTENT_TYPE_IMAGE_PREFIX + UUID.randomUUID();
 
     PutObjectRequest request =

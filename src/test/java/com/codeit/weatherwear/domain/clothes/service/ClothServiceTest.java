@@ -24,6 +24,7 @@ import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
+import com.codeit.weatherwear.domain.recommendation.service.AIRecommendationService;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -59,6 +60,8 @@ public class ClothServiceTest {
   private ClothMapper mapper;
   @Mock
   private List<SiteParser> siteParsers;
+  @Mock
+  private AIRecommendationService aiRecommendationService;
   @InjectMocks
   private ClothServiceImpl sut;
 
@@ -99,7 +102,6 @@ public class ClothServiceTest {
   @Nested
   @DisplayName("의상 등록 테스트")
   class RegisterCloth {
-/*
 
     @Test
     @DisplayName("직접 등록 성공 - 이미지 없음")
@@ -141,7 +143,6 @@ public class ClothServiceTest {
       verify(clothRepository, times(1)).save(any(Cloth.class));
       verify(thumbnailImageStorage, never()).upload(any());
     }
-*/
 
     @Test
     @DisplayName("직접 의상 등록 실패 - 속성ID가 존재하지 않을 경우")
