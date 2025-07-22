@@ -114,4 +114,5 @@ weatherwear:
 gemini:
   api:
     key: ${GEMINI_API_KEY}
+    url: ${GEMINI_API_URL}
 

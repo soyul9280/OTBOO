@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum Thickness {
-  VERY_THICK("아주 두꺼움"),
+  VERY_THICK("매우 두꺼움"),
   THICK("두꺼움"),
   LIGHT("얇음"),
-  VERY_LIGHT("아주 얇음");
+  VERY_LIGHT("매우 얇음");
 
   private final String label;
 
