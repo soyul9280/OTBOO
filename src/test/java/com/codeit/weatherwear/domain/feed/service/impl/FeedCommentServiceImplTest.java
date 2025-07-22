@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,6 +27,7 @@ import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.time.Instant;
@@ -41,6 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -63,6 +66,9 @@ class FeedCommentServiceImplTest {
 
   @Mock
   private FeedCommentMapper feedCommentMapper;
+
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private Location mockLocation;
   private UUID authorId;
@@ -192,6 +198,7 @@ class FeedCommentServiceImplTest {
     given(feedCommentMapper.toEntity(feed, author, request.getContent())).willReturn(comment1);
     given(feedCommentRepository.save(comment1)).willReturn(comment1);
     given(feedCommentMapper.toDto(comment1, authorDto)).willReturn(commentDto1);
+    willDoNothing().given(applicationEventPublisher).publishEvent(any(NewFeedCommentEvent.class));
 
     // when
     FeedCommentDto result = feedCommentService.createFeedComment(feedId, request);
