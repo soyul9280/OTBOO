@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.feed.controller;
 
+import com.codeit.weatherwear.domain.feed.controller.api.FeedLikeApi;
 import com.codeit.weatherwear.domain.feed.dto.response.FeedDto;
 import com.codeit.weatherwear.domain.feed.service.FeedLikeService;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/feeds/{feedId}/like")
 @RequiredArgsConstructor
-public class FeedLikeController {
+public class FeedLikeController implements FeedLikeApi {
 
   private final FeedLikeService feedLikeService;
 

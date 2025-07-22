@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.feed.controller;
 
+import com.codeit.weatherwear.domain.feed.controller.api.FeedApi;
 import com.codeit.weatherwear.domain.feed.dto.request.FeedCreateRequest;
 import com.codeit.weatherwear.domain.feed.dto.request.FeedGetParamRequest;
 import com.codeit.weatherwear.domain.feed.dto.request.FeedUpdateRequest;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/feeds")
 @RequiredArgsConstructor
-public class FeedController {
+public class FeedController implements FeedApi {
 
   private final FeedService feedService;
 

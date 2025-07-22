@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.feed.controller;
 
+import com.codeit.weatherwear.domain.feed.controller.api.FeedCommentApi;
 import com.codeit.weatherwear.domain.feed.dto.request.FeedCommentCreateRequest;
 import com.codeit.weatherwear.domain.feed.dto.request.FeedCommentGetParamRequest;
 import com.codeit.weatherwear.domain.feed.dto.response.FeedCommentDto;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/feeds/{feedId}/comments")
 @RequiredArgsConstructor
-public class FeedCommentController {
+public class FeedCommentController implements FeedCommentApi {
 
   private final FeedCommentService feedCommentService;
 
