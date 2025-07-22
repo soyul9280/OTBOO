@@ -31,8 +31,8 @@ public class AIRecommendationService {
   @Cacheable(value = "recommendations",
       key = "#user.id.toString() + '_' + #user.temperatureSensitivity",
       condition = "#weather.skyStatus != null && #weather.temperature != null && #weather.humidity != null && #weather.windSpeed != null && #weather.precipitation != null")
-  public List<Cloth> getRecommendationCandidates(Weather weather, User user,
-      List<Cloth> filtered) {
+  public List<Cloth> getRecommendationCandidates(List<Cloth> filtered, User user, Weather weather
+  ) {
     log.info("[CACHE CHECK] - Cache Start");
     //Gemini 프롬포트 생성 + 응답
     String prompt = buildPrompt(weather, user, filtered);

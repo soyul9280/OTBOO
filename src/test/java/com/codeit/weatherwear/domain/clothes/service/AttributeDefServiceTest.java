@@ -3,18 +3,14 @@ package com.codeit.weatherwear.domain.clothes.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.codeit.weatherwear.domain.clothes.dto.request.AttributesSearchRequest;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
-
 import com.codeit.weatherwear.domain.clothes.entity.Attribute;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeAlreadyExistsException;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
@@ -22,8 +18,6 @@ import com.codeit.weatherwear.domain.clothes.exception.attribute.SelectableDupli
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
-import com.codeit.weatherwear.global.request.SortDirection;
-import com.codeit.weatherwear.global.response.PageResponse;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
+
 
 @ExtendWith(MockitoExtension.class)
 public class AttributeDefServiceTest {

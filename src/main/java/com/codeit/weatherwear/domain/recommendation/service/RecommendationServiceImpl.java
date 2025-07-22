@@ -76,8 +76,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     try {
-      List<Cloth> filteredByAI = aiRecommendationService.getRecommendationCandidates(weather, user,
-          filtered);
+      List<Cloth> filteredByAI = aiRecommendationService.getRecommendationCandidates(filtered, user,
+          weather
+      );
       log.info("[Recommendation] Filtered Candidates By LLM Completed");
       return randomRecommendService.recommend(filteredByAI, user, weather);
     } catch (GeminiApiClientException | GeminiApiServerException | GeminiParseException e) {

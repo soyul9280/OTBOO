@@ -204,7 +204,6 @@ public class ClothServiceTest {
       verify(clothRepository, never()).save(any());
     }
 
-/*
     @Test
     @DisplayName("직접 의상 등록 성공 - 이미지 존재")
     void create_withImage() {
@@ -262,14 +261,14 @@ public class ClothServiceTest {
       verify(clothRepository, times(1)).save(any(Cloth.class));
       verify(thumbnailImageStorage).upload(file);
       verify(thumbnailImageStorage).get(imageKey);
-    }*/
+    }
   }
 
   @Nested
   @DisplayName("의상 삭제 테스트")
   class DeleteCloth {
 
-   /* @Test
+    @Test
     @DisplayName("삭제 성공 - 이미지가 없는 의상")
     void delete_success() {
       //given
@@ -280,9 +279,9 @@ public class ClothServiceTest {
       //then
       verify(clothRepository, times(1)).findById(clothesId);
       verify(clothRepository, times(1)).delete(cloth);
-    }*/
+    }
 
-   /* @Test
+    @Test
     @DisplayName("삭제 성공 - 이미지가 있는 의상")
     void delete_with_image() {
       //given
@@ -306,7 +305,7 @@ public class ClothServiceTest {
       verify(clothRepository, times(1)).findById(clothesId);
       verify(clothRepository, times(1)).delete(clothWithImage);
       verify(thumbnailImageStorage).delete(imageUrl);
-    }*/
+    }
 
     @Test
     @DisplayName("삭제 실패 - 존재하지 않는 의상")
@@ -355,7 +354,7 @@ public class ClothServiceTest {
   @Nested
   @DisplayName("의상 수정 테스트")
   class UpdateCloth {
-/*
+
     @Test
     @DisplayName("수정 성공 - 이미지 없음")
     void update_success() {
@@ -392,7 +391,7 @@ public class ClothServiceTest {
       assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
       verify(attributeRepository, times(1)).findAllById(any());
       verify(thumbnailImageStorage, never()).upload(any());
-    }*/
+    }
 
     /*  @Test
       @DisplayName("의상 수정 성공- 이미지 존재, 이미지 & 속성 & 이름 수정")
