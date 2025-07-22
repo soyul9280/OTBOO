@@ -52,7 +52,7 @@ public class NotificationEventListener {
 
     String attributeName = clothAttributeAddedEvent.attributeName();
 
-    String title = "새로운 의상 속상이 추가되었어요.";
+    String title = "새로운 의상 속성이 추가되었어요.";
     String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", attributeName);
 
     notificationService.createAllUser(
