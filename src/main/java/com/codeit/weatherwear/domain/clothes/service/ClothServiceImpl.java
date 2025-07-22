@@ -10,6 +10,7 @@ import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNameDuplicatedException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNotFoundException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionNotFoundException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionTimeOutException;
@@ -34,7 +35,6 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -83,7 +83,7 @@ public class ClothServiceImpl implements ClothService {
 
     //이름 중복 방지
     if (clothRepository.existsByName(request.name())) {
-      throw new RuntimeException("이미 존재하는 이름입니다.");
+      throw new ClothNameDuplicatedException(request.name());
     }
 
     // 썸네일 S3 업로드
