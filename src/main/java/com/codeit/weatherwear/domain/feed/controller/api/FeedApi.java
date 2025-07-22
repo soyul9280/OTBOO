@@ -35,8 +35,8 @@ public interface FeedApi {
   @ApiResponses({
       @ApiResponse(
           responseCode = "200",
-          description = "피드 목록 조회 성공",
-          content = @Content(schema = @Schema(implementation = PageResponse.class))),
+          description = "피드 목록 조회 성공"
+      ),
       @ApiResponse(
           responseCode = "400",
           description = "피드 목록 조회 실패",
