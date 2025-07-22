@@ -10,6 +10,7 @@ import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
+import com.codeit.weatherwear.global.event.exception.KafkaMessageConvertException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
@@ -30,8 +31,13 @@ public class NotificationEventListener {
 
   @Async("eventExecutor")
   @KafkaListener(topics = "weatherwear.new_follower")
-  public void handleNewFollowerEvent(String kafkaEvent) throws JsonProcessingException {
-    NewFollowerEvent newFollowerEvent = objectMapper.readValue(kafkaEvent, NewFollowerEvent.class);
+  public void handleNewFollowerEvent(String kafkaEvent) {
+    NewFollowerEvent newFollowerEvent = null;
+    try {
+      newFollowerEvent = objectMapper.readValue(kafkaEvent, NewFollowerEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
 
     String title = String.format("%s님이 나를 팔로우 했어요.", newFollowerEvent.followerName());
     String content = "";
@@ -46,9 +52,13 @@ public class NotificationEventListener {
 
   @Async("eventExecutor")
   @KafkaListener(topics = "weatherwear.cloth_attribute_added")
-  public void handleClothAttributeAddedEvent(String kafkaEvent) throws JsonProcessingException {
-    ClothAttributeAddedEvent clothAttributeAddedEvent = objectMapper.readValue(kafkaEvent,
-        ClothAttributeAddedEvent.class);
+  public void handleClothAttributeAddedEvent(String kafkaEvent) {
+    ClothAttributeAddedEvent clothAttributeAddedEvent = null;
+    try {
+      clothAttributeAddedEvent = objectMapper.readValue(kafkaEvent, ClothAttributeAddedEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
 
     String attributeName = clothAttributeAddedEvent.attributeName();
 
@@ -64,9 +74,13 @@ public class NotificationEventListener {
 
   @Async("eventExecutor")
   @KafkaListener(topics = "weatherwear.direct_message_received")
-  public void handleDirectMessageReceivedEvent(String kafkaEvent) throws JsonProcessingException {
-    DirectMessageReceivedEvent directMessageReceivedEvent = objectMapper.readValue(kafkaEvent,
-        DirectMessageReceivedEvent.class);
+  public void handleDirectMessageReceivedEvent(String kafkaEvent) {
+    DirectMessageReceivedEvent directMessageReceivedEvent = null;
+    try {
+      directMessageReceivedEvent = objectMapper.readValue(kafkaEvent, DirectMessageReceivedEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
 
     DirectMessageDto dto = directMessageReceivedEvent.directMessageDto();
     UUID receiverId = dto.receiver().userId();
@@ -85,8 +99,13 @@ public class NotificationEventListener {
 
   @Async("eventExecutor")
   @KafkaListener(topics = "weatherwear.feed_like")
-  public void handleFeedLikeEvent(String kafkaEvent) throws JsonProcessingException {
-    FeedLikeEvent feedLikeEvent = objectMapper.readValue(kafkaEvent, FeedLikeEvent.class);
+  public void handleFeedLikeEvent(String kafkaEvent) {
+    FeedLikeEvent feedLikeEvent = null;
+    try {
+      feedLikeEvent = objectMapper.readValue(kafkaEvent, FeedLikeEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
 
     String title = String.format("%s님이 내 피드를 좋아합니다.", feedLikeEvent.likerName());
     String content = feedLikeEvent.feedContent();
@@ -101,8 +120,13 @@ public class NotificationEventListener {
 
   @Async("eventExecutor")
   @KafkaListener(topics = "weatherwear.new_feed_comment")
-  public void handleNewFeedCommentEvent(String kafkaEvent) throws JsonProcessingException {
-    NewFeedCommentEvent newFeedCommentEvent = objectMapper.readValue(kafkaEvent, NewFeedCommentEvent.class);
+  public void handleNewFeedCommentEvent(String kafkaEvent) {
+    NewFeedCommentEvent newFeedCommentEvent = null;
+    try {
+      newFeedCommentEvent = objectMapper.readValue(kafkaEvent, NewFeedCommentEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
 
     String title = String.format("%s님이 댓글을 달았어요.", newFeedCommentEvent.authorName());
     String content = newFeedCommentEvent.commentContent();
@@ -117,9 +141,13 @@ public class NotificationEventListener {
 
   @Async("eventExecutor")
   @KafkaListener(topics = "weatherwear.followee_feed_posted")
-  public void handleFolloweeFeedPostedEvent(String kafkaEvent) throws JsonProcessingException {
-    FolloweeFeedPostedEvent followeeFeedPostedEvent = objectMapper.readValue(kafkaEvent,
-        FolloweeFeedPostedEvent.class);
+  public void handleFolloweeFeedPostedEvent(String kafkaEvent) {
+    FolloweeFeedPostedEvent followeeFeedPostedEvent = null;
+    try {
+      followeeFeedPostedEvent = objectMapper.readValue(kafkaEvent, FolloweeFeedPostedEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
 
     String title = String.format("%s님이 새로운 피드를 작성했어요.", followeeFeedPostedEvent.followeeName());
     String content = followeeFeedPostedEvent.content();
@@ -134,8 +162,13 @@ public class NotificationEventListener {
 
   @Async("eventExecutor")
   @KafkaListener(topics = "weatherwear.role_changed")
-  public void handlePermissionChangedEvent(String kafkaEvent) throws JsonProcessingException {
-    RoleChangedEvent roleChangedEvent = objectMapper.readValue(kafkaEvent, RoleChangedEvent.class);
+  public void handlePermissionChangedEvent(String kafkaEvent) {
+    RoleChangedEvent roleChangedEvent = null;
+    try {
+      roleChangedEvent = objectMapper.readValue(kafkaEvent, RoleChangedEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
 
     String title = "권한이 변경되었어요.";
     String content = String.format("%s -> %s", roleChangedEvent.previousRoles().name(), roleChangedEvent.newRoles().name());
