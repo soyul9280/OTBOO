@@ -10,13 +10,14 @@ import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
@@ -25,15 +26,18 @@ public class NotificationEventListener {
 
   private final NotificationService notificationService;
 
-  @Async("eventExecutor")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleNewFollowerEvent(NewFollowerEvent event) {
+  private final ObjectMapper objectMapper;
 
-    String title = String.format("%s님이 나를 팔로우 했어요.", event.followerName());
+  @Async("eventExecutor")
+  @KafkaListener(topics = "weatherwear.new_follower")
+  public void handleNewFollowerEvent(String kafkaEvent) throws JsonProcessingException {
+    NewFollowerEvent newFollowerEvent = objectMapper.readValue(kafkaEvent, NewFollowerEvent.class);
+
+    String title = String.format("%s님이 나를 팔로우 했어요.", newFollowerEvent.followerName());
     String content = "";
 
     notificationService.create(
-        event.receiverId(),
+        newFollowerEvent.receiverId(),
         title,
         content,
         Level.INFO
@@ -41,9 +45,12 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleClothAttributeAddedEvent(ClothAttributeAddedEvent event) {
-    String attributeName = event.attributeName();
+  @KafkaListener(topics = "weatherwear.cloth_attribute_added")
+  public void handleClothAttributeAddedEvent(String kafkaEvent) throws JsonProcessingException {
+    ClothAttributeAddedEvent clothAttributeAddedEvent = objectMapper.readValue(kafkaEvent,
+        ClothAttributeAddedEvent.class);
+
+    String attributeName = clothAttributeAddedEvent.attributeName();
 
     String title = "새로운 의상 속상이 추가되었어요.";
     String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", attributeName);
@@ -56,14 +63,17 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
-    DirectMessageDto dto = event.directMessageDto();
+  @KafkaListener(topics = "weatherwear.direct_message_received")
+  public void handleDirectMessageReceivedEvent(String kafkaEvent) throws JsonProcessingException {
+    DirectMessageReceivedEvent directMessageReceivedEvent = objectMapper.readValue(kafkaEvent,
+        DirectMessageReceivedEvent.class);
+
+    DirectMessageDto dto = directMessageReceivedEvent.directMessageDto();
     UUID receiverId = dto.receiver().userId();
     String senderName = dto.sender().name();
 
     String title = String.format("[DM] %s", senderName);
-    String content = event.directMessageDto().content();
+    String content = directMessageReceivedEvent.directMessageDto().content();
 
     notificationService.create(
         receiverId,
@@ -74,13 +84,15 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleFeedLikeEvent(FeedLikeEvent event) {
-    String title = String.format("%s님이 내 피드를 좋아합니다.", event.likerName());
-    String content = event.feedContent();
+  @KafkaListener(topics = "weatherwear.feed_like")
+  public void handleFeedLikeEvent(String kafkaEvent) throws JsonProcessingException {
+    FeedLikeEvent feedLikeEvent = objectMapper.readValue(kafkaEvent, FeedLikeEvent.class);
+
+    String title = String.format("%s님이 내 피드를 좋아합니다.", feedLikeEvent.likerName());
+    String content = feedLikeEvent.feedContent();
 
     notificationService.create(
-        event.receiverId(),
+        feedLikeEvent.receiverId(),
         title,
         content,
         Level.INFO
@@ -88,13 +100,15 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleNewFeedCommentEvent(NewFeedCommentEvent event) {
-    String title = String.format("%s님이 댓글을 달았어요.", event.authorName());
-    String content = event.commentContent();
+  @KafkaListener(topics = "weatherwear.new_feed_comment")
+  public void handleNewFeedCommentEvent(String kafkaEvent) throws JsonProcessingException {
+    NewFeedCommentEvent newFeedCommentEvent = objectMapper.readValue(kafkaEvent, NewFeedCommentEvent.class);
+
+    String title = String.format("%s님이 댓글을 달았어요.", newFeedCommentEvent.authorName());
+    String content = newFeedCommentEvent.commentContent();
 
     notificationService.create(
-        event.receiverId(),
+        newFeedCommentEvent.receiverId(),
         title,
         content,
         Level.INFO
@@ -102,13 +116,16 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleFolloweeFeedPostedEvent(FolloweeFeedPostedEvent event) {
-    String title = String.format("%s님이 새로운 피드를 작성했어요.", event.followeeName());
-    String content = event.content();
+  @KafkaListener(topics = "weatherwear.followee_feed_posted")
+  public void handleFolloweeFeedPostedEvent(String kafkaEvent) throws JsonProcessingException {
+    FolloweeFeedPostedEvent followeeFeedPostedEvent = objectMapper.readValue(kafkaEvent,
+        FolloweeFeedPostedEvent.class);
+
+    String title = String.format("%s님이 새로운 피드를 작성했어요.", followeeFeedPostedEvent.followeeName());
+    String content = followeeFeedPostedEvent.content();
 
     notificationService.create(
-        event.receiverIds(),
+        followeeFeedPostedEvent.receiverIds(),
         title,
         content,
         Level.INFO
@@ -116,13 +133,15 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handlePermissionChangedEvent(RoleChangedEvent event) {
+  @KafkaListener(topics = "weatherwear.role_changed")
+  public void handlePermissionChangedEvent(String kafkaEvent) throws JsonProcessingException {
+    RoleChangedEvent roleChangedEvent = objectMapper.readValue(kafkaEvent, RoleChangedEvent.class);
+
     String title = "권한이 변경되었어요.";
-    String content = String.format("%s -> %s", event.previousRoles().name(), event.newRoles().name());
+    String content = String.format("%s -> %s", roleChangedEvent.previousRoles().name(), roleChangedEvent.newRoles().name());
 
     notificationService.create(
-        event.receiverId(),
+        roleChangedEvent.receiverId(),
         title,
         content,
         Level.INFO
