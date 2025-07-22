@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -145,7 +144,7 @@ class UserServiceImplTest {
     );
 
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    when(userMapper.toProfileDto(eq(user), isNull())).thenReturn(dto);
+    when(userMapper.toProfileDto(eq(user))).thenReturn(dto);
 
     // when
     ProfileDto result = userService.updateProfile(userId, request, null);
@@ -205,7 +204,7 @@ class UserServiceImplTest {
     ProfileDto dto = new ProfileDto(userId, "test", null, null, null, null, null);
 
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    when(userMapper.toProfileDto(eq(user), isNull())).thenReturn(dto);
+    when(userMapper.toProfileDto(eq(user))).thenReturn(dto);
 
     // when
     ProfileDto result = userService.findProfile(userId);
