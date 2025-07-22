@@ -134,7 +134,7 @@ public class NotificationEventListener {
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleWeatherEvent(WeatherAlertEvent event) {
-    String title = String.format("오늘 %s의 날씨를 유의하세요.", event.address());
+    String title = String.format("%s의 날씨 특이사항 알림", event.address());
     String content = event.content();
 
     notificationService.create(
