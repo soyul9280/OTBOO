@@ -67,8 +67,8 @@ public interface UserApi {
   @ApiResponses({
       @ApiResponse(
           responseCode = "200",
-          description = "계정 목록 조회 성공",
-          content = @Content(schema = @Schema(implementation = PageResponse.class))),
+          description = "계정 목록 조회 성공"
+      ),
       @ApiResponse(
           responseCode = "400",
           description = "계정 목록 조회 실패",
