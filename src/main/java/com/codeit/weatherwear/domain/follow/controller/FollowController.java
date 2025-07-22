@@ -1,5 +1,7 @@
-package com.codeit.weatherwear.domain.follow;
+package com.codeit.weatherwear.domain.follow.controller;
 
+import com.codeit.weatherwear.domain.follow.FollowService;
+import com.codeit.weatherwear.domain.follow.controller.api.FollowApi;
 import com.codeit.weatherwear.domain.follow.dto.FollowDto;
 import com.codeit.weatherwear.domain.follow.dto.FollowSummaryDto;
 import com.codeit.weatherwear.domain.follow.dto.request.FollowCreateRequest;
@@ -27,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/follows")
-public class FollowController {
+public class FollowController implements FollowApi {
 
   private final FollowService followService;
 
