@@ -23,7 +23,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class kafkaHandler {
+public class KafkaHandler {
 
   private final KafkaTemplate<String, String> kafkaTemplate;
   private final ObjectMapper objectMapper;
