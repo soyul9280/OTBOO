@@ -33,7 +33,7 @@ public class WeatherAlertAnalyzer {
 
   private boolean isTempGapAlert(Weather todayForecast) {
     Temperature temperature = todayForecast.getTemperature();
-    return (temperature.getMax() - temperature.getMin()) >= 10.0;
+    return temperature != null && (temperature.getMax() - temperature.getMin()) >= 10.0;
   }
 
 }

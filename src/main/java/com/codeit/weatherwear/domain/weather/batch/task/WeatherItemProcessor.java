@@ -61,7 +61,7 @@ public class WeatherItemProcessor {
 
       // 오늘 날씨 예보가 존재하는지 확인
       todayForecastOpt.ifPresent(todayForecast -> {
-        WeatherAlertResult alertResult = weatherAlertAnalyzer.analyze(todayForecastOpt.get());
+        WeatherAlertResult alertResult = weatherAlertAnalyzer.analyze(todayForecast);
         // 특이 사항 알람이 필요한 지 확인
         if (alertResult.alertNeeded()) {
           List<UUID> receiverIds = userRepository.findUserIdsByLocation(location);
