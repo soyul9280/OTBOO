@@ -30,7 +30,7 @@ public interface FeedCommentApi {
       @ApiResponse(
           responseCode = "200",
           description = "피드 댓글 등록 성공",
-          content = @Content(schema = @Schema(implementation = PageResponse.class))),
+          content = @Content(schema = @Schema(implementation = FeedCommentDto.class))),
       @ApiResponse(
           responseCode = "400",
           description = "피드 댓글 등록 실패",
@@ -48,7 +48,7 @@ public interface FeedCommentApi {
       @ApiResponse(
           responseCode = "200",
           description = "피드 댓글 조회 성공",
-          content = @Content(schema = @Schema(implementation = FeedCommentDto.class))),
+          content = @Content(schema = @Schema(implementation = PageResponse.class))),
       @ApiResponse(
           responseCode = "400",
           description = "피드 댓글 조회 실패",
