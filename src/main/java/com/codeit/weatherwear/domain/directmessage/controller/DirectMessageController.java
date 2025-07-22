@@ -1,7 +1,8 @@
 package com.codeit.weatherwear.domain.directmessage.controller;
 
-import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.directmessage.DirectMessageService;
+import com.codeit.weatherwear.domain.directmessage.controller.api.DirectMessageApi;
+import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.directmessage.dto.request.DirectMessageSearchRequest;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.global.response.PageResponse;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/direct-messages")
-public class DirectMessageController {
+public class DirectMessageController implements DirectMessageApi {
 
   private final DirectMessageService directMessageService;
 

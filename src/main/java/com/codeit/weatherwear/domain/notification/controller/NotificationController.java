@@ -1,5 +1,7 @@
-package com.codeit.weatherwear.domain.notification;
+package com.codeit.weatherwear.domain.notification.controller;
 
+import com.codeit.weatherwear.domain.notification.NotificationService;
+import com.codeit.weatherwear.domain.notification.controller.api.NotificationApi;
 import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import com.codeit.weatherwear.domain.notification.dto.request.NotificationSearchRequest;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
@@ -20,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications")
-public class NotificationController {
+public class NotificationController implements NotificationApi {
 
   private final NotificationService notificationService;
 
