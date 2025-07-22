@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
   @Transactional(readOnly = true)
   @Override
   public ProfileDto findProfile(UUID userId) {
-    User user = userRepository.findById(userId)
+    User user = userRepository.findByIdWithLocation(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
     if (user.getProfileImageUrl() != null) {
       return userMapper.toProfileDto(user, thumbnailImageStorage.get(user.getProfileImageUrl()));
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest,
       MultipartFile profileImage) {
-    User user = userRepository.findById(userId)
+    User user = userRepository.findByIdWithLocation(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
 
     // Location 생성
