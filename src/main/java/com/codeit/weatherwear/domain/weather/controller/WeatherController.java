@@ -1,6 +1,7 @@
 package com.codeit.weatherwear.domain.weather.controller;
 
 import com.codeit.weatherwear.domain.location.dto.LocationDto;
+import com.codeit.weatherwear.domain.weather.controller.api.WeatherApi;
 import com.codeit.weatherwear.domain.weather.dto.response.WeatherDto;
 import com.codeit.weatherwear.domain.weather.service.WeatherService;
 import java.util.List;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/weathers")
 @RequiredArgsConstructor
-public class WeatherController {
+public class WeatherController implements WeatherApi {
 
   private final WeatherService weatherService;
 
