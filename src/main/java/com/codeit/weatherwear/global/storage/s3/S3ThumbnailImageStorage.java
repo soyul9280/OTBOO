@@ -44,9 +44,20 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
   public String upload(MultipartFile file) {
     String contentType = file.getContentType();
     if (contentType == null || !contentType.startsWith(CONTENT_TYPE_IMAGE_PREFIX)) {
-      log.warn("[S3 Upload Fail] Not Supported Media Type: {}", contentType);
-      throw new S3UploadException();
+      String ext = extractExtension(file.getOriginalFilename());
+
+      contentType = switch (ext) {
+        case "jpg", "jpeg" -> "image/jpeg";
+        case "png" -> "image/png";
+        case "gif" -> "image/gif";
+        case "webp" -> "image/webp";
+        default -> {
+          log.warn("[S3 Upload Fail] Unknown Media Type: {}", ext);
+          throw new S3UploadException();
+        }
+      };
     }
+
     String key = CONTENT_TYPE_IMAGE_PREFIX + UUID.randomUUID();
 
     PutObjectRequest request =
@@ -120,5 +131,22 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
     log.debug("[S3 Key Extract] URL: {}, Extracted Key: {}", url, key);
     return key;
   }
+
+  private String extractExtension(String filename) {
+    if (filename == null) {
+      return "";
+    }
+
+    // 쿼리 스트링 제거 (e.g. jpeg?width=400 → jpeg)
+    String cleanName = filename.split("\\?")[0];
+
+    int lastDot = cleanName.lastIndexOf('.');
+    if (lastDot == -1) {
+      return "";
+    }
+
+    return cleanName.substring(lastDot + 1).toLowerCase();
+  }
+
 
 }

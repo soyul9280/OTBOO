@@ -143,7 +143,7 @@ class UserServiceImplTest {
         null
     );
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(userRepository.findByIdWithLocation(userId)).thenReturn(Optional.of(user));
     when(userMapper.toProfileDto(eq(user))).thenReturn(dto);
 
     // when
@@ -165,7 +165,7 @@ class UserServiceImplTest {
         null,
         null
     );
-    when(userRepository.findById(userId)).thenReturn(Optional.empty());
+    when(userRepository.findByIdWithLocation(userId)).thenReturn(Optional.empty());
 
     // when & then
     assertThrows(UserNotFoundException.class,
@@ -203,7 +203,7 @@ class UserServiceImplTest {
 
     ProfileDto dto = new ProfileDto(userId, "test", null, null, null, null, null);
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(userRepository.findByIdWithLocation(userId)).thenReturn(Optional.of(user));
     when(userMapper.toProfileDto(eq(user))).thenReturn(dto);
 
     // when

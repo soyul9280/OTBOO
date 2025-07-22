@@ -86,6 +86,7 @@ spring:
       new-feed-comment: weatherwear.new_feed_comment
       followee-feed-posted: weatherwear.followee_feed_posted
       role-changed: weatherwear.role_changed
+      weather-alert: weatherwear.weather_alert
 
 server:
   shutdown: graceful
@@ -140,4 +141,5 @@ weatherwear:
 gemini:
   api:
     key: ${GEMINI_API_KEY}
+    url: ${GEMINI_API_URL}
 

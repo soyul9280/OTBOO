@@ -2,6 +2,7 @@ package com.codeit.weatherwear.global.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties.Http;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -56,6 +57,8 @@ public enum ErrorCode {
   JWTSESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "인증 정보 확인 실패", "토큰이 만료되거나 로그아웃되었습니다."),
   INVALID_JWT(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT", "JWT 토큰이 손상되었거나 유효하지 않습니다."),
   ACCOUNT_LOCKED(HttpStatus.UNAUTHORIZED, "잠금 계정", "계정이 잠겨있어 로그인이 불가능합니다."),
+  INVALID_SIGN_IN_REQUEST(HttpStatus.BAD_REQUEST, "유효하지 않은 로그인 요청 시도",
+      "로그인 요청 JSON 파싱이 실패하거나 필수 필드(email, password)가 없습니다."),
 
   //ATTRIBUTE
   ATTRIBUTE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "속성 등록 실패", "속성이 이미 존재합니다."),
@@ -70,9 +73,14 @@ public enum ErrorCode {
       "이미지 접근 URL 생성 중 오류 발생"),
   S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 객체 삭제에 실패했습니다.", "이미지를 삭제할 수 없습니다."),
 
+  //GEMINI
+  GEMINI_API_CLIENT(HttpStatus.BAD_REQUEST, "GEMINI API 클라이언트 오류", ""),
+  GEMINI_API_SERVER(HttpStatus.INTERNAL_SERVER_ERROR, "GEMINI API 서버 오류", ""),
+  GEMINI_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "GEMINI API 응답 파싱 실패", ""),
 
   //CLOTH
   CLOTH_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "옷 등록 실패", "존재하는 옷입니다."),
+  CLOTH_NAME_DUPLICATED(HttpStatus.BAD_REQUEST, "옷 등록 실패", "이미 존재하는 이름입니다."),
   CLOTH_NOT_FOUND(HttpStatus.NOT_FOUND, "옷 확인 실패", "존재하지 않는 옷입니다."),
   CLOTH_EXTRACTION_TIME_OUT(HttpStatus.BAD_REQUEST, "옷 불러오기 실패", "옷을 불러오는데 시간이 초과하였습니다."),
   CLOTH_EXTRACTION_NOT_FOUND_ELEMENT(HttpStatus.BAD_REQUEST, "옷 불러오기 실패",

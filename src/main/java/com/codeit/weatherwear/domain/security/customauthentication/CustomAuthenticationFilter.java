@@ -1,10 +1,12 @@
 package com.codeit.weatherwear.domain.security.customauthentication;
 
 import com.codeit.weatherwear.domain.security.dto.SignInRequest;
+import com.codeit.weatherwear.global.response.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,6 +29,12 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
       String email = signInRequest.email();
       String password = signInRequest.password();
 
+      // 입력 값 검증
+      if (email == null || password == null) {
+        writeBadRequestResponse(response);
+        return null;
+      }
+
       // Authentication 객체 생성
       UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
           email, password);
@@ -37,7 +45,26 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
       return this.getAuthenticationManager().authenticate(authenticationToken);
 
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      writeBadRequestResponse(response);
+      return null;
+    }
+  }
+
+  private void writeBadRequestResponse(HttpServletResponse response) {
+    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
+    ErrorResponse error = ErrorResponse.builder()
+        .exceptionName("INVALID_SIGN_IN_REQUEST")
+        .message("유효하지 않은 로그인 요청 시도")
+        .details(Map.of("reason", "로그인 요청 JSON 파싱이 실패하거나 필수 필드(email, password)가 없습니다."))
+        .build();
+
+    try {
+      objectMapper.writeValue(response.getWriter(), error);
+    } catch (IOException ioException) {
+      throw new RuntimeException(ioException); // fallback
     }
   }
 }

@@ -13,6 +13,7 @@ import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
 import com.codeit.weatherwear.global.event.exception.KafkaMessageConvertException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.codeit.weatherwear.global.event.dto.WeatherAlertEvent;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -171,10 +172,33 @@ public class NotificationEventListener {
     }
 
     String title = "권한이 변경되었어요.";
-    String content = String.format("%s -> %s", roleChangedEvent.previousRoles().name(), roleChangedEvent.newRoles().name());
+    String content = String.format("%s -> %s", roleChangedEvent.previousRoles().name(),
+        roleChangedEvent.newRoles().name());
 
     notificationService.create(
         roleChangedEvent.receiverId(),
+        title,
+        content,
+        Level.INFO
+    );
+  }
+
+  @Async("eventExecutor")
+  @KafkaListener(topics = "${spring.kafka.topics.weather-alert}")
+  public void handleWeatherEvent(String kafkaEvent) {
+    WeatherAlertEvent weatherAlertEvent = null;
+    try {
+      weatherAlertEvent = objectMapper.readValue(kafkaEvent,
+          WeatherAlertEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
+
+    String title = String.format("%s의 날씨 특이사항 알림", weatherAlertEvent.address());
+    String content = weatherAlertEvent.content();
+
+    notificationService.create(
+        weatherAlertEvent.receiverIds(),
         title,
         content,
         Level.INFO
