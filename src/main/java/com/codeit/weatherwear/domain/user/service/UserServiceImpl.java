@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,7 @@ public class UserServiceImpl implements UserService {
 
 
   @Transactional
+  @CacheEvict(cacheNames = "users", key = "'default:firstPage'")
   @Override
   public UserDto create(UserCreateRequest userCreateRequest) {
     // 중복 검사
@@ -70,9 +73,13 @@ public class UserServiceImpl implements UserService {
   }
 
   @Transactional(readOnly = true)
+  @Cacheable(
+      cacheNames = "users",
+      key = "#userId"
+  )
   @Override
   public ProfileDto findProfile(UUID userId) {
-    User user = userRepository.findById(userId)
+    User user = userRepository.findByIdWithLocation(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
     if (user.getProfileImageUrl() != null) {
       return userMapper.toProfileDto(user, thumbnailImageStorage.get(user.getProfileImageUrl()));
@@ -82,10 +89,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Transactional
+  @Cacheable(
+      cacheNames = "users",
+      key = "#userId"
+  )
   @Override
   public ProfileDto updateProfile(UUID userId, ProfileUpdateRequest profileUpdateRequest,
       MultipartFile profileImage) {
-    User user = userRepository.findById(userId)
+    User user = userRepository.findByIdWithLocation(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
 
     // Location 생성
@@ -119,6 +130,7 @@ public class UserServiceImpl implements UserService {
     }
   }
 
+  @CacheEvict(cacheNames = "users", key = "'default:firstPage'")
   @Transactional
   @Override
   public UUID updateLock(UUID userId, UserLockUpdateRequest userLockUpdateRequest) {
@@ -146,6 +158,7 @@ public class UserServiceImpl implements UserService {
     user.updatePassword(newPassword);
   }
 
+  @CacheEvict(cacheNames = "users", key = "'default:firstPage'")
   @Transactional
   @Override
   public UserDto updateRole(UUID userId, UserRoleUpdateRequest userRoleUpdateRequest) {
@@ -165,6 +178,20 @@ public class UserServiceImpl implements UserService {
     return userMapper.toUserDto(user);
   }
 
+  @Cacheable(
+      cacheNames = "users",
+      key = "'default:firstPage'",
+      condition = "#userSearchRequest.cursor == null && " +
+          "#userSearchRequest.idAfter == null && " +
+          "#userSearchRequest.limit == 20 && " +
+          "#userSearchRequest.sortBy?.equals('email') && "
+          +
+          "#userSearchRequest.sortDirection == T(com.codeit.weatherwear.global.request.SortDirection).ASCENDING && "
+          +
+          "#userSearchRequest.emailLike == null && " +
+          "#userSearchRequest.roleEqual == null && " +
+          "#userSearchRequest.locked == null"
+  )
   @Transactional(readOnly = true)
   @Override
   public PageResponse<UserDto> searchUsers(UserSearchRequest userSearchRequest) {

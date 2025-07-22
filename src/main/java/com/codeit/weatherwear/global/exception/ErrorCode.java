@@ -57,6 +57,8 @@ public enum ErrorCode {
   JWTSESSION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "인증 정보 확인 실패", "토큰이 만료되거나 로그아웃되었습니다."),
   INVALID_JWT(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT", "JWT 토큰이 손상되었거나 유효하지 않습니다."),
   ACCOUNT_LOCKED(HttpStatus.UNAUTHORIZED, "잠금 계정", "계정이 잠겨있어 로그인이 불가능합니다."),
+  INVALID_SIGN_IN_REQUEST(HttpStatus.BAD_REQUEST, "유효하지 않은 로그인 요청 시도",
+      "로그인 요청 JSON 파싱이 실패하거나 필수 필드(email, password)가 없습니다."),
 
   //ATTRIBUTE
   ATTRIBUTE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "속성 등록 실패", "속성이 이미 존재합니다."),

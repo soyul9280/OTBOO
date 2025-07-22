@@ -1,10 +1,14 @@
 package com.codeit.weatherwear.global.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,10 +18,29 @@ public class CacheConfig {
 
   @Bean
   public CacheManager cacheManager() {
-    CaffeineCacheManager cacheManager = new CaffeineCacheManager("recommendations");
-    cacheManager.setCaffeine(Caffeine.newBuilder()
-        .maximumSize(1000)
-        .expireAfterWrite(1, TimeUnit.HOURS));
+    Map<String, CaffeineCache> cacheMap = new HashMap<>();
+
+    // recommendations cache
+    cacheMap.put("recommendations", new CaffeineCache(
+        "recommendations",
+        Caffeine.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .maximumSize(1000)
+            .build()
+    ));
+
+    // users cache
+    cacheMap.put("users", new CaffeineCache(
+        "users",
+        Caffeine.newBuilder()
+            .expireAfterWrite(600, TimeUnit.SECONDS)
+            .maximumSize(1000)
+            .build()
+    ));
+
+    SimpleCacheManager cacheManager = new SimpleCacheManager();
+    cacheManager.setCaches(new ArrayList<>(cacheMap.values()));
+
     return cacheManager;
   }
 }
