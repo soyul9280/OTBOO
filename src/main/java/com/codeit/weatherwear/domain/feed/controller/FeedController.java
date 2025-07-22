@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.feed.controller;
 
+import com.codeit.weatherwear.domain.feed.controller.api.FeedApi;
 import com.codeit.weatherwear.domain.feed.dto.request.FeedCreateRequest;
 import com.codeit.weatherwear.domain.feed.dto.request.FeedGetParamRequest;
 import com.codeit.weatherwear.domain.feed.dto.request.FeedUpdateRequest;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/feeds")
 @RequiredArgsConstructor
-public class FeedController {
+public class FeedController implements FeedApi {
 
   private final FeedService feedService;
 
@@ -62,7 +63,7 @@ public class FeedController {
   // 피드 삭제
   @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isFeedAuthor(#feedId, authentication.principal.userId)")
   @DeleteMapping("/{feedId}")
-  public ResponseEntity<FeedDto> deleteFeed(@PathVariable UUID feedId,
+  public ResponseEntity<Void> deleteFeed(@PathVariable UUID feedId,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     feedService.deleteFeed(feedId, userDetails.getUserId());
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
