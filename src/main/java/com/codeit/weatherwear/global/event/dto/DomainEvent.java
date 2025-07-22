@@ -9,4 +9,7 @@ public sealed interface DomainEvent
     NewFollowerEvent,
     RoleChangedEvent,
     MultipleNotificationCreatedEvent,
-    NotificationCreatedEvent { }
+    NotificationCreatedEvent,
+    WeatherAlertEvent {
+
+}

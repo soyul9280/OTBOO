@@ -71,6 +71,9 @@ class RecommendationServiceImplTest {
   @Mock
   private RandomRecommendService randomRecommendService;
 
+  @Mock
+  private AIRecommendationService aiRecommendationService;
+
   @InjectMocks
   private RecommendationServiceImpl sut;
 
@@ -114,10 +117,10 @@ class RecommendationServiceImplTest {
     all = List.of(dress, top, bottom, hat);
   }
 
-  /*@Test
+  @Test
   @DisplayName("추천 성공 - DRESS 타입 선택될수도 안될수도 있음 & hat은 항상 추천")
   void recommend_withDress() {
-    *//** given **//*
+    /** given **/
     Instant summerDate = LocalDate.of(2025, 7, 17).atStartOfDay(ZoneId.systemDefault()).toInstant();
     mockWeather = Weather.builder()
         .temperature(Temperature.builder().current(27.0).build())
@@ -129,7 +132,7 @@ class RecommendationServiceImplTest {
         .location(mock(Location.class))
         .build();
 
-    // 사용자 민감도: 보통(2)
+    // 사용자 민감도: 보통()
     mockUser = User.builder().id(userId).temperatureSensitivity(2).build();
 
     // 옷 구성: 여름 얇은 옷 3개 + 겨울 두꺼운 옷 1개(bottom)
@@ -158,7 +161,9 @@ class RecommendationServiceImplTest {
     given(userRepository.findByEmail(email)).willReturn(Optional.of(mockUser));
     given(weatherRepository.findById(weatherId)).willReturn(Optional.of(mockWeather));
     given(clothRepository.findAllWithAttributesByUserId(userId)).willReturn(all);
-    given(fallbackService.recommend(anyList(), eq(mockUser), eq(mockWeather)))
+    given(aiRecommendationService.getRecommendationCandidates(anyList(), eq(mockUser),
+        eq(mockWeather))).willReturn(List.of(summerDress, summerHat, summerTop));
+    given(randomRecommendService.recommend(anyList(), eq(mockUser), eq(mockWeather)))
         .willAnswer(invocation -> {
           List<Cloth> filtered = invocation.getArgument(0);
           return RecommendationDto.builder()
@@ -168,13 +173,12 @@ class RecommendationServiceImplTest {
               .build();
         });
 
-    *//** when **//*
+    /** when **/
     RecommendationDto result = sut.recommendClothes(weatherId);
-    */
 
-  /**
-   * then
-   **//*
+    /**
+     * then
+     **/
     assertThat(result).isNotNull();
     List<RecommendClothesDto> clothes = result.getClothes();
     assertThat(clothes).contains(dressDto, hatDto);
@@ -185,7 +189,7 @@ class RecommendationServiceImplTest {
         .imageUrl("bottom_url")
         .build());
   }
-*/
+
   @Test
   @DisplayName("추천 실패 - 사용자 없음")
   void recommend_user_not_found() {
