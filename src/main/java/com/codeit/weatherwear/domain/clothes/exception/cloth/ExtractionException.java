@@ -4,9 +4,9 @@ import com.codeit.weatherwear.global.exception.CustomException;
 import com.codeit.weatherwear.global.exception.ErrorCode;
 import java.util.Map;
 
-public class ExtractionTimeOutException extends CustomException {
+public class ExtractionException extends CustomException {
 
-  public ExtractionTimeOutException(String url) {
-    super(ErrorCode.CLOTH_EXTRACTION_TIME_OUT, Map.of("url", url));
+  public ExtractionException(String url) {
+    super(ErrorCode.CLOTH_EXTRACTION_ERROR, Map.of("url", url));
   }
 }

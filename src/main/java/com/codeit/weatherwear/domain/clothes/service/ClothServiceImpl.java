@@ -11,9 +11,8 @@ import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionTimeOutException;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.InvalidAttributeValueException;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.NotSupportSiteException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
@@ -28,22 +27,18 @@ import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.io.IOException;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.PageLoadStrategy;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,24 +114,17 @@ public class ClothServiceImpl implements ClothService {
    *
    * @param url 구매 링크
    * @return 의상 DTO
-   * @throws IOException
+   * @throws RuntimeException, IOException
    */
   @Override
   public ClothesDto getFromUrl(String url) {
     log.info("[Start Getting Cloth From Url] URL: {}", url);
-    ChromeOptions chromeOptions = new ChromeOptions();
-    chromeOptions.addArguments("--headless=new");
-    chromeOptions.addArguments("--lang=ko");
-    chromeOptions.addArguments("--no-sandbox");
-    chromeOptions.addArguments("--disable-gpu");
-    chromeOptions.addArguments(
-        "--user-agent=Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36");
-    chromeOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
-
-    WebDriver driver = new ChromeDriver(chromeOptions);
-    driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(6));
+    Document document = null;
     try {
-      driver.get(url);
+      document = Jsoup.connect(url)
+          .timeout(5000)
+          .userAgent("Mozilla/5.0")
+          .get();
       SiteParser parser = siteParsers.stream()
           .filter(p -> p.supports(url))
           .findFirst()
@@ -144,19 +132,9 @@ public class ClothServiceImpl implements ClothService {
             log.debug("[Fail Extracting Cloth] Site Not Support - URL: {}", url);
             return new NotSupportSiteException(url);
           });
-      parser.waitUntilReady(driver);
-      return parser.extract(driver);
-    } catch (TimeoutException e) {
-      log.warn("Fail Extracting Cloth] Page load timed out - URL: {}", url, e);
-      throw new ExtractionTimeOutException(url);
-    } catch (NoSuchElementException e) {
-      log.warn("[Fail Extracting Cloth] Not Found Infomation - URL: {}", url, e);
-      throw new ExtractionNotFoundException(url);
-    } catch (Exception e) {
-      log.warn("[Fail Extracting Cloth] - URL: {}", url);
-      throw new RuntimeException("Fail Extracting Cloth From URL", e);
-    } finally {
-      driver.quit();
+      return parser.extract(document);
+    } catch (RuntimeException | IOException e) {
+      throw new ExtractionException(url);
     }
   }
 

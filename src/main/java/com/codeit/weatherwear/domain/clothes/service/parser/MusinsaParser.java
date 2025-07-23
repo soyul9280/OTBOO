@@ -1,19 +1,22 @@
 package com.codeit.weatherwear.domain.clothes.service.parser;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import java.time.Duration;
-import java.util.NoSuchElementException;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionNotFoundException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class MusinsaParser implements SiteParser {
+
+  @Value("${clothes.extraction.musinsa.image-url-prefix}")
+  private String mssCdnImageUrlPrefix;
 
   @Override
   public boolean supports(String url) {
@@ -21,37 +24,40 @@ public class MusinsaParser implements SiteParser {
   }
 
   @Override
-  public void waitUntilReady(WebDriver driver) {
+  public ClothesDto extract(Document document) {
     log.info("[Start Extracting Musinsa Cloth]");
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-    wait.until(ExpectedConditions.presenceOfElementLocated(
-        By.cssSelector("div[data-content-name='대표이미지'] img[alt][src]")
-    ));
-  }
-
-  @Override
-  public ClothesDto extract(WebDriver driver) {
-    //상품명, 대표이미지 추출 ( 없으면 빈값 )
     String productName = "";
-    String imageUrl = "";
-
+    String thumbnailImageUrl = "";
     try {
-      WebElement mainImageContainer = driver.findElement(
-          By.cssSelector("div[data-content-name='대표이미지']"));
-      WebElement imageElement = mainImageContainer.findElement(By.tagName("img"));
-      imageUrl = imageElement.getAttribute("src");
-      productName = imageElement.getAttribute("alt");
-    } catch (NoSuchElementException e) {
-      log.warn("[Fail Extracting Cloth] Not Found Information From Musinsa");
-      throw e;
+      Element scriptTag = document.selectFirst("script#pdp-data");
+      if (scriptTag != null) {
+        String scriptData = scriptTag.html();
+        int stateIndex = scriptData.indexOf("window.__MSS__.product.state = ");
+        if (stateIndex != -1) {
+          int jsonStart = scriptData.indexOf("{", stateIndex);
+          int jsonEnd = scriptData.indexOf("};", jsonStart) + 1;
+          String jsonString = scriptData.substring(jsonStart, jsonEnd);
+          ObjectMapper objectMapper = new ObjectMapper();
+          JsonNode jsonNode = objectMapper.readTree(jsonString);
+
+          productName = jsonNode.get("goodsNm").asText();
+          thumbnailImageUrl =
+              mssCdnImageUrlPrefix + jsonNode.get("thumbnailImageUrl").asText();
+          log.info("[Extracting Cloth Completed : {}, Name: {}", "무신사", productName);
+          return ClothesDto.builder()
+              .name(productName)
+              .imageUrl(thumbnailImageUrl)
+              .build();
+        }
+        throw new ExtractionNotFoundException();
+      }
+    } catch (IOException e) {
+      //clothService에서 커스텀 처리 진행
+      throw new RuntimeException(e);
     }
-
-    log.info("[Extracting Cloth Completed : {}, Name: {}", "무신사", productName);
-
     return ClothesDto.builder()
         .name(productName)
-        .imageUrl(imageUrl)
+        .imageUrl(thumbnailImageUrl)
         .build();
   }
-
 }
