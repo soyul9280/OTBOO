@@ -65,6 +65,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: public.ecr.aws
+          region: us-east-1
           username: ${{ secrets.AWS_ACCESS_KEY }}
           password: ${{ secrets.AWS_SECRET_KEY }}
 
@@ -81,6 +82,7 @@ jobs:
 
   docker-build-and-push-nginx: # NGINX 이미지 Build 및 ECR에 Push
     runs-on: ubuntu-latest
+    needs: run-on-deploy-branch
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -92,6 +94,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: public.ecr.aws
+          region: us-east-1
           username: ${{ secrets.AWS_ACCESS_KEY }}
           password: ${{ secrets.AWS_SECRET_KEY }}
 
