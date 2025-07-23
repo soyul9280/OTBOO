@@ -22,7 +22,7 @@ public class DirectMessageKafkaListener {
 
   @Async("eventExecutor")
   @KafkaListener(
-      topics = "${spring.kafka.topics.direct-message-sent}",
+      topics = "${spring.kafka.topics.direct-message-received}",
       groupId = "#{T(java.util.UUID).randomUUID().toString()}"
   )
   public void handleDirectMessageReceivedEvent(String kafkaEvent) {

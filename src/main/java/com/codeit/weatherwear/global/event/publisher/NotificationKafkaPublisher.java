@@ -2,6 +2,7 @@ package com.codeit.weatherwear.global.event.publisher;
 
 import com.codeit.weatherwear.global.event.dto.ClothAttributeAddedEvent;
 import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
+import com.codeit.weatherwear.global.event.dto.DomainEvent;
 import com.codeit.weatherwear.global.event.dto.FeedLikeEvent;
 import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
@@ -72,7 +73,7 @@ public class NotificationKafkaPublisher {
     sendToKafka(kafkaTopics.roleChanged(), event);
   }
 
-  private <T> void sendToKafka(String topic, T event) {
+  private <T extends DomainEvent> void sendToKafka(String topic, T event) {
     try {
       String payload = objectMapper.writeValueAsString(event);
       CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, payload);
