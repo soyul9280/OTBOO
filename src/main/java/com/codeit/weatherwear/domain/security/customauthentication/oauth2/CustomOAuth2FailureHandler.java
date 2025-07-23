@@ -40,7 +40,7 @@ public class CustomOAuth2FailureHandler implements
       }
     }
 
-    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    response.setStatus(status);
     response.setContentType("application/json");
     response.getWriter().write("""
         {
