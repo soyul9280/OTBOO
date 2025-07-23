@@ -10,6 +10,4 @@ public sealed interface DomainEvent
     RoleChangedEvent,
     MultipleNotificationCreatedEvent,
     NotificationCreatedEvent,
-    WeatherAlertEvent {
-
-}
+    WeatherAlertEvent {}
