@@ -79,8 +79,6 @@ public enum ErrorCode {
   GEMINI_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "GEMINI API 응답 파싱 실패", ""),
 
   //CLOTH
-  CLOTH_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "옷 등록 실패", "존재하는 옷입니다."),
-  CLOTH_NAME_DUPLICATED(HttpStatus.BAD_REQUEST, "옷 등록 실패", "이미 존재하는 이름입니다."),
   CLOTH_NOT_FOUND(HttpStatus.NOT_FOUND, "옷 확인 실패", "존재하지 않는 옷입니다."),
   CLOTH_EXTRACTION_TIME_OUT(HttpStatus.BAD_REQUEST, "옷 불러오기 실패", "옷을 불러오는데 시간이 초과하였습니다."),
   CLOTH_EXTRACTION_NOT_FOUND_ELEMENT(HttpStatus.BAD_REQUEST, "옷 불러오기 실패",

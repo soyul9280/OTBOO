@@ -10,7 +10,6 @@ import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
-import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNameDuplicatedException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNotFoundException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionNotFoundException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionTimeOutException;
