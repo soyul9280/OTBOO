@@ -90,16 +90,6 @@ public class AttributeServiceImpl implements AttributeService {
       throw new SelectableDuplicateException();
     }
 
-    // 기존 값과 중복 검사
-    List<String> existingValues = attribute.getSelectableValues();
-    for (String newValue : newValues) {
-      if (existingValues.contains(newValue)) {
-        log.warn("[Fail Updating AttributeDef] Value already exists. ID : {}, value: {}", id,
-            newValue);
-        throw new SelectableDuplicateException();
-      }
-    }
-
     //옷에서 사용중인 속성은 수정 불가
     List<String> usedValues = clothWithAttributesRepository.findUsedValuesByAttribute(
         attribute.getId());
