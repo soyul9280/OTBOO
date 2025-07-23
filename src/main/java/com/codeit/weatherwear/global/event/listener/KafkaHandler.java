@@ -1,6 +1,7 @@
 package com.codeit.weatherwear.global.event.listener;
 
 import com.codeit.weatherwear.global.event.dto.ClothAttributeAddedEvent;
+import com.codeit.weatherwear.global.event.dto.ClothAttributeUpdatedEvent;
 import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
 import com.codeit.weatherwear.global.event.dto.FeedLikeEvent;
 import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
@@ -44,6 +45,12 @@ public class KafkaHandler {
 
   @Async("eventExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handleClothAttributeUpdatedEvent(ClothAttributeUpdatedEvent event) {
+    sendToKafka(kafkaTopics.clothAttributeUpdated(), event);
+  }
+
+  @Async("eventExecutor")
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
     sendToKafka(kafkaTopics.directMessageReceived(), event);
   }
@@ -78,13 +85,15 @@ public class KafkaHandler {
       CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, payload);
       future.whenComplete((result, exception) -> {
         if (exception == null) {
-          log.info("Produced event to topic {}: value = {}", result.getRecordMetadata().topic(), payload);
+          log.info("Produced event to topic {}: value = {}", result.getRecordMetadata().topic(),
+              payload);
         } else {
           log.error("fail to send to kafka. topic={}, payload={}", topic, payload, exception);
         }
       });
     } catch (JsonProcessingException e) {
-      log.error("fail to serialize {} to json. event={}", event.getClass().getSimpleName(), event, e);
+      log.error("fail to serialize {} to json. event={}", event.getClass().getSimpleName(), event,
+          e);
       throw KafkaMessageConvertException.withEvent(event.toString());
     }
   }

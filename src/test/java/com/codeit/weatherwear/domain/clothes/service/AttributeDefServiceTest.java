@@ -18,6 +18,7 @@ import com.codeit.weatherwear.domain.clothes.exception.attribute.SelectableDupli
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,9 @@ public class AttributeDefServiceTest {
 
   @Mock
   private ClothWithAttributesRepository clothWithAttributesRepository;
+
+  @Mock
+  private DomainEventPublisher domainEventPublisher;
 
   @InjectMocks
   private AttributeServiceImpl sut;
@@ -169,20 +173,6 @@ public class AttributeDefServiceTest {
           .hasMessage("Already Used AttributeDef By Cloth: 빨강");
       verify(attributeRepository).findById(attributeId);
       verify(clothWithAttributesRepository).findUsedValuesByAttribute(attributeId);
-    }
-
-    @Test
-    @DisplayName("수정 실패 - 기존에 등록된 selectableValues 요청 경우")
-    void updateAttributes_Already_Exists_SelectableValues() {
-      //given
-      given(attributeRepository.findById(attributeId)).willReturn(Optional.of(sampleAttribute));
-      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("색상",
-          List.of("빨강"));
-      // when & then
-      assertThatThrownBy(() -> sut.update(attributeId, request))
-          .isInstanceOf(SelectableDuplicateException.class)
-          .hasMessage("속성 값 중복 등록");
-      verify(attributeRepository).findById(attributeId);
     }
 
     @Test

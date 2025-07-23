@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record KafkaTopics(
     String newFollower,
     String clothAttributeAdded,
+    String clothAttributeUpdated,
     String directMessageReceived,
     String feedLike,
     String newFeedComment,

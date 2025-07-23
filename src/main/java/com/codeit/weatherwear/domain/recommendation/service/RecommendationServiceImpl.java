@@ -19,9 +19,11 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -182,15 +184,12 @@ public class RecommendationServiceImpl implements RecommendationService {
   }
 
   private boolean matchThicknessConstraint(String thicknessAttr, double temp) {
+    Set<Thickness> allowed = (temp <= 12)
+        ? EnumSet.of(Thickness.VERY_THICK, Thickness.THICK)
+        : EnumSet.of(Thickness.LIGHT, Thickness.VERY_LIGHT);
+
     return Thickness.from(thicknessAttr)
-        .map(thickness -> {
-          return switch (thickness) {
-            case VERY_THICK -> temp <= 0;
-            case THICK -> temp > 0 && temp <= 12;
-            case LIGHT -> temp > 12 && temp <= 20;
-            case VERY_LIGHT -> temp > 20;
-          };
-        })
+        .map(allowed::contains)
         .orElse(true); // 두께 속성이 없으면 통과
   }
 }
