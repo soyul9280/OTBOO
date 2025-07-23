@@ -11,6 +11,7 @@ import com.codeit.weatherwear.domain.clothes.exception.attribute.SelectableDupli
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.LinkedHashSet;
@@ -32,6 +33,8 @@ public class AttributeServiceImpl implements AttributeService {
   private final AttributeRepository attributeRepository;
   private final AttributeMapper attributeMapper;
   private final ClothWithAttributesRepository clothWithAttributesRepository;
+  private final DomainEventPublisher domainEventPublisher;
+
 
   /**
    * 속성 등록
