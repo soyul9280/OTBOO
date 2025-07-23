@@ -4,6 +4,7 @@ import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.domain.notification.Notification.Level;
 import com.codeit.weatherwear.domain.notification.NotificationService;
 import com.codeit.weatherwear.global.event.dto.ClothAttributeAddedEvent;
+import com.codeit.weatherwear.global.event.dto.ClothAttributeUpdatedEvent;
 import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
 import com.codeit.weatherwear.global.event.dto.FeedLikeEvent;
 import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
@@ -20,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
@@ -74,11 +77,36 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
+  @KafkaListener(topics = "${spring.kafka.topics.cloth-attribute-added}")
+  public void handleClothAttributeUpdatedEvent(String kafkaEvent) {
+    ClothAttributeUpdatedEvent clothAttributeUpdatedEvent = null;
+    try {
+      clothAttributeUpdatedEvent = objectMapper.readValue(kafkaEvent,
+          ClothAttributeUpdatedEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
+
+    String attributeName = clothAttributeUpdatedEvent.attributeName();
+
+    String title = "의상 속성이 변경되었어요.";
+    String content = String.format("[%s] 속성을 확인해보세요.", attributeName);
+
+    notificationService.createAllUser(
+        title,
+        content,
+        Level.INFO
+    );
+  }
+
+
+  @Async("eventExecutor")
   @KafkaListener(topics = "${spring.kafka.topics.direct-message-received}")
   public void handleDirectMessageReceivedEvent(String kafkaEvent) {
     DirectMessageReceivedEvent directMessageReceivedEvent = null;
     try {
-      directMessageReceivedEvent = objectMapper.readValue(kafkaEvent, DirectMessageReceivedEvent.class);
+      directMessageReceivedEvent = objectMapper.readValue(kafkaEvent,
+          DirectMessageReceivedEvent.class);
     } catch (JsonProcessingException e) {
       throw KafkaMessageConvertException.withEvent(kafkaEvent);
     }
