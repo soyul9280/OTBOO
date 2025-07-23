@@ -68,6 +68,8 @@ jobs:
           region: us-east-1
           username: ${{ secrets.AWS_ACCESS_KEY }}
           password: ${{ secrets.AWS_SECRET_KEY }}
+        env:
+          AWS_REGION: us-east-1   # override
 
       - name: Build and push Backend image (multi-arch)
         uses: docker/build-push-action@v5
@@ -97,7 +99,9 @@ jobs:
           region: us-east-1
           username: ${{ secrets.AWS_ACCESS_KEY }}
           password: ${{ secrets.AWS_SECRET_KEY }}
-
+        env:
+          AWS_REGION: us-east-1   # override
+          
       - name: Build and push NGINX image (multi-arch)
         uses: docker/build-push-action@v5
         with:
