@@ -101,7 +101,7 @@ jobs:
           password: ${{ secrets.AWS_SECRET_KEY }}
         env:
           AWS_REGION: us-east-1   # override
-          
+
       - name: Build and push NGINX image (multi-arch)
         uses: docker/build-push-action@v5
         with:
@@ -154,11 +154,20 @@ jobs:
         run: |
           jq \
             --arg backend_image "${{ env.ECR_REPOSITORY_URI }}:latest" \
-            --arg nginx_image "${{ env.ECR_NGINX_REPOSITORY_URI }}:latest" \
-            '.containerDefinitions |= map(
+            --arg nginx_image "${{ env.ECR_NGINX_REPOSITORY_URI }}:latest" '
+            .containerDefinitions |= map(
               if .name == "backend" then .image = $backend_image
               elif .name == "otboo-nginx" then .image = $nginx_image
               else . end
+            ) 
+            | del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy
             )' task-definition.json > new-task-definition.json
 
       - name: Register new task definition  # 수정된 task-definition 등록
