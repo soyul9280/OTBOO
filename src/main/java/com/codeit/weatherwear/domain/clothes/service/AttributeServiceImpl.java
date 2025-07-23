@@ -14,7 +14,6 @@ import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepos
 import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.event.dto.ClothAttributeAddedEvent;
 import com.codeit.weatherwear.global.event.dto.ClothAttributeUpdatedEvent;
-import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.LinkedHashSet;
