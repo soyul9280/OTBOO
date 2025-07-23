@@ -81,6 +81,7 @@ spring:
     topics:
       new-follower: weatherwear.new_follower
       cloth-attribute-added: weatherwear.cloth_attribute_added
+      cloth-attribute-updated: weatherwear.cloth_attribute_updated
       direct-message-received: weatherwear.direct_message_received
       feed-like: weatherwear.feed_like
       new-feed-comment: weatherwear.new_feed_comment
