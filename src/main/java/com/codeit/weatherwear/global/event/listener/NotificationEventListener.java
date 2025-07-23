@@ -76,7 +76,7 @@ public class NotificationEventListener {
   }
 
   @Async("eventExecutor")
-  @KafkaListener(topics = "${spring.kafka.topics.cloth-attribute-added}")
+  @KafkaListener(topics = "${spring.kafka.topics.cloth-attribute-updated}")
   public void handleClothAttributeUpdatedEvent(String kafkaEvent) {
     ClothAttributeUpdatedEvent clothAttributeUpdatedEvent = null;
     try {
