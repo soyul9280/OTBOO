@@ -80,7 +80,8 @@ spring:
       followee-feed-posted: weatherwear.followee_feed_posted
       role-changed: weatherwear.role_changed
       weather-alert: weatherwear.weather_alert
-      sse-send: weatherwear.sse_send
+      sse-sent: weatherwear.sse_sent
+      direct-message-sent: weatherwear.direct_message_sent
 
 server:
   shutdown: graceful

@@ -48,7 +48,7 @@ public class SseEventListener {
 
   @Async("eventExecutor")
   @KafkaListener(
-      topics = "${spring.kafka.topics.sse-send}",
+      topics = "${spring.kafka.topics.sse-sent}",
       groupId = "#{T(java.util.UUID).randomUUID().toString()}"
   )
   public void handleSseSendEvent(String kafkaEvent) {
@@ -62,7 +62,7 @@ public class SseEventListener {
   }
 
   private void sendToKafka(SseMessage sseMessage) {
-    String topic = kafkaTopics.sseSend();
+    String topic = kafkaTopics.sseSent();
     try {
       String payload = objectMapper.writeValueAsString(sseMessage);
       CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, payload);

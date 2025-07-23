@@ -11,7 +11,8 @@ public record KafkaTopics(
     String newFeedComment,
     String followeeFeedPosted,
     String roleChanged,
-    String sseSend
+    String sseSent,
+    String directMessageSent
 ) {
 
 }
