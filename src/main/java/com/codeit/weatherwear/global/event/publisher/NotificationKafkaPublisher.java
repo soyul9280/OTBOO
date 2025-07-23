@@ -9,6 +9,7 @@ import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
+import com.codeit.weatherwear.global.event.dto.WeatherAlertEvent;
 import com.codeit.weatherwear.global.event.exception.KafkaMessageConvertException;
 import com.codeit.weatherwear.global.properties.KafkaTopics;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -78,6 +79,12 @@ public class NotificationKafkaPublisher {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleRoleChangedEvent(RoleChangedEvent event) {
     sendToKafka(kafkaTopics.roleChanged(), event);
+  }
+
+  @Async("eventExecutor")
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handleWeatherAlertEvent(WeatherAlertEvent event) {
+    sendToKafka(kafkaTopics.weatherAlert(), event);
   }
 
   private <T extends DomainEvent> void sendToKafka(String topic, T event) {

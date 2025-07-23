@@ -12,6 +12,7 @@ public record KafkaTopics(
     String newFeedComment,
     String followeeFeedPosted,
     String roleChanged,
+    String weatherAlert,
     String sseSent
 ) {
 
