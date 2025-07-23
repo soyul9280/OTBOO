@@ -31,7 +31,16 @@ spring:
 
   batch:
     jdbc:
-      initialize-schema: embedded   # Batch 테이블 (내장 DB만) 자동 생성
+      initialize-schema: embedded   # Batch 테이블 (내장 DB만) 자동 생성'
+
+  kafka:
+    properties:
+      security:
+        protocol: SASL_SSL
+      sasl:
+        jaas:
+          config: org.apache.kafka.common.security.plain.PlainLoginModule required username='${KAFKA_CLUSTER_API_KEY}' password='${KAFKA_CLUSTER_API_SECRET}';
+        mechanism: PLAIN
 
 # logging
 logging:

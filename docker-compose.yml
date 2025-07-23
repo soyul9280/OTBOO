@@ -47,6 +47,15 @@ services:
     networks:
       - otboo-network
 
+  broker:
+    image: apache/kafka:4.0.0
+    container_name: otboo-broker
+    ports:
+      - "9092:9092"
+    networks:
+      - otboo-network
+
+
   backend1:
     <<: *backend-common
     container_name: otboo-backend-1

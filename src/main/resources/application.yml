@@ -71,13 +71,6 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    properties:
-      security:
-        protocol: SASL_SSL
-      sasl:
-        jaas:
-          config: org.apache.kafka.common.security.plain.PlainLoginModule required username='${KAFKA_CLUSTER_API_KEY}' password='${KAFKA_CLUSTER_API_SECRET}';
-        mechanism: PLAIN
     topics:
       new-follower: weatherwear.new_follower
       cloth-attribute-added: weatherwear.cloth_attribute_added
