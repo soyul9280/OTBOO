@@ -182,13 +182,10 @@ jobs:
             --output text | tr -d '\n\r')
           echo "task_definition_arn=$new_task_def_arn" >> $GITHUB_OUTPUT
 
-      - name: debug
-        run: echo "${{ steps.register-task-def.outputs.task_definition_arn }}"
-
       - name: Deploy Amazon ECS task definition  # 새 태스크 정의 배포
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: ${{ steps.register-task-def.outputs.task_definition_arn }}
+          task-definition: ./new-task-definition.json
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
