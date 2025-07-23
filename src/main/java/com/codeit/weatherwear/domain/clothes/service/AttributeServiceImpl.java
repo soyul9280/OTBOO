@@ -11,6 +11,9 @@ import com.codeit.weatherwear.domain.clothes.exception.attribute.SelectableDupli
 import com.codeit.weatherwear.domain.clothes.mapper.AttributeMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
+import com.codeit.weatherwear.global.event.dto.ClothAttributeAddedEvent;
+import com.codeit.weatherwear.global.event.dto.ClothAttributeUpdatedEvent;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.LinkedHashSet;
@@ -32,6 +35,8 @@ public class AttributeServiceImpl implements AttributeService {
   private final AttributeRepository attributeRepository;
   private final AttributeMapper attributeMapper;
   private final ClothWithAttributesRepository clothWithAttributesRepository;
+  private final DomainEventPublisher eventPublisher;
+
 
   /**
    * 속성 등록
@@ -56,7 +61,7 @@ public class AttributeServiceImpl implements AttributeService {
     Attribute save = attributeRepository.save(attribute);
     log.info("[Creating AttributeDef Completed] Id: {}, AttributeDef Name: {}", attribute.getId(),
         attribute.getName());
-
+    eventPublisher.publish(new ClothAttributeAddedEvent(attribute.getName()));
     return attributeMapper.toDto(save);
   }
 
@@ -85,16 +90,6 @@ public class AttributeServiceImpl implements AttributeService {
       throw new SelectableDuplicateException();
     }
 
-    // 기존 값과 중복 검사
-    List<String> existingValues = attribute.getSelectableValues();
-    for (String newValue : newValues) {
-      if (existingValues.contains(newValue)) {
-        log.warn("[Fail Updating AttributeDef] Value already exists. ID : {}, value: {}", id,
-            newValue);
-        throw new SelectableDuplicateException();
-      }
-    }
-
     //옷에서 사용중인 속성은 수정 불가
     List<String> usedValues = clothWithAttributesRepository.findUsedValuesByAttribute(
         attribute.getId());
@@ -111,6 +106,7 @@ public class AttributeServiceImpl implements AttributeService {
     log.info("[Updating AttributeDef Completed] ID : {}, Name: {}, Values: {}", id,
         attribute.getName(),
         attribute.getSelectableValues());
+    eventPublisher.publish(new ClothAttributeUpdatedEvent(attribute.getName()));
     return attributeMapper.toDto(attribute);
   }
 

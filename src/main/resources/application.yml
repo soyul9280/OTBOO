@@ -74,6 +74,7 @@ spring:
     topics:
       new-follower: weatherwear.new_follower
       cloth-attribute-added: weatherwear.cloth_attribute_added
+      cloth-attribute-updated: weatherwear.cloth_attribute_updated
       direct-message-received: weatherwear.direct_message_received
       feed-like: weatherwear.feed_like
       new-feed-comment: weatherwear.new_feed_comment
@@ -104,10 +105,6 @@ jwt:
     validity-seconds: 2592000 # 30일
   secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-32-characters-long}
 
-time:
-  zone-id: ${TIME_ZONE_ID:Asia/Seoul}
-
-
 resetpassword:
   validity-seconds: 600 # 10분
 
@@ -137,3 +134,7 @@ gemini:
     key: ${GEMINI_API_KEY}
     url: ${GEMINI_API_URL}
 
+clothes:
+  extraction:
+    musinsa:
+      image-url-prefix: ${MUSINSA_IMAGE_URL_PREFIX}

@@ -130,8 +130,8 @@ dependencies {
     // google oauth
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-    //웹 크롤링 Selenium
-    implementation 'org.seleniumhq.selenium:selenium-java:4.34.0'
+    //웹 크롤링 jsoup
+    implementation 'org.jsoup:jsoup:1.21.1'
     implementation 'commons-io:commons-io:2.15.1'
 
 

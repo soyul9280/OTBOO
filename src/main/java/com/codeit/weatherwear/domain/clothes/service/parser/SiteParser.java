@@ -1,10 +1,11 @@
 package com.codeit.weatherwear.domain.clothes.service.parser;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import org.openqa.selenium.WebDriver;
+import org.jsoup.nodes.Document;
 
 public interface SiteParser {
+
   boolean supports(String url);
-  void waitUntilReady(WebDriver driver);
-  ClothesDto extract(WebDriver driver);
+
+  ClothesDto extract(Document document);
 }
