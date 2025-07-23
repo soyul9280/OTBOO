@@ -60,7 +60,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
   @Override
   public boolean isCredentialsNonExpired() {
     if (tempPasswordExpirationTime != null && tempPasswordExpirationTime.isBefore(Instant.now())) {
-      log.info("만료된 임시 비밀번호");
+      log.info("Sign In Failed: Expired tempPassword");
       return false;
     }
     return true;
