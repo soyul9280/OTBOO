@@ -18,8 +18,8 @@ public class TwentyNineCmParser implements SiteParser {
   @Override
   public ClothesDto extract(Document document) {
     log.info("[Start Extracting 29cm Cloth]");
-    String productName = "";
-    String thumbnailImageUrl = "";
+    String productName;
+    String thumbnailImageUrl;
 
     productName = document.title();
     // 썸네일 (og:image)

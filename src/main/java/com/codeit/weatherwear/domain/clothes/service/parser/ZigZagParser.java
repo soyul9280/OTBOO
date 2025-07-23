@@ -1,9 +1,9 @@
 package com.codeit.weatherwear.domain.clothes.service.parser;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,8 +12,7 @@ public class ZigZagParser implements SiteParser {
 
   @Override
   public boolean supports(String url) {
-    return url.toLowerCase().contains("zigzag.kr") && (url.contains("/catalog/") || url.contains(
-        "/shop/"));
+    return url.toLowerCase().contains("zigzag.kr");
   }
 
   @Override
@@ -22,10 +21,10 @@ public class ZigZagParser implements SiteParser {
     String productName;
     String thumbnailImageUrl;
 
-    productName = Objects.requireNonNull(document.selectFirst("title")).text();
+    productName = document.title();
     // 썸네일 (og:image)
-    thumbnailImageUrl = Objects.requireNonNull(document.selectFirst("meta[property=og:image]"))
-        .attr("content");
+    Element ogImageTag = document.selectFirst("meta[property=og:image]");
+    thumbnailImageUrl = ogImageTag != null ? ogImageTag.attr("content") : null;
     log.info("[Extracting Cloth Completed : {}, Name: {}", "지그재그", productName);
     return ClothesDto.builder()
         .name(productName)

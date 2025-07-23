@@ -122,7 +122,7 @@ public class ClothServiceImpl implements ClothService {
     Document document = null;
     try {
       document = Jsoup.connect(url)
-          .timeout(5000)
+          .timeout(15000)
           .userAgent("Mozilla/5.0")
           .get();
       SiteParser parser = siteParsers.stream()
@@ -134,6 +134,7 @@ public class ClothServiceImpl implements ClothService {
           });
       return parser.extract(document);
     } catch (RuntimeException | IOException e) {
+      log.warn("[Fail Getting Cloth From Url] URL: {}", url, e);
       throw new ExtractionException(url);
     }
   }
