@@ -55,3 +55,8 @@ gemini:
   api:
     key: asd
     url: asd
+
+clothes:
+  extraction:
+    musinsa:
+      image-url-prefix: asd

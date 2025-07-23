@@ -1,13 +1,9 @@
 package com.codeit.weatherwear.domain.clothes.service.parser;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import java.time.Duration;
-import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,50 +12,23 @@ public class ZigZagParser implements SiteParser {
 
   @Override
   public boolean supports(String url) {
-    return url.toLowerCase().contains("zigzag.kr") && (url.contains("/catalog/") || url.contains(
-        "/shop/"));
+    return url.toLowerCase().contains("zigzag.kr");
   }
 
   @Override
-  public void waitUntilReady(WebDriver driver) {
+  public ClothesDto extract(Document document) {
     log.info("[Start Extracting ZigZag Cloth]");
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-    wait.until(ExpectedConditions.presenceOfElementLocated(
-        By.cssSelector("h1[class*='BODY_15']")
-    ));
-    wait.until(ExpectedConditions.presenceOfElementLocated(
-        By.cssSelector("img[src*='cf.product-image.s.zigzag.kr']")
-    ));
-  }
+    String productName;
+    String thumbnailImageUrl;
 
-  @Override
-  public ClothesDto extract(WebDriver driver) {
-    //상품명, 대표이미지 추출 ( 없으면 빈값 )
-    String productName = extractText(driver, By.cssSelector("h1[class*='BODY_15']"), "productName");
-    String imageUrl = extractAttribute(driver,
-        By.cssSelector("img[src*='cf.product-image.s.zigzag.kr']"), "src", "imageUrl");
+    productName = document.title();
+    // 썸네일 (og:image)
+    Element ogImageTag = document.selectFirst("meta[property=og:image]");
+    thumbnailImageUrl = ogImageTag != null ? ogImageTag.attr("content") : null;
     log.info("[Extracting Cloth Completed : {}, Name: {}", "지그재그", productName);
     return ClothesDto.builder()
         .name(productName)
-        .imageUrl(imageUrl)
+        .imageUrl(thumbnailImageUrl)
         .build();
-  }
-
-  private String extractText(WebDriver driver, By selector, String label) {
-    try {
-      return driver.findElement(selector).getText();
-    } catch (NoSuchElementException e) {
-      log.warn("[Fail Extracting Cloth] Not Found {}: {}", label, e.getMessage());
-      throw e;
-    }
-  }
-
-  private String extractAttribute(WebDriver driver, By selector, String attr, String label) {
-    try {
-      return driver.findElement(selector).getAttribute(attr);
-    } catch (NoSuchElementException e) {
-      log.warn("[Fail Extracting Cloth] Not Found {}: {}", label, e.getMessage());
-      throw e;
-    }
   }
 }

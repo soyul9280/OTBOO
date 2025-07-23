@@ -144,3 +144,7 @@ gemini:
     key: ${GEMINI_API_KEY}
     url: ${GEMINI_API_URL}
 
+clothes:
+  extraction:
+    musinsa:
+      image-url-prefix: ${MUSINSA_IMAGE_URL_PREFIX}

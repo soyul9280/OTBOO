@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -37,9 +38,9 @@ public class AIRecommendationService {
     //Gemini 프롬포트 생성 + 응답
     String prompt = buildPrompt(weather, user, filtered);
     String response = geminiApiClient.getInfo(prompt);
-    //응답 파싱
-    List<String> filteredNameByLLM = parseResponse(response);
-    return clothRepository.findAllByNames(filteredNameByLLM);
+    //응답 파싱 - 결과 의상 ID목록
+    List<UUID> filteredNameByLLM = parseResponse(response);
+    return clothRepository.findAllByIdWithAttributes(filteredNameByLLM);
   }
 
   @CacheEvict(value = "recommendations", key = "#user.id.toString() + '_' + #user.temperatureSensitivity")
@@ -99,17 +100,17 @@ public class AIRecommendationService {
         + "너는 이 옷들의 나머지 속성들(예: 색상, 재질, 스타일 등) 중 사용자가 선택한 값들을 종합적으로 고려하여 "
         + "현재 날씨 정보에 알맞는 옷들을 골라줘. "
         + "응답은 반드시 다음과 같은 JSON 형식의 문자열 배열로 해줘:"
-        + " [\"name\"]. JSON 외에는 아무 설명도 붙이지 말고, 오직 배열만 포함시켜줘. 그리고 reason은 필요없어.";
+        + " [\"id\"]. JSON 외에는 아무 설명도 붙이지 말고, 오직 배열만 포함시켜줘. 그리고 reason은 필요없어.";
   }
 
-  private List<String> parseResponse(String response) {
+  private List<UUID> parseResponse(String response) {
     String cleaned = response.replaceAll("(?i)```json\\s*", "")  // ```json 또는 ```JSON 제거
         .replaceAll("```", "") // 닫는 ``` 제거
         .trim(); // 양쪽 공백 제거
     ObjectMapper mapper = new ObjectMapper();
-    List<String> list = null;
+    List<UUID> list = null;
     try {
-      list = mapper.readValue(cleaned, new TypeReference<List<String>>() {
+      list = mapper.readValue(cleaned, new TypeReference<List<UUID>>() {
       });
     } catch (JsonProcessingException e) {
       throw new GeminiParseException();
