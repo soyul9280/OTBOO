@@ -1,6 +1,5 @@
 package com.codeit.weatherwear.global.sse;
 
-import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
@@ -65,17 +64,18 @@ public class SseService {
     return sseEmitter;
   }
 
-  public void send(UUID receiverId, NotificationDto data) {
-    SseMessage message = sseMessageRepository.save(SseMessage.create(receiverId, data));
-    sseEmitterRepository.findByReceiverId(receiverId)
+  public void send(SseMessage sseMessage) {
+    sseMessageRepository.save(sseMessage);
+    Set<DataWithMediaType> event = sseMessage.toEvent();
+    sseEmitterRepository.findByReceiverId(sseMessage.getReceiverId())
         .forEach(sseEmitter -> {
           try {
-            sseEmitter.send(message.toEvent());
-            log.info("SSE send. receiverId={}, notifications={}", receiverId, data);
+            sseEmitter.send(event);
+            log.info("SSE send. receiverId={}, notifications={}", sseMessage.getReceiverId(), sseMessage.getEventData());
           } catch (IOException e) {
-            log.error("SSE connection fail. receiverId={}, notificationId={}", receiverId, data.id(), e);
+            log.error("SSE connection fail. receiverId={}, notificationId={}", sseMessage.getReceiverId(), sseMessage.getEventData().id(), e);
             sseEmitter.completeWithError(e);
-            sseEmitterRepository.delete(receiverId, sseEmitter);
+            sseEmitterRepository.delete(sseMessage.getReceiverId(), sseEmitter);
           }
         });
   }

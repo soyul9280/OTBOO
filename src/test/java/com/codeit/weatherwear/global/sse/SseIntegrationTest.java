@@ -53,9 +53,10 @@ class SseIntegrationTest {
         "test event content",
         Level.INFO
     );
+    SseMessage sseMessage = SseMessage.create(userId, notificationDto);
 
     StepVerifier.create(responseBody.filter(e -> e.data() != null))
-        .then(() -> sseService.send(userId, notificationDto))
+        .then(() -> sseService.send(sseMessage))
         .assertNext(e -> {
           assertThat(e.event()).isEqualTo("notifications");
           assertThat(e.data()).isEqualTo(notificationDto);

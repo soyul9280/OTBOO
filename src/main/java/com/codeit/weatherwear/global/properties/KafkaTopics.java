@@ -10,7 +10,8 @@ public record KafkaTopics(
     String feedLike,
     String newFeedComment,
     String followeeFeedPosted,
-    String roleChanged
+    String roleChanged,
+    String sseSend
 ) {
 
 }
