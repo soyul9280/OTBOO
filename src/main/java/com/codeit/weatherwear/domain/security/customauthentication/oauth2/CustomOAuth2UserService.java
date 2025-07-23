@@ -5,6 +5,7 @@ import com.codeit.weatherwear.domain.user.entity.OAuthProvider;
 import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.exception.ErrorCode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,9 +72,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     Optional<User> optionalUser = userRepository.findByEmail(email);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
+      // 계정이 잠금 상태면 로그인 불가능
+      if (user.isLocked()) {
+        log.info("소셜 로그인 - 잠금 계정");
+        throw new OAuth2AuthenticationException(
+            new OAuth2Error(ErrorCode.ACCOUNT_LOCKED.name(), ErrorCode.ACCOUNT_LOCKED.getMessage(),
+                null));
+      }
       // 기존 회원이 소셜 연동되어 있지 않다면 연동 정보 추가
       user.addLinkedOAuthProvider(oauthProvider);
-      // 로그인 성공
       return toCustomUserDetails(user);
     }
 
@@ -93,8 +100,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     } catch (DataIntegrityViolationException e) {
       // 예: name 중복 (DB unique 제약 위반) -> 연동 실패
+      log.info("Fail To Create New User From OAuth2 Provider: User Already Exists");
       throw new OAuth2AuthenticationException(
-          new OAuth2Error("INVALID_REQUEST", "이미 존재하는 사용자 정보입니다.", null));
+          new OAuth2Error(ErrorCode.USER_ALREADY_EXISTS.name(),
+              ErrorCode.USER_ALREADY_EXISTS.getMessage(), null));
     }
   }
 
