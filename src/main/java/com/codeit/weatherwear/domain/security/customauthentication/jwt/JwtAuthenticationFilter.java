@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.security.customauthentication.jwt;
 
+import com.codeit.weatherwear.domain.security.SecurityRequestMatcher;
 import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.codeit.weatherwear.domain.user.entity.User;
@@ -11,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,4 +91,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     return null;
   }
 
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    return Arrays.stream(SecurityRequestMatcher.PUBLIC_MATCHERS)
+        .anyMatch(matcher -> matcher.matches(request));
+  }
 }
