@@ -1,4 +1,4 @@
-package com.codeit.weatherwear.global.event.listener;
+package com.codeit.weatherwear.global.event.publisher;
 
 import com.codeit.weatherwear.global.event.dto.ClothAttributeAddedEvent;
 import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
@@ -24,7 +24,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaHandler {
+public class NotificationKafkaPublisher {
 
   private final KafkaTemplate<String, String> kafkaTemplate;
   private final KafkaTopics kafkaTopics;
