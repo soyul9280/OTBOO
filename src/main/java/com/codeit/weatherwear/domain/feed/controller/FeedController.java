@@ -50,7 +50,7 @@ public class FeedController implements FeedApi {
   }
 
   // 피드 갱신 (정보 업데이트)
-  @PreAuthorize("@authorizationEvaluator.isFeedAuthor(#feedId, authentication.principal.userId)")
+  @PreAuthorize("@authorizationEvaluator.isFeedAuthor(authentication.principal.userId, #feedId)")
   @PatchMapping("/{feedId}")
   public ResponseEntity<FeedDto> updateFeed(
       @PathVariable UUID feedId,
@@ -61,7 +61,7 @@ public class FeedController implements FeedApi {
   }
 
   // 피드 삭제
-  @PreAuthorize("hasRole('ADMIN') or @authorizationEvaluator.isFeedAuthor(#feedId, authentication.principal.userId)")
+  @PreAuthorize("@authorizationEvaluator.isFeedAuthor(authentication.principal.userId, #feedId)")
   @DeleteMapping("/{feedId}")
   public ResponseEntity<Void> deleteFeed(@PathVariable UUID feedId,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
