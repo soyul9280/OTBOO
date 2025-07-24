@@ -8,11 +8,20 @@ public record UserSummaryDto(
     String name,
     String profileImageUrl
 ) {
+
   public static UserSummaryDto from(User user) {
     return new UserSummaryDto(
         user.getId(),
         user.getName(),
         user.getProfileImageUrl()
+    );
+  }
+
+  public static UserSummaryDto from(User user, String imageUrl) {
+    return new UserSummaryDto(
+        user.getId(),
+        user.getName(),
+        imageUrl
     );
   }
 }

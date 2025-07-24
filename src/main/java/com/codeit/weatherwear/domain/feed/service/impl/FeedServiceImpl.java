@@ -23,6 +23,7 @@ import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.mapper.WeatherMapper;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.global.response.PageResponse;
+import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ public class FeedServiceImpl implements FeedService {
   private final FeedLikeService feedLikeService;
   private final WeatherMapper weatherMapper;
   private final WeatherRepository weatherRepository;
+  private final ThumbnailImageStorage thumbnailImageStorage;
 
   @Transactional
   @Override
@@ -94,7 +96,7 @@ public class FeedServiceImpl implements FeedService {
 
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new FeedNotFoundException(feedId));
-    
+
     ootdService.deleteOotdByFeedId(feedId);
     feedLikeService.deleteAllFeedLikeInFeed(feed);
     feedCommentService.deleteFeedCommentsByFeed(feed);
@@ -111,7 +113,14 @@ public class FeedServiceImpl implements FeedService {
 
   // 일반적인 상황 (조회/갱신)
   private FeedDto toFeedDto(Feed feed, UUID currentUserId) {
-    UserSummaryDto authorDto = UserSummaryDto.from(feed.getAuthor());
+    User author = feed.getAuthor();
+    UserSummaryDto authorDto = null;
+    if (author.getProfileImageUrl() != null) {
+      authorDto = UserSummaryDto.from(author,
+          thumbnailImageStorage.get(author.getProfileImageUrl()));
+    } else {
+      authorDto = UserSummaryDto.from(author);
+    }
     WeatherSummaryDto weatherSummaryDto = weatherMapper.toSummaryDto(feed.getWeather());
     List<OotdDto> ootds = ootdService.findOotdByFeedId(feed.getId());
 
