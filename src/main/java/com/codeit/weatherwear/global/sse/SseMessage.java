@@ -16,19 +16,19 @@ public class SseMessage {
   private static final String EVENT_NAME = "notifications";
 
   private UUID eventId;
-  private Set<UUID> receiverIds;
+  private UUID receiverId;
   private NotificationDto eventData;
 
   public static SseMessage create(UUID receiverId, NotificationDto eventData) {
     return new SseMessage(
         UUID.randomUUID(),
-        Set.of(receiverId),
+        receiverId,
         eventData
     );
   }
 
   public boolean isReceivable(UUID receiverId) {
-    return receiverIds.contains(receiverId);
+    return this.receiverId.equals(receiverId);
   }
 
   public Set<DataWithMediaType> toEvent() {

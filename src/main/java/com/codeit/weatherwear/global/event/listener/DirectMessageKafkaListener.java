@@ -2,23 +2,39 @@ package com.codeit.weatherwear.global.event.listener;
 
 import com.codeit.weatherwear.domain.directmessage.dto.DirectMessageDto;
 import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
+import com.codeit.weatherwear.global.event.exception.KafkaMessageConvertException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WebSocketHandler {
+public class DirectMessageKafkaListener {
 
   private final SimpMessagingTemplate messagingTemplate;
+  private final ObjectMapper objectMapper;
 
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handle(DirectMessageReceivedEvent event) {
-    DirectMessageDto dto = event.directMessageDto();
+  @Async("eventExecutor")
+  @KafkaListener(
+      topics = "${spring.kafka.topics.direct-message-received}",
+      groupId = "#{T(java.util.UUID).randomUUID().toString()}"
+  )
+  public void handleDirectMessageReceivedEvent(String kafkaEvent) {
+    DirectMessageReceivedEvent directMessageReceivedEvent = null;
+    try {
+      directMessageReceivedEvent = objectMapper.readValue(kafkaEvent,
+          DirectMessageReceivedEvent.class);
+    } catch (JsonProcessingException e) {
+      throw KafkaMessageConvertException.withEvent(kafkaEvent);
+    }
+
+    DirectMessageDto dto = directMessageReceivedEvent.directMessageDto();
     String receiverId = dto.receiver().userId().toString();
     String senderId = dto.sender().userId().toString();
 

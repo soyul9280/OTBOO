@@ -1,13 +1,15 @@
-package com.codeit.weatherwear.global.event.listener;
+package com.codeit.weatherwear.global.event.publisher;
 
 import com.codeit.weatherwear.global.event.dto.ClothAttributeAddedEvent;
 import com.codeit.weatherwear.global.event.dto.ClothAttributeUpdatedEvent;
 import com.codeit.weatherwear.global.event.dto.DirectMessageReceivedEvent;
+import com.codeit.weatherwear.global.event.dto.DomainEvent;
 import com.codeit.weatherwear.global.event.dto.FeedLikeEvent;
 import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.event.dto.NewFollowerEvent;
 import com.codeit.weatherwear.global.event.dto.RoleChangedEvent;
+import com.codeit.weatherwear.global.event.dto.WeatherAlertEvent;
 import com.codeit.weatherwear.global.event.exception.KafkaMessageConvertException;
 import com.codeit.weatherwear.global.properties.KafkaTopics;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,7 +27,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaHandler {
+public class NotificationKafkaPublisher {
 
   private final KafkaTemplate<String, String> kafkaTemplate;
   private final KafkaTopics kafkaTopics;
@@ -79,7 +81,13 @@ public class KafkaHandler {
     sendToKafka(kafkaTopics.roleChanged(), event);
   }
 
-  private <T> void sendToKafka(String topic, T event) {
+  @Async("eventExecutor")
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handleWeatherAlertEvent(WeatherAlertEvent event) {
+    sendToKafka(kafkaTopics.weatherAlert(), event);
+  }
+
+  private <T extends DomainEvent> void sendToKafka(String topic, T event) {
     try {
       String payload = objectMapper.writeValueAsString(event);
       CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, payload);
