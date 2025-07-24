@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,11 @@ class UserRepositoryTest {
     }
     em.flush();
     em.clear();
+  }
+
+  @AfterEach
+  void tearDown() {
+    userRepository.deleteAll();
   }
 
   @Test

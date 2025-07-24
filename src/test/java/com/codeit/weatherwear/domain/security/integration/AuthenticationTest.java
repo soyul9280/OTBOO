@@ -62,7 +62,7 @@ public class AuthenticationTest {
 
   @AfterEach
   void tearDown() {
-    userRepository.deleteById(userId);
+    userRepository.deleteAll();
   }
 
   @Test

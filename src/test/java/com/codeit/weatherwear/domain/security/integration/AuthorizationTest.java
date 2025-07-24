@@ -101,8 +101,8 @@ public class AuthorizationTest {
 
   @AfterEach
   void tearDown() {
-    userRepository.deleteById(userId);
-    userRepository.deleteById(adminUserId);
+    userRepository.deleteAll();
+    clothRepository.deleteAll();
   }
 
   private TestAuthSession authenticateWithCsrf(String email, String password) {
