@@ -94,7 +94,8 @@ public class FeedServiceImpl implements FeedService {
 
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new FeedNotFoundException(feedId));
-
+    
+    ootdService.deleteOotdByFeedId(feedId);
     feedLikeService.deleteAllFeedLikeInFeed(feed);
     feedCommentService.deleteFeedCommentsByFeed(feed);
     feedRepository.delete(feed);
