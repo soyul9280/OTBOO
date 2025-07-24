@@ -4,6 +4,7 @@ import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.kafka.KafkaContainer;
 
 public class ContainerInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
@@ -13,8 +14,11 @@ public class ContainerInitializer implements ApplicationContextInitializer<Confi
           .withUsername("user")
           .withPassword("password");
 
+  private static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
+
   static {
     POSTGRES.start();
+    KAFKA.start();
   }
 
   @Override
@@ -22,7 +26,8 @@ public class ContainerInitializer implements ApplicationContextInitializer<Confi
     TestPropertyValues.of(
         "spring.datasource.url=" + POSTGRES.getJdbcUrl(),
         "spring.datasource.username=" + POSTGRES.getUsername(),
-        "spring.datasource.password=" + POSTGRES.getPassword()
+        "spring.datasource.password=" + POSTGRES.getPassword(),
+        "spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers()
     ).applyTo(applicationContext.getEnvironment());
   }
 }
