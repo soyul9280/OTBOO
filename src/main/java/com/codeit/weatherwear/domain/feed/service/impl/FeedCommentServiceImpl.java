@@ -15,6 +15,7 @@ import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.event.dto.NewFeedCommentEvent;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.util.List;
@@ -23,7 +24,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +38,7 @@ public class FeedCommentServiceImpl implements FeedCommentService {
   private final UserRepository userRepository;
 
   private final FeedCommentMapper feedCommentMapper;
-  private final ApplicationEventPublisher applicationEventPublisher;
+  private final DomainEventPublisher domainEventPublisher;
 
   @Transactional
   @Override
@@ -56,7 +56,7 @@ public class FeedCommentServiceImpl implements FeedCommentService {
     UserSummaryDto userSummary = UserSummaryDto.from(saved.getAuthor());
     FeedCommentDto feedCommentDto = feedCommentMapper.toDto(saved, userSummary);
     log.info("Create feed comment complete: {}", feedCommentDto.getId());
-    applicationEventPublisher.publishEvent(new NewFeedCommentEvent(feed.getAuthor().getId(),
+    domainEventPublisher.publish(new NewFeedCommentEvent(feed.getAuthor().getId(),
         feedCommentDto.getAuthor().name(), feedCommentDto.getContent()));
     return feedCommentDto;
   }

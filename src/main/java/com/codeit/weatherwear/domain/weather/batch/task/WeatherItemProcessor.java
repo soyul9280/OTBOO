@@ -4,6 +4,7 @@ import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.event.dto.WeatherAlertEvent;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -13,7 +14,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +28,7 @@ public class WeatherItemProcessor {
 
   private final WeatherFetchService weatherFetchService;
   private final UserRepository userRepository;
-  private final ApplicationEventPublisher applicationEventPublisher;
+  private final DomainEventPublisher domainEventPublisher;
   private final WeatherAlertAnalyzer weatherAlertAnalyzer;
 
   /**
@@ -71,7 +71,7 @@ public class WeatherItemProcessor {
                 .map(WeatherAlertReason::getCause)
                 .collect(Collectors.joining(", "));
             // 필요한 알람에 대해 이벤트 발행
-            applicationEventPublisher.publishEvent(
+            domainEventPublisher.publish(
                 new WeatherAlertEvent(receiverIds, location.getName(),
                     combinedReason));
           }
