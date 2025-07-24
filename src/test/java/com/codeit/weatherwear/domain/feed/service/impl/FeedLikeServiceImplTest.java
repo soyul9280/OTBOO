@@ -28,6 +28,7 @@ import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.event.dto.FeedLikeEvent;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -41,7 +42,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -68,7 +68,7 @@ class FeedLikeServiceImplTest {
   private FeedLikeMapper feedLikeMapper;
 
   @Mock
-  private ApplicationEventPublisher applicationEventPublisher;
+  private DomainEventPublisher domainEventPublisher;
 
   private UUID feedId;
   private UUID currentUserId;
@@ -108,7 +108,7 @@ class FeedLikeServiceImplTest {
     given(ootdService.findOotdByFeedId(feedId)).willReturn(ootds);
     given(feedMapper.toDto(any(Feed.class), any(UserSummaryDto.class), any(), anyList(),
         anyBoolean())).willReturn(feedDto);
-    willDoNothing().given(applicationEventPublisher).publishEvent(any(FeedLikeEvent.class));
+    willDoNothing().given(domainEventPublisher).publish(any(FeedLikeEvent.class));
 
     // when
     FeedDto result = feedLikeService.addFeedLike(feedId, currentUserId);
