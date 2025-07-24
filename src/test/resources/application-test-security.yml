@@ -1,0 +1,65 @@
+spring:
+  config:
+    import: optional:file:.env.test[.properties]
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+  test:
+    database:
+      replace: none
+
+  batch:
+    jdbc:
+      initialize-schema: always
+
+  cache:
+    type: simple
+
+logging:
+  level:
+    com.codeit.weatherwear: debug
+    org.hibernate.SQL: debug
+
+weather:
+  api-url: ${WEATHER_INFO_API_URL}
+  api-service-key: ${WEATHER_INFO_SERVICE_KEY}
+
+location:
+  api-url: ${LOCATION_API_URL}
+  api-key: ${LOCATION_API_KEY}
+
+
+app:
+  admin:
+    email: admin_test@mail.com
+    name: admin
+    password: admintest1!
+
+weatherwear:
+  storage:
+    type: s3
+    s3:
+      access-key: asd
+      secret-key: asd
+      region: ap-northeast-2
+      bucket: asd
+      presigned-url-expiration: 600
+
+sse:
+  timeout: 1000
+
+gemini:
+  api:
+    key: asd
+    url: asd
+
+jwt:
+  issuer: weatherwear
+  access-token:
+    validity-seconds: 900 # 15분
+  refresh-token:
+    validity-seconds: 2592000 # 30일
+  secret: test-secret-key-must-be-at-least-32-characters-long

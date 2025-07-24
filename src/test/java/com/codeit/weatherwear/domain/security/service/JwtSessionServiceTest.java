@@ -11,9 +11,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.codeit.weatherwear.domain.security.JwtBlacklist;
-import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.dto.TokenRotationResult;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
+import com.codeit.weatherwear.domain.security.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
 import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
