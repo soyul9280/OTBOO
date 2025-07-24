@@ -3,7 +3,7 @@ FROM nginx:alpine
 
 # nginx 설정 복사
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx/conf.d/ /etc/nginx/conf.d/
+COPY nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 
 # 정적 파일 복사
 COPY src/main/resources/static /usr/share/nginx/html
