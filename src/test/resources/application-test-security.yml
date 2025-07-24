@@ -56,6 +56,11 @@ gemini:
     key: asd
     url: asd
 
+clothes:
+  extraction:
+    musinsa:
+      image-url-prefix: asd
+
 jwt:
   issuer: weatherwear
   access-token:

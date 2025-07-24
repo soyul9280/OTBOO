@@ -12,7 +12,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,15 +49,8 @@ class UserRepositoryTest {
           .build();
       testUsers.add(user);
       Thread.sleep(1);
-      em.persist(user);
+      userRepository.save(user);
     }
-    em.flush();
-    em.clear();
-  }
-
-  @AfterEach
-  void tearDown() {
-    userRepository.deleteAll();
   }
 
   @Test
@@ -138,17 +130,11 @@ class UserRepositoryTest {
     User user3 = userRepository.findByEmail("user3@test.com")
         .orElseThrow();
 
-    for (User user : testUsers) {
-      log.info("name: " + user.getName() + " / " + user.getCreatedAt());
-    }
     // when
     Slice<User> result = userRepository.searchUsers(
         user3.getCreatedAt().toString(), user3.getId(), 2,
         "createdAt", SortDirection.ASCENDING, null, null, null
     );
-    for (User user : result.getContent()) {
-      log.info("name: " + user.getName() + " / " + user.getCreatedAt());
-    }
     // then
     assertThat(result.getContent()).hasSize(2);
     assertThat(result.getContent())

@@ -5,13 +5,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
-import com.codeit.weatherwear.domain.feed.repository.FeedRepository;
 import com.codeit.weatherwear.domain.user.dto.response.UserDto;
 import com.codeit.weatherwear.domain.user.entity.Role;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
-import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.global.config.ContainerInitializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
@@ -48,10 +46,6 @@ public class AuthorizationTest {
   private UserRepository userRepository;
   @Autowired
   private ClothRepository clothRepository;
-  @Autowired
-  private FeedRepository feedRepository;
-  @Autowired
-  private WeatherRepository weatherRepository;
   @Autowired
   private PasswordEncoder passwordEncoder;
 
