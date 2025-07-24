@@ -71,6 +71,7 @@ public class User {
 
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Column(nullable = true)
   private Gender gender;
 
   @Column(name = "birth_date")

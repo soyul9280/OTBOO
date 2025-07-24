@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +23,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Slf4j
 @Import({JpaConfig.class})
 @ContextConfiguration(initializers = ContainerInitializer.class)
 class UserRepositoryTest {
@@ -32,8 +30,7 @@ class UserRepositoryTest {
   @Autowired
   private UserRepository userRepository;
   @Autowired
-  private TestEntityManager em;
-
+  private TestEntityManager testEntityManager;
   private final List<User> testUsers = new ArrayList<>();
 
   @BeforeEach
@@ -49,8 +46,10 @@ class UserRepositoryTest {
           .build();
       testUsers.add(user);
       Thread.sleep(1);
-      userRepository.save(user);
+      testEntityManager.persistAndFlush(user);
     }
+    testEntityManager.flush();
+    testEntityManager.clear();
   }
 
   @Test
