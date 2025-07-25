@@ -134,8 +134,7 @@ public class ClothServiceImpl implements ClothService {
     log.info("[Start Getting Cloth From Url] URL: {}", url);
     int retryCount = Optional.ofNullable(RetrySynchronizationManager.getContext())
         .map(RetryContext::getRetryCount)
-        .orElse(0);
-    retryCount += 1;
+        .orElse(1);
     try {
       Document document = Jsoup.connect(url)
           .timeout(15000)
