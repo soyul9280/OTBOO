@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -40,9 +41,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import org.springframework.data.domain.Slice;
+import org.springframework.retry.RetryContext;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -123,11 +126,15 @@ public class ClothServiceImpl implements ClothService {
       maxAttempts = 3,
       backoff = @Backoff(delay = 2000),
       recover = "recover",
-      retryFor = {RuntimeException.class, IOException.class}
+      retryFor = {RuntimeException.class}
   )
   @Override
-  public ClothesDto getFromUrl(String url) throws IOException {
+  public ClothesDto getFromUrl(String url) {
     log.info("[Start Getting Cloth From Url] URL: {}", url);
+    int retryCount = Optional.ofNullable(RetrySynchronizationManager.getContext())
+        .map(RetryContext::getRetryCount)
+        .orElse(0);
+    retryCount += 1;
     try {
       Document document = Jsoup.connect(url)
           .timeout(15000)
@@ -143,14 +150,14 @@ public class ClothServiceImpl implements ClothService {
           });
       return parser.extract(document);
     } catch (RuntimeException | IOException e) {
-      log.warn("[Fail Getting Cloth From Url] URL: {}", url, e);
-      throw e;
+      log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
+      throw new RuntimeException(e);
     }
   }
 
   @Recover
   public ClothesDto recover(RuntimeException e, String url) {
-    log.warn("[Recover] Retry failed for URL: {}", url, e);
+    log.warn("[Recover] Retry failed for URL: {}", url);
     throw new ExtractionException(url);
   }
 

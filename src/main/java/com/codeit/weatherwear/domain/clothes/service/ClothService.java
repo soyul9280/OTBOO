@@ -13,7 +13,7 @@ public interface ClothService {
 
   ClothesDto create(ClothesCreateRequest request, MultipartFile image);
 
-  ClothesDto getFromUrl(String url) throws IOException;
+  ClothesDto getFromUrl(String url);
 
   ClothesDto update(UUID clothesId, ClothesUpdateRequest request, MultipartFile image);
 
