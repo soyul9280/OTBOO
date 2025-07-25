@@ -119,12 +119,13 @@ public class ClothServiceImpl implements ClothService {
   @Override
   public ClothesDto getFromUrl(String url) {
     log.info("[Start Getting Cloth From Url] URL: {}", url);
-    Document document = null;
+    Document document;
     try {
       document = Jsoup.connect(url)
           .timeout(15000)
           .userAgent("Mozilla/5.0")
           .get();
+
       SiteParser parser = siteParsers.stream()
           .filter(p -> p.supports(url))
           .findFirst()

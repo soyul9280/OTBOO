@@ -9,4 +9,8 @@ public class ExtractionException extends CustomException {
   public ExtractionException(String url) {
     super(ErrorCode.CLOTH_EXTRACTION_ERROR, Map.of("url", url));
   }
+
+  public ExtractionException() {
+    super(ErrorCode.CLOTH_EXTRACTION_ERROR);
+  }
 }
