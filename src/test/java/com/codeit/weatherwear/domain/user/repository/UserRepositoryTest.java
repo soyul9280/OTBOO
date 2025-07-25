@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 @DataJpaTest
 @ActiveProfiles("test")
+@Slf4j
 @Import({JpaConfig.class})
 @ContextConfiguration(initializers = ContainerInitializer.class)
 class UserRepositoryTest {
@@ -30,7 +32,8 @@ class UserRepositoryTest {
   @Autowired
   private UserRepository userRepository;
   @Autowired
-  private TestEntityManager testEntityManager;
+  private TestEntityManager em;
+
   private final List<User> testUsers = new ArrayList<>();
 
   @BeforeEach
@@ -46,10 +49,10 @@ class UserRepositoryTest {
           .build();
       testUsers.add(user);
       Thread.sleep(1);
-      testEntityManager.persistAndFlush(user);
+      em.persist(user);
     }
-    testEntityManager.flush();
-    testEntityManager.clear();
+    em.flush();
+    em.clear();
   }
 
   @Test
@@ -129,11 +132,17 @@ class UserRepositoryTest {
     User user3 = userRepository.findByEmail("user3@test.com")
         .orElseThrow();
 
+    for (User user : testUsers) {
+      log.info("name: " + user.getName() + " / " + user.getCreatedAt());
+    }
     // when
     Slice<User> result = userRepository.searchUsers(
         user3.getCreatedAt().toString(), user3.getId(), 2,
         "createdAt", SortDirection.ASCENDING, null, null, null
     );
+    for (User user : result.getContent()) {
+      log.info("name: " + user.getName() + " / " + user.getCreatedAt());
+    }
     // then
     assertThat(result.getContent()).hasSize(2);
     assertThat(result.getContent())

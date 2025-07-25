@@ -9,24 +9,27 @@ import org.testcontainers.kafka.KafkaContainer;
 public class ContainerInitializer implements
     ApplicationContextInitializer<ConfigurableApplicationContext> {
 
+  private static final PostgreSQLContainer<?> POSTGRES =
+      new PostgreSQLContainer<>("postgres:17-alpine")
+          .withDatabaseName("weatherwear")
+          .withUsername("user")
+          .withPassword("password")
+          .withReuse(false);
+
+  private static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
+
+  static {
+    POSTGRES.start();
+    KAFKA.start();
+  }
+
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>("postgres:17-alpine")
-            .withDatabaseName("weatherwear")
-            .withUsername("user")
-            .withPassword("password");
-
-    KafkaContainer kafka = new KafkaContainer("apache/kafka:4.0.0");
-
-    postgres.start();
-    kafka.start();
-
     TestPropertyValues.of(
-        "spring.datasource.url=" + postgres.getJdbcUrl(),
-        "spring.datasource.username=" + postgres.getUsername(),
-        "spring.datasource.password=" + postgres.getPassword(),
-        "spring.kafka.bootstrap-servers=" + kafka.getBootstrapServers()
+        "spring.datasource.url=" + POSTGRES.getJdbcUrl(),
+        "spring.datasource.username=" + POSTGRES.getUsername(),
+        "spring.datasource.password=" + POSTGRES.getPassword(),
+        "spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers()
     ).applyTo(applicationContext.getEnvironment());
   }
 }
