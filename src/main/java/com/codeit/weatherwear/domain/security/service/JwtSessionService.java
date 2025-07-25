@@ -1,12 +1,12 @@
 package com.codeit.weatherwear.domain.security.service;
 
 import com.codeit.weatherwear.domain.security.JwtBlacklist;
-import com.codeit.weatherwear.domain.security.config.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.dto.TokenRotationResult;
 import com.codeit.weatherwear.domain.security.entity.JwtSession;
 import com.codeit.weatherwear.domain.security.exception.AccountLockedException;
 import com.codeit.weatherwear.domain.security.exception.InvalidJwtException;
 import com.codeit.weatherwear.domain.security.exception.JwtSessionNotFoundException;
+import com.codeit.weatherwear.domain.security.properties.JwtProperties;
 import com.codeit.weatherwear.domain.security.repository.JwtSessionRepository;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
