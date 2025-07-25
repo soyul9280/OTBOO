@@ -22,13 +22,6 @@ public class ContainerInitializer implements
     postgres.start();
     kafka.start();
 
-    // 애플리케이션 컨텍스트가 닫힐 때 컨테이너 정리
-    applicationContext.registerShutdownHook();
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      postgres.stop();
-      kafka.stop();
-    }));
-
     TestPropertyValues.of(
         "spring.datasource.url=" + postgres.getJdbcUrl(),
         "spring.datasource.username=" + postgres.getUsername(),
