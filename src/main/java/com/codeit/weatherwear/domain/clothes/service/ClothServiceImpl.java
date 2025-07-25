@@ -126,7 +126,8 @@ public class ClothServiceImpl implements ClothService {
       maxAttempts = 3,
       backoff = @Backoff(delay = 2000),
       recover = "recover",
-      retryFor = {RuntimeException.class}
+      retryFor = {RuntimeException.class},
+      noRetryFor = {NotSupportSiteException.class}
   )
   @Override
   public ClothesDto getFromUrl(String url) {
@@ -149,9 +150,12 @@ public class ClothServiceImpl implements ClothService {
             return new NotSupportSiteException(url);
           });
       return parser.extract(document);
-    } catch (RuntimeException | IOException e) {
+    } catch (IOException e) {
       log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
       throw new RuntimeException(e);
+    } catch (RuntimeException e) {
+      log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
+      throw e;
     }
   }
 
