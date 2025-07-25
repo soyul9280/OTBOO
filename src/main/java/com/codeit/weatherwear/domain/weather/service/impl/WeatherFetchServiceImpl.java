@@ -1,5 +1,6 @@
 package com.codeit.weatherwear.domain.weather.service.impl;
 
+import com.codeit.weatherwear.domain.feed.repository.FeedRepository;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.location.service.LocationService;
 import com.codeit.weatherwear.domain.weather.api.WeatherApiClient;
@@ -19,8 +20,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
@@ -48,6 +53,7 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
 
   private final WeatherApiClient weatherApiClient;
   private final WeatherApiParser weatherApiParser;
+  private final FeedRepository feedRepository;
 
   /**
    * 기상청 단기 예보 API 요청 및 데이터 파싱을 거쳐 나온<br>날씨 데이터를 저장하고 반환
@@ -70,10 +76,11 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
     }
 
     // 이전 데이터 삭제
+//    deleteOldForecast(weatherList.get(0).getLocation());
     Instant cutoffTime = LocalDate.now(KST).atStartOfDay(KST).toInstant();
-    List<Weather> oldForecast = weatherRepository.getOldForecast(weatherList.get(0).getLocation(),
+    int deleted = weatherRepository.deleteOldOrphanForecast(weatherList.get(0).getLocation(),
         cutoffTime);
-    weatherRepository.deleteAll(oldForecast);
+    log.info("{} weather data deleted", deleted);
 
     // 데이터 저장
     weatherRepository.saveAll(weatherList);
@@ -147,6 +154,27 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
         .map(t -> t.format(DateTimeFormatter.ofPattern("HHmm")))
         // 아무것도 없으면 기본 값 제공
         .orElse("0200");
+  }
+
+  private void deleteOldForecast(Location location) {
+    // 자를 시간
+    Instant cutoffTime = LocalDate.now(KST).atStartOfDay(KST).toInstant();
+
+    // 시간 기준 이전 데이터(오래된 예보 데이터) 가져오기
+    List<Weather> oldForecast = weatherRepository.getOldForecast(location,
+        cutoffTime);
+
+    // Feed에 사용 중인 날씨 ID 가져오기
+    List<UUID> weatherIdsInUse = feedRepository.findWeatherIdsInUse(oldForecast);
+    Set<UUID> weatherIdsInUseSet = new HashSet<>(weatherIdsInUse);
+
+    // 필터링
+    List<Weather> deleteTarget = oldForecast.stream()
+        .filter(weather -> !weatherIdsInUseSet.contains(weather.getId()))
+        .collect(Collectors.toList());
+
+    // 필터링 된 날씨 데이터만 삭제
+    weatherRepository.deleteAll(deleteTarget);
   }
 
 }
