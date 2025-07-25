@@ -40,7 +40,7 @@ class WeatherRepositoryTest {
 
   @Test
   @DisplayName("특정 위치와 기준 시간 이후의 Weather만 조회된다")
-  void findRecentWeathers_success() {
+  void findOneDayWeathers_success() {
     // given
     double latitude = 37.5759;
     double longitude = 126.9768;

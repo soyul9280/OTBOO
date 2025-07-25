@@ -6,6 +6,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import com.codeit.weatherwear.domain.location.entity.Location;
+import com.codeit.weatherwear.domain.weather.entity.Humidity;
+import com.codeit.weatherwear.domain.weather.entity.Temperature;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WeatherApiData;
 import com.codeit.weatherwear.domain.weather.entity.WeatherApiDataId;
@@ -55,8 +57,18 @@ class WeatherAssemblerTest {
   @DisplayName("assemble: 정상 입력 시 Weather 객체 생성 및 필드 매핑")
   void assemble_success() {
     // when
+    Weather previousWeather = mock(Weather.class);
+    Humidity prevHumidity = mock(Humidity.class);
+    Temperature prevTemp = mock(Temperature.class);
+
+    given(previousWeather.getHumidity()).willReturn(prevHumidity);
+    given(prevHumidity.getCurrent()).willReturn(48.0);
+
+    given(previousWeather.getTemperature()).willReturn(prevTemp);
+    given(prevTemp.getCurrent()).willReturn(21.0);
+
     Weather weather = weatherAssembler.assemble(
-        "20250710", "20250709", categoryMap, location, groupedApiData
+        "20250710", "20250709", categoryMap, location, previousWeather
     );
 
     // then
@@ -105,15 +117,10 @@ class WeatherAssemblerTest {
 
   private void setCategoryMapReturnValue(Map<String, WeatherApiData> categoryMap) {
     // 값 세팅 - mock 반환값 설정
-    given(helper.extractMinForecastTime(categoryMap)).willReturn("0500");
     given(helper.getFcstValue(categoryMap, "REH")).willReturn("50");
     given(helper.getFcstValue(categoryMap, "TMP")).willReturn("20");
     given(helper.parseDoubleOrNull("50")).willReturn(50.0);
     given(helper.parseDoubleOrNull("20")).willReturn(20.0);
-    given(helper.calculateDifferenceFromPreviousDay(50.0, "REH", "20250710", "0500",
-        groupedApiData)).willReturn(2.0);
-    given(helper.calculateDifferenceFromPreviousDay(20.0, "TMP", "20250710", "0500",
-        groupedApiData)).willReturn(-1.0);
     given(helper.parseMinMaxTempDoubleOrNull(tmx)).willReturn(25.0);
     given(helper.parseMinMaxTempDoubleOrNull(tmn)).willReturn(15.0);
     given(helper.parseDoubleOrNull("1.2")).willReturn(1.2);

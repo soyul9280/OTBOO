@@ -16,6 +16,7 @@ import com.codeit.weatherwear.domain.weather.entity.SkyStatus;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WeatherApiData;
 import com.codeit.weatherwear.domain.weather.entity.WeatherApiDataId;
+import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,9 @@ class WeatherConvertServiceImplTest {
 
   @Mock
   private WeatherAssembler weatherAssembler;
+
+  @Mock
+  private WeatherRepository weatherRepository;
 
   private String baseDate, baseTime, fcstDate;
 
@@ -82,7 +86,7 @@ class WeatherConvertServiceImplTest {
         anyString(),
         anyMap(),
         any(Location.class),
-        anyMap()
+        any()
     )).willReturn(weather);
 
     // when
@@ -122,7 +126,7 @@ class WeatherConvertServiceImplTest {
         anyString(),
         anyMap(),
         any(Location.class),
-        anyMap()
+        any()
     )).willThrow(new RuntimeException("변환 실패"));
 
     // when
@@ -165,7 +169,7 @@ class WeatherConvertServiceImplTest {
 
     // WeatherAssembler가 호출될 때 결과 반환
     given(weatherAssembler.assemble(
-        eq(fcstDate), eq(baseDate), anyMap(), eq(location), eq(groupedApiData)
+        eq(fcstDate), eq(baseDate), anyMap(), eq(location), any()
     )).willReturn(weather);
 
     // when
@@ -179,7 +183,7 @@ class WeatherConvertServiceImplTest {
     // weatherAssembler.assemble가 정확히 아래 인자들로 호출됐는지 검증
     // 세 번째 인자(categoryMap)를 ArgumentCaptor로 캡처
     verify(weatherAssembler).assemble(
-        eq(fcstDate), eq(baseDate), captor.capture(), eq(location), eq(groupedApiData)
+        eq(fcstDate), eq(baseDate), captor.capture(), eq(location), any()
     );
 
     // 캡처된 categoryMap을 꺼내서 기대한 값과 일치하는지 확인
