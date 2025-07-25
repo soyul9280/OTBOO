@@ -15,12 +15,12 @@ import com.codeit.weatherwear.domain.ootd.service.OotdService;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.event.dto.FeedLikeEvent;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +37,7 @@ public class FeedLikeServiceImpl implements FeedLikeService {
 
   private final FeedMapper feedMapper;
   private final FeedLikeMapper feedLikeMapper;
-  private final ApplicationEventPublisher applicationEventPublisher;
+  private final DomainEventPublisher domainEventPublisher;
 
   @Transactional
   @Override
@@ -56,7 +56,7 @@ public class FeedLikeServiceImpl implements FeedLikeService {
     FeedDto feedDto = feedMapper.toDto(feed, userSummaryDto, null, ootds, true);
 
     log.info("Add Feed Like Success");
-    applicationEventPublisher.publishEvent(
+    domainEventPublisher.publish(
         new FeedLikeEvent(feed.getAuthor().getId(), user.getName(), feedDto.getContent()));
     return feedDto;
   }
