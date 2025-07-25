@@ -32,10 +32,6 @@ public interface WeatherRepository extends JpaRepository<Weather, UUID> {
       @Param("end") Instant end,
       Pageable pageable);
 
-  @Query("SELECT w FROM Weather w WHERE w.location = :location AND w.forecastAt < :target")
-  List<Weather> getOldForecast(@Param("location") Location location,
-      @Param("target") Instant cutoffTime);
-
   /**
    * 1. 피드와 연결되어 있는 날씨가 아니고
    * <p>
