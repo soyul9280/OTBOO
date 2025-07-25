@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -74,8 +75,13 @@ public class WeatherApiParser {
       Map<String, Map<String, List<WeatherApiData>>> groupedByDateAndTime =
           parsedDataList.stream()
               .collect(Collectors.groupingBy(
-                  WeatherApiData::getFcstDate,
-                  Collectors.groupingBy(WeatherApiData::getFcstTime)
+                  WeatherApiData::getFcstDate,      // fcstDate 기준 오름차순 정렬
+                  TreeMap::new,                     // → 날짜 기준으로 정렬된 TreeMap 생성
+                  Collectors.groupingBy(
+                      WeatherApiData::getFcstTime,  // fcstTime 기준 오름차순 정렬
+                      TreeMap::new,                 // → 시간 기준으로 정렬된 TreeMap 생성
+                      Collectors.toList()           // 해당 시간대 예보 데이터를 리스트로 수정
+                  )
               ));
 
       return groupedByDateAndTime;

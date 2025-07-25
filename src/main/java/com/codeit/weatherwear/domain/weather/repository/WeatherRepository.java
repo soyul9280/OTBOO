@@ -5,6 +5,7 @@ import com.codeit.weatherwear.domain.weather.entity.Weather;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,7 +17,20 @@ public interface WeatherRepository extends JpaRepository<Weather, UUID> {
 
   @Query("SELECT w FROM Weather w WHERE w.location = :location AND w.forecastedAt >= :start AND w.forecastAt >= :start")
   List<Weather> findRecentWeathers(@Param("location") Location location,
-      @Param("start") Instant todayStart);
+      @Param("start") Instant start);
+
+  @Query("""
+          SELECT w FROM Weather w
+          WHERE w.location = :location
+            AND w.forecastAt >= :start
+            AND w.forecastAt <= :end
+          ORDER BY w.forecastedAt DESC
+      """)
+  List<Weather> findOneDayWeather(
+      @Param("location") Location location,
+      @Param("start") Instant start,
+      @Param("end") Instant end,
+      Pageable pageable);
 
   @Query("SELECT w FROM Weather w WHERE w.location = :location AND w.forecastAt < :target")
   List<Weather> getOldForecast(@Param("location") Location location,

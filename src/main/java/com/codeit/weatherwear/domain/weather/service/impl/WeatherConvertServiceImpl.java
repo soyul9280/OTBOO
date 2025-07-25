@@ -5,10 +5,13 @@ import com.codeit.weatherwear.domain.weather.assembler.WeatherAssembler;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WeatherApiData;
 import com.codeit.weatherwear.domain.weather.entity.WeatherApiDataId;
+import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
 import com.codeit.weatherwear.domain.weather.service.WeatherConvertService;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -25,6 +29,7 @@ import org.springframework.stereotype.Service;
 public class WeatherConvertServiceImpl implements WeatherConvertService {
 
   private final WeatherAssembler weatherAssembler;
+  private final WeatherRepository weatherRepository;
 
   /**
    * 변환 수행 메서드
@@ -36,16 +41,21 @@ public class WeatherConvertServiceImpl implements WeatherConvertService {
   @Override
   public List<Weather> convert(Map<String, Map<String, List<WeatherApiData>>> groupedApiData,
       Location location) {
-    List<Weather> result = new ArrayList<>();
+    Map<String, Weather> dateToWeatherMap = new HashMap<>();
 
     // groupedApiData 에서 날짜별 데이터를 순회하며 변환 수행 후,
     // 결과가 존재할 경우 result 에 추가
     for (Map.Entry<String, Map<String, List<WeatherApiData>>> dateEntry : groupedApiData.entrySet()) {
-      convertForecastDay(dateEntry.getKey(), dateEntry.getValue(), groupedApiData,
-          location).ifPresent(result::add);
+
+      Weather compareWeather = getCompareWeather(dateToWeatherMap, location, dateEntry.getKey());
+
+      convertForecastDay(dateEntry.getKey(), dateEntry.getValue(), compareWeather,
+          location).ifPresent(weather -> {
+        dateToWeatherMap.put(dateEntry.getKey(), weather);
+      });
     }
 
-    return result;
+    return dateToWeatherMap.values().stream().collect(Collectors.toList());
   }
 
   /**
@@ -58,7 +68,7 @@ public class WeatherConvertServiceImpl implements WeatherConvertService {
   private Optional<Weather> convertForecastDay(
       String fcstDate,
       Map<String, List<WeatherApiData>> timeMap,
-      Map<String, Map<String, List<WeatherApiData>>> groupedApiData,
+      Weather compareWeather,
       Location location
   ) {
     // 시간별 예보 데이터를 평탄화 하여 하나의 리스트로 만듦
@@ -93,7 +103,7 @@ public class WeatherConvertServiceImpl implements WeatherConvertService {
     try {
       // WeatherAssembler를 이용하여 Weather 객체 생성
       return Optional.ofNullable(
-          weatherAssembler.assemble(fcstDate, baseDate, categoryMap, location, groupedApiData));
+          weatherAssembler.assemble(fcstDate, baseDate, categoryMap, location, compareWeather));
     } catch (Exception e) {
       // 변환 실패 시 로그 출력 후 Optional.empty() 반환
       log.error("날짜 {} → 변환 실패: {}", fcstDate, e.getMessage());
@@ -184,6 +194,34 @@ public class WeatherConvertServiceImpl implements WeatherConvertService {
         categoryMap.put("TMX", tmnData);
       });
     }
+  }
+
+  private Weather getCompareWeather(Map<String, Weather> dateToWeatherMap, Location location,
+      String fcstDate) {
+    DateTimeFormatter formatter = DateTimeFormatter.BASIC_ISO_DATE; // "yyyyMMdd" 포맷
+    ZoneId KST = ZoneId.of("Asia/Seoul");
+
+    // 현재 시간/이전 시간 Instant 화
+    LocalDate fcstLocalDate = LocalDate.parse(fcstDate, formatter);
+    LocalDate prevLocalDate = fcstLocalDate.minusDays(1);
+    String prevDate = prevLocalDate.format(formatter);
+    Instant prev = prevLocalDate.atStartOfDay(KST).toInstant();
+    Instant fcst = fcstLocalDate.atStartOfDay(KST).toInstant();
+
+    Weather compareWeather;
+    if (dateToWeatherMap.containsKey(prevDate)) {
+      compareWeather = dateToWeatherMap.get(prevDate);
+    } else {
+      List<Weather> oneDayWeather = weatherRepository.findOneDayWeather(
+          location,
+          prev,
+          fcst,
+          PageRequest.of(0, 1)
+      );
+      compareWeather = oneDayWeather.isEmpty() ? null : oneDayWeather.get(0);
+    }
+
+    return compareWeather;
   }
 }
 
