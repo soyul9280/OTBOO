@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -40,6 +41,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import org.springframework.data.domain.Slice;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -116,15 +122,25 @@ public class ClothServiceImpl implements ClothService {
    * @return 의상 DTO
    * @throws RuntimeException, IOException
    */
+  @Retryable(
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 2000),
+      recover = "recover",
+      retryFor = {RuntimeException.class},
+      noRetryFor = {NotSupportSiteException.class}
+  )
   @Override
   public ClothesDto getFromUrl(String url) {
     log.info("[Start Getting Cloth From Url] URL: {}", url);
-    Document document = null;
+    int retryCount = Optional.ofNullable(RetrySynchronizationManager.getContext())
+        .map(RetryContext::getRetryCount)
+        .orElse(1);
     try {
-      document = Jsoup.connect(url)
+      Document document = Jsoup.connect(url)
           .timeout(15000)
           .userAgent("Mozilla/5.0")
           .get();
+
       SiteParser parser = siteParsers.stream()
           .filter(p -> p.supports(url))
           .findFirst()
@@ -133,10 +149,19 @@ public class ClothServiceImpl implements ClothService {
             return new NotSupportSiteException(url);
           });
       return parser.extract(document);
-    } catch (RuntimeException | IOException e) {
-      log.warn("[Fail Getting Cloth From Url] URL: {}", url, e);
-      throw new ExtractionException(url);
+    } catch (IOException e) {
+      log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
+      throw new RuntimeException(e);
+    } catch (RuntimeException e) {
+      log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
+      throw e;
     }
+  }
+
+  @Recover
+  public ClothesDto recover(RuntimeException e, String url) {
+    log.warn("[Recover] Retry failed for URL: {}", url);
+    throw new ExtractionException(url);
   }
 
   /**

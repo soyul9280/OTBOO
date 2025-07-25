@@ -1,6 +1,7 @@
 package com.codeit.weatherwear.domain.clothes.service.parser;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +27,6 @@ public class MusinsaParser implements SiteParser {
   @Override
   public ClothesDto extract(Document document) {
     log.info("[Start Extracting Musinsa Cloth]");
-    String productName = "";
-    String thumbnailImageUrl = "";
     try {
       Element scriptTag = document.selectFirst("script#pdp-data");
       if (scriptTag != null) {
@@ -40,24 +39,26 @@ public class MusinsaParser implements SiteParser {
           ObjectMapper objectMapper = new ObjectMapper();
           JsonNode jsonNode = objectMapper.readTree(jsonString);
 
-          productName = jsonNode.get("goodsNm").asText();
-          thumbnailImageUrl =
-              mssCdnImageUrlPrefix + jsonNode.get("thumbnailImageUrl").asText();
+          JsonNode goodsNmNode = jsonNode.get("goodsNm");
+          JsonNode thumbnailNode = jsonNode.get("thumbnailImageUrl");
+
+          if (goodsNmNode == null || thumbnailNode == null) {
+            throw new ExtractionNotFoundException();
+          }
+
+          String productName = goodsNmNode.asText();
+          String thumbnailImageUrl =
+              mssCdnImageUrlPrefix + thumbnailNode.asText();
           log.info("[Extracting Cloth Completed : {}, Name: {}", "무신사", productName);
           return ClothesDto.builder()
               .name(productName)
               .imageUrl(thumbnailImageUrl)
               .build();
         }
-        throw new ExtractionNotFoundException();
       }
+      throw new ExtractionException();
     } catch (IOException e) {
-      //clothService에서 커스텀 처리 진행
       throw new RuntimeException(e);
     }
-    return ClothesDto.builder()
-        .name(productName)
-        .imageUrl(thumbnailImageUrl)
-        .build();
   }
 }
