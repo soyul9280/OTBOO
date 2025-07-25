@@ -134,7 +134,6 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.21.1'
     implementation 'commons-io:commons-io:2.15.1'
 
-
     //웹소켓
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
@@ -151,6 +150,10 @@ dependencies {
     // kafka
     implementation 'org.springframework.kafka:spring-kafka'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
+
+    //retry
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
 }
 
 tasks.named('test') {

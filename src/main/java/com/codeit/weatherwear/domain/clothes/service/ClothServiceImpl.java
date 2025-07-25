@@ -40,6 +40,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import org.springframework.data.domain.Slice;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -116,12 +119,17 @@ public class ClothServiceImpl implements ClothService {
    * @return 의상 DTO
    * @throws RuntimeException, IOException
    */
+  @Retryable(
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 2000),
+      recover = "recover",
+      retryFor = {RuntimeException.class, IOException.class}
+  )
   @Override
-  public ClothesDto getFromUrl(String url) {
+  public ClothesDto getFromUrl(String url) throws IOException {
     log.info("[Start Getting Cloth From Url] URL: {}", url);
-    Document document;
     try {
-      document = Jsoup.connect(url)
+      Document document = Jsoup.connect(url)
           .timeout(15000)
           .userAgent("Mozilla/5.0")
           .get();
@@ -136,8 +144,14 @@ public class ClothServiceImpl implements ClothService {
       return parser.extract(document);
     } catch (RuntimeException | IOException e) {
       log.warn("[Fail Getting Cloth From Url] URL: {}", url, e);
-      throw new ExtractionException(url);
+      throw e;
     }
+  }
+
+  @Recover
+  public ClothesDto recover(RuntimeException e, String url) {
+    log.warn("[Recover] Retry failed for URL: {}", url, e);
+    throw new ExtractionException(url);
   }
 
   /**
