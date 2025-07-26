@@ -27,8 +27,7 @@ public class WeatherBatchScheduler {
 
   // 매일 3시 10분에 돌아가는 스케줄러
   // -> 예보 데이터를 정시가 아닌 정시 + 10분에 준다고 해서 해당 시각으로 설정
-//  @Scheduled(cron = "0 10 3 * * ?", zone = "Asia/Seoul")
-  @Scheduled(cron = "0 22 0 * * ?", zone = "Asia/Seoul")
+  @Scheduled(cron = "0 10 3 * * ?", zone = "Asia/Seoul")
   public void runWeatherBatchJob() {
     Date date = new Date();
     JobParameters parameters = new JobParametersBuilder()
