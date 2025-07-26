@@ -67,6 +67,7 @@ public class WeatherApiClient {
       // 응답 Body 전달
       return response.body();
     } catch (IOException | InterruptedException e) {
+      log.info("url: {}", requestUrl);
       log.error("Weather Api Request Invalid - cause: {}\nmessage: {}", e.getCause(),
           e.getMessage());
       throw new WeatherApiRequestException();

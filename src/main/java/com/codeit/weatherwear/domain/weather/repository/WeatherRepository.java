@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface WeatherRepository extends JpaRepository<Weather, UUID> {
@@ -37,12 +38,12 @@ public interface WeatherRepository extends JpaRepository<Weather, UUID> {
    * <p>
    * 2. 예보 요청 시간(forecastedAt)이 기준 시간(조회 당일) 이전이거나 예보 시간(forecastAt)이 기준 시간(조회 당일) 이전이라면 삭제
    */
-  @Modifying
+  @Modifying(clearAutomatically = true)
+  @Transactional
   @Query("""
       DELETE FROM Weather w
-          WHERE w.location = :location
-             AND (w.forecastAt < :cutOffTime OR w.forecastedAt < :cutOffTime)
+          WHERE
+             (w.forecastAt < :cutOffTime OR w.forecastedAt < :cutOffTime)
              AND NOT EXISTS (SELECT 1 FROM Feed f WHERE f.weather.id = w.id)""")
-  int deleteOldOrphanForecast(@Param("location") Location location,
-      @Param("cutOffTime") Instant cutOffTime);
+  int deleteOldOrphanForecast(@Param("cutOffTime") Instant cutOffTime);
 }

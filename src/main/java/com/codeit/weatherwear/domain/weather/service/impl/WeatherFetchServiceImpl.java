@@ -12,7 +12,6 @@ import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,10 +54,6 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
    * @param longitude 경도
    * @return 날씨 엔티티 리스트
    */
-  // 쿼리가 실행된 후 영속성 컨텍스트를 자동으로 clear()하여 캐시된 엔티티 비움
-  // 삭제 쿼리를 @Modifying을 통해 JPA의 Dirty Checking을 거치지 않고 직접 SQL로 수행하도록 했기에 아래 어노테이션 추가
-  // 기존 날씨 예보 엔티티 삭제는 대량 삭제에 해당되어서 빠르게 수행하는 것이 더 좋다고 생각
-  @Modifying(clearAutomatically = true)
   @Transactional
   @Override
   public List<Weather> fetchAndStoreWeather(double latitude, double longitude) {
@@ -71,12 +65,6 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
     if (weatherList.isEmpty()) {
       return Collections.emptyList();
     }
-
-    // 이전 데이터 삭제
-    Instant cutoffTime = LocalDate.now(KST).atStartOfDay(KST).toInstant();
-    int deleted = weatherRepository.deleteOldOrphanForecast(weatherList.get(0).getLocation(),
-        cutoffTime);
-    log.info("{} weather data deleted", deleted);
 
     // 데이터 저장
     weatherRepository.saveAll(weatherList);
