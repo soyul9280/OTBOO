@@ -35,6 +35,7 @@ class AttributeRepositoryTest {
 
   @BeforeEach
   void setUp() {
+    sut.deleteAll();
     thick = Attribute.builder()
         .name("두께")
         .selectableValues(List.of("두꺼움", "얇음")).build();
