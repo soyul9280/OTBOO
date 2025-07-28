@@ -13,8 +13,7 @@ public class ContainerInitializer implements
       new PostgreSQLContainer<>("postgres:17-alpine")
           .withDatabaseName("weatherwear")
           .withUsername("user")
-          .withPassword("password")
-          .withInitScript("schema.sql");
+          .withPassword("password");
 
   private static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
 
