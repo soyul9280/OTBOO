@@ -10,7 +10,6 @@ import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WeatherApiData;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeed;
 import com.codeit.weatherwear.domain.weather.support.WeatherCalculationHelper;
-import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -40,25 +39,24 @@ public class WeatherAssembler {
       String baseDate,
       Map<String, WeatherApiData> categoryMap,
       Location location,
-      Map<String, Map<String, List<WeatherApiData>>> groupedApiData
+      Weather compareWeather
   ) {
-    // categoryMap에서 예보 시간 중 가장 이른(fcstTime) 값을 추출
-    String fcstTime = helper.extractMinForecastTime(categoryMap);
-
     // 현재 습도 값 파싱
     Double currentHumidity = helper.parseDoubleOrNull(helper.getFcstValue(categoryMap, "REH"));
-    // 전일 대비 습도 변화랑 계산
-    Double comparedHumidity = helper.calculateDifferenceFromPreviousDay(currentHumidity, "REH",
-        fcstDate, fcstTime,
-        groupedApiData);
 
-    // todo: 기온 값 등이 없다고 해서 변화량을 0이라고 둬도 되나? null로 두는 것이 나을까? (고민)
     // 현재 기온 값 파싱
     Double currentTemperature = helper.parseDoubleOrNull(helper.getFcstValue(categoryMap, "TMP"));
-    // 전일 대비 기온 변화량 계산
-    Double comparedTemperature = helper.calculateDifferenceFromPreviousDay(currentTemperature,
-        "TMP", fcstDate, fcstTime,
-        groupedApiData);
+
+    // 변화량 계산
+    Double comparedHumidity = 0.0;
+    Double comparedTemperature = 0.0;
+
+    if (compareWeather != null) {
+      // 전일 대비 습도 변화랑 계산
+      comparedHumidity = currentHumidity - compareWeather.getHumidity().getCurrent();
+      // 전일 대비 기온 변화량 계산
+      comparedTemperature = currentTemperature - compareWeather.getTemperature().getCurrent();
+    }
 
     // 최고 기온 값 파싱 (해당 카테고리가 없을 때는 0)
     Double tmx = helper.parseMinMaxTempDoubleOrNull(categoryMap.get("TMX"));

@@ -43,11 +43,9 @@ public class LocationServiceImpl implements LocationService {
         locationName
     );
 
-    // 이미 존재하면 기존 객체 반환
-    Location resultLocation = locationRepository.findLocationByNameAndLatitudeAndLongitude(
-        location.getName(),
-        location.getLatitude(),
-        location.getLongitude()
+    // 위치 지명이 이미 존재하면 기존 객체 반환
+    Location resultLocation = locationRepository.findLocationByName(
+        location.getName()
     ).orElseGet(() -> locationRepository.save(location));
 
     log.info("Find Or Create Location Success");

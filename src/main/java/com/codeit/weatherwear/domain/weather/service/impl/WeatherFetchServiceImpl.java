@@ -12,7 +12,6 @@ import com.codeit.weatherwear.domain.weather.service.WeatherFetchService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +54,6 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
    * @param longitude 경도
    * @return 날씨 엔티티 리스트
    */
-  @Modifying(clearAutomatically = true)
   @Transactional
   @Override
   public List<Weather> fetchAndStoreWeather(double latitude, double longitude) {
@@ -68,12 +65,6 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
     if (weatherList.isEmpty()) {
       return Collections.emptyList();
     }
-
-    // 이전 데이터 삭제
-    Instant cutoffTime = LocalDate.now(KST).atStartOfDay(KST).toInstant();
-    List<Weather> oldForecast = weatherRepository.getOldForecast(weatherList.get(0).getLocation(),
-        cutoffTime);
-    weatherRepository.deleteAll(oldForecast);
 
     // 데이터 저장
     weatherRepository.saveAll(weatherList);
@@ -148,5 +139,4 @@ public class WeatherFetchServiceImpl implements WeatherFetchService {
         // 아무것도 없으면 기본 값 제공
         .orElse("0200");
   }
-
 }
