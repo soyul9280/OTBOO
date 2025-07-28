@@ -43,9 +43,13 @@ CREATE TABLE users
     PRIMARY KEY (id)
 );
 
+-- Unique Index 설정 SQL - users(email)
+CREATE UNIQUE INDEX UQ_users_1
+    ON users(email);
+
 -- Unique Index 설정 SQL - users(name)
--- CREATE UNIQUE INDEX UQ_users_2
---     ON users(name);
+CREATE UNIQUE INDEX UQ_users_2
+    ON users(name);
 
 -- Foreign Key 설정 SQL - users(location_id) -> locations(id)
 ALTER TABLE users
