@@ -141,7 +141,11 @@ public class ClothServiceImpl implements ClothService {
       SiteParser zigzagParser = siteParsers.stream()
           .filter(p -> p.supports(url))
           .findFirst()
-          .orElseThrow(() -> new ExtractionException("ZigZag 사이트가 아닙니다."));
+          .orElseThrow(() -> {
+            log.debug("[Fail Extracting Cloth] Not ZigZag Site - URL: {}", url);
+            return new ExtractionException(url);
+          });
+
       return zigzagParser.extract(url);
     }
 
