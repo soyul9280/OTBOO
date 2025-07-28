@@ -18,6 +18,7 @@ import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
+import com.codeit.weatherwear.domain.clothes.service.parser.ZigZagParser;
 import com.codeit.weatherwear.domain.recommendation.service.AIRecommendationService;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
@@ -40,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Slice;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.annotation.Backoff;
@@ -138,7 +140,8 @@ public class ClothServiceImpl implements ClothService {
     try {
       Document document = Jsoup.connect(url)
           .timeout(15000)
-          .userAgent("Mozilla/5.0")
+          .userAgent(
+              "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36")
           .get();
 
       SiteParser parser = siteParsers.stream()
@@ -148,7 +151,8 @@ public class ClothServiceImpl implements ClothService {
             log.debug("[Fail Extracting Cloth] Site Not Support - URL: {}", url);
             return new NotSupportSiteException(url);
           });
-      return parser.extract(document);
+
+      return parser.extract(url, document);
     } catch (IOException e) {
       log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
       throw new RuntimeException(e);
@@ -196,7 +200,7 @@ public class ClothServiceImpl implements ClothService {
           throw new S3DeleteException();
         }
         log.info("[Updating Cloth] Change ThumbNail Image: {}", uploadUrl);
-        cloth.updateImageUrl(uploadUrl);
+        cloth.updateImageUrl(uploadKey);
       }
     }
 

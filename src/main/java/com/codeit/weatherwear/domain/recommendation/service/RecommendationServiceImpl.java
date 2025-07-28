@@ -69,11 +69,13 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     //날씨에 적당한 옷 타입마다 필터링하기
     List<Cloth> filtered = filterCloth(user, weather, clothes);
-    log.info("[Recommendation] Filter Cloth By Thick & Season Completed");
+    log.info("[Recommendation] Filter Cloth By Thick & Season Completed, count: {}",
+        filtered.size());
 
     //필터링 안된 경우 옷장에 있는 모든 옷 랜덤 추천
     if (filtered.isEmpty()) {
       log.debug("[Recommendation] Filter Cloth By Thick & Season Failed");
+      log.debug("[Recommendation] All Clothes");
       return randomRecommendService.recommend(clothes, user, weather);
     }
 
@@ -81,11 +83,18 @@ public class RecommendationServiceImpl implements RecommendationService {
       List<Cloth> filteredByAI = aiRecommendationService.getRecommendationCandidates(filtered, user,
           weather
       );
-      log.info("[Recommendation] Filtered Candidates By LLM Completed");
+      log.info("[Recommendation] Filtered Candidates By LLM Completed, count: {}",
+          filteredByAI.size());
+
+      // filteredByAI가 비어있을 경우 fallback 처리
+      if (filteredByAI.isEmpty()) {
+        log.debug("[Recommendation] Filtered Candidates By LLM is Empty - fallback to filtered");
+        return randomRecommendService.recommend(filtered, user, weather);
+      }
       return randomRecommendService.recommend(filteredByAI, user, weather);
     } catch (GeminiApiClientException | GeminiApiServerException | GeminiParseException e) {
       //실패 시, 옷의 두께, 날씨 조건으로 필터링 된 옷만 랜덤 추천
-      log.debug("[Recommendation] Filtered Candidates By LLM Failed", e);
+      log.debug("[Recommendation] Filtered Candidates By LLM Failed, {}", e.getMessage());
       return randomRecommendService.recommend(filtered, user, weather);
     }
   }

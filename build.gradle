@@ -132,6 +132,8 @@ dependencies {
 
     //웹 크롤링 jsoup
     implementation 'org.jsoup:jsoup:1.21.1'
+    //웹 크롤링 selenium
+    implementation 'org.seleniumhq.selenium:selenium-java:4.34.0'
     implementation 'commons-io:commons-io:2.15.1'
 
     //웹소켓
