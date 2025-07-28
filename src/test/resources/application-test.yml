@@ -1,22 +1,62 @@
-server:
-  port: 8081
-
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+  config:
+    import: optional:file:.env.test[.properties]
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
+  test:
+    database:
+      replace: none
+
+  batch:
+    jdbc:
+      initialize-schema: always
+
+  cache:
+    type: simple
 
 logging:
   level:
-    com.sprint.mission.discodeit: debug
+    com.codeit.weatherwear: debug
     org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
+
+weather:
+  api-url: ${WEATHER_INFO_API_URL}
+  api-service-key: ${WEATHER_INFO_SERVICE_KEY}
+
+location:
+  api-url: ${LOCATION_API_URL}
+  api-key: ${LOCATION_API_KEY}
+
+
+app:
+  admin:
+    email: admin_test@mail.com
+    name: admin
+    password: admintest1!
+
+weatherwear:
+  storage:
+    type: s3
+    s3:
+      access-key: asd
+      secret-key: asd
+      region: ap-northeast-2
+      bucket: asd
+      presigned-url-expiration: 600
+
+sse:
+  timeout: 1000
+
+gemini:
+  api:
+    key: asd
+    url: asd
+
+clothes:
+  extraction:
+    musinsa:
+      image-url-prefix: asd

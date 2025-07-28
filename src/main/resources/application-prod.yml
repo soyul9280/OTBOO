@@ -1,5 +1,20 @@
 spring:
+  # env
+  config:
+    import: optional:file:.env.prod[.properties]
+
+  # DB
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  #JPA
   jpa:
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
     show-sql: false
     properties:
       hibernate:
@@ -7,9 +22,52 @@ spring:
         use_sql_comments: false
         highlight_sql: false
         generate_statistics: false
+        open-in-view: false
+        cache:
+          use_second_level_cache: false
 
-  logging:
-    level:
-      org:
-        hibernate:
-          sql: info  # 운영 환경에서는 SQL 로그를 info로 설정
+  transaction:
+    default-timeout: 30
+
+  batch:
+    jdbc:
+      initialize-schema: embedded   # Batch 테이블 (내장 DB만) 자동 생성'
+
+  kafka:
+    properties:
+      security:
+        protocol: SASL_SSL
+      sasl:
+        jaas:
+          config: org.apache.kafka.common.security.plain.PlainLoginModule required username='${KAFKA_CLUSTER_API_KEY}' password='${KAFKA_CLUSTER_API_SECRET}';
+        mechanism: PLAIN
+
+# logging
+logging:
+  level:
+    org:
+      hibernate:
+        sql: info
+
+# port
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    uri-encoding: UTF-8
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+# actuator
+management:
+  endpoint:
+    web:
+      exposure:
+        include: health
+    health:
+      show-details: always
+
+jwt:
+  secret: ${JWT_SECRET} # 반드시 환경변수 통해 시크릿 키 주입

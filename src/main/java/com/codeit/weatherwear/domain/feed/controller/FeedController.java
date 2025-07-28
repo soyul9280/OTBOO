@@ -1,0 +1,71 @@
+package com.codeit.weatherwear.domain.feed.controller;
+
+import com.codeit.weatherwear.domain.feed.controller.api.FeedApi;
+import com.codeit.weatherwear.domain.feed.dto.request.FeedCreateRequest;
+import com.codeit.weatherwear.domain.feed.dto.request.FeedGetParamRequest;
+import com.codeit.weatherwear.domain.feed.dto.request.FeedUpdateRequest;
+import com.codeit.weatherwear.domain.feed.dto.response.FeedDto;
+import com.codeit.weatherwear.domain.feed.service.FeedService;
+import com.codeit.weatherwear.domain.security.customauthentication.CustomUserDetails;
+import com.codeit.weatherwear.global.response.PageResponse;
+import jakarta.validation.Valid;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/feeds")
+@RequiredArgsConstructor
+public class FeedController implements FeedApi {
+
+  private final FeedService feedService;
+
+  // 피드 목록 조회
+  @GetMapping
+  public ResponseEntity<PageResponse<FeedDto>> getFeedList(
+      @ModelAttribute @Valid FeedGetParamRequest paramRequest,
+      @AuthenticationPrincipal CustomUserDetails userDetails
+  ) {
+    return ResponseEntity.ok(feedService.getFeedList(paramRequest, userDetails.getUserId()));
+  }
+
+  // 피드 등록
+  @PostMapping
+  public ResponseEntity<FeedDto> createFeed(@RequestBody FeedCreateRequest feedCreateRequest,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(feedService.createFeed(feedCreateRequest, userDetails.getUserId()));
+  }
+
+  // 피드 갱신 (정보 업데이트)
+  @PreAuthorize("@authorizationEvaluator.isFeedAuthor(authentication.principal.userId, #feedId)")
+  @PatchMapping("/{feedId}")
+  public ResponseEntity<FeedDto> updateFeed(
+      @PathVariable UUID feedId,
+      @RequestBody FeedUpdateRequest feedUpdateRequest,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    return ResponseEntity.ok(
+        feedService.updateFeed(feedId, feedUpdateRequest, userDetails.getUserId()));
+  }
+
+  // 피드 삭제
+  @PreAuthorize("@authorizationEvaluator.isFeedAuthor(authentication.principal.userId, #feedId)")
+  @DeleteMapping("/{feedId}")
+  public ResponseEntity<Void> deleteFeed(@PathVariable UUID feedId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    feedService.deleteFeed(feedId, userDetails.getUserId());
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+}

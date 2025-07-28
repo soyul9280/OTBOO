@@ -1,0 +1,171 @@
+package com.codeit.weatherwear.domain.follow.repository;
+
+import static com.codeit.weatherwear.domain.follow.QFollow.follow;
+
+import com.codeit.weatherwear.domain.follow.dto.FollowDto;
+import com.codeit.weatherwear.domain.follow.dto.FollowSummaryDto;
+import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+
+@RequiredArgsConstructor
+public class FollowRepositoryImpl implements FollowRepositoryCustom {
+
+  private final JPAQueryFactory queryFactory;
+
+  @Override
+  public FollowSummaryDto getSummary(UUID userId, UUID myId) {
+    Long followerCount = queryFactory
+        .select(follow.count())
+        .from(follow)
+        .where(follow.followee.id.eq(userId))
+        .fetchOne();
+    followerCount = followerCount == null ? 0L : followerCount;
+
+    Long followingCount = queryFactory
+        .select(follow.count())
+        .from(follow)
+        .where(follow.follower.id.eq(userId))
+        .fetchOne();
+    followingCount = followingCount == null ? 0L : followingCount;
+
+    UUID followedByMeId = queryFactory
+        .select(follow.id)
+        .from(follow)
+        .where(
+            follow.followee.id.eq(userId),
+            follow.follower.id.eq(myId)
+        )
+        .fetchOne();
+    boolean followedByMe = followedByMeId != null;
+
+    Long followingMeCount = queryFactory.select(follow.count())
+        .from(follow)
+        .where(
+            follow.follower.id.eq(userId),
+            follow.followee.id.eq(myId)
+        )
+        .fetchOne();
+    followingMeCount = followingMeCount == null ? 0L : followingMeCount;
+
+    return new FollowSummaryDto(
+        userId,
+        followerCount,
+        followingCount,
+        followedByMe,
+        followedByMeId,
+        followingMeCount > 0
+    );
+  }
+
+  @Override
+  public Slice<FollowDto> getFollowings(UUID followerId, String cursor,
+      UUID idAfter, String nameLike, Pageable pageable
+  ) {
+    List<FollowDto> data = queryFactory
+        .select(Projections.constructor(FollowDto.class,
+            follow.id,
+            follow.createdAt,
+            Projections.constructor(UserSummaryDto.class,
+                follow.followee.id,
+                follow.followee.name,
+                follow.followee.profileImageUrl
+            ),
+            Projections.constructor(UserSummaryDto.class,
+                follow.follower.id,
+                follow.follower.name,
+                follow.follower.profileImageUrl
+            )
+        ))
+        .from(follow)
+        .where(
+            follow.follower.id.eq(followerId),
+            cursor(cursor, idAfter),
+            followeeNameLike(nameLike)
+        )
+        .orderBy(
+            follow.createdAt.desc(),
+            follow.id.desc()
+        )
+        .limit(pageable.getPageSize() + 1)
+        .fetch();
+
+    boolean hasNext = data.size() > pageable.getPageSize();
+    if (hasNext) {
+      data.remove(data.size() - 1);
+    }
+    return new SliceImpl<>(data, pageable, hasNext);
+  }
+
+  @Override
+  public Slice<FollowDto> getFollowers(UUID followeeId, String cursor,
+      UUID idAfter, String nameLike, Pageable pageable
+  ) {
+    List<FollowDto> data = queryFactory
+        .select(Projections.constructor(FollowDto.class,
+            follow.id,
+            follow.createdAt,
+            Projections.constructor(UserSummaryDto.class,
+                follow.followee.id,
+                follow.followee.name,
+                follow.followee.profileImageUrl
+            ),
+            Projections.constructor(UserSummaryDto.class,
+                follow.follower.id,
+                follow.follower.name,
+                follow.follower.profileImageUrl
+            )
+        ))
+        .from(follow)
+        .where(
+            follow.followee.id.eq(followeeId),
+            cursor(cursor, idAfter),
+            followerNameLike(nameLike)
+        )
+        .orderBy(
+            follow.createdAt.desc(),
+            follow.id.desc()
+        )
+        .limit(pageable.getPageSize() + 1)
+        .fetch();
+
+    boolean hasNext = data.size() > pageable.getPageSize();
+    if (hasNext) {
+      data.remove(data.size() - 1);
+    }
+
+    return new SliceImpl<>(data, pageable, hasNext);
+  }
+
+  private BooleanExpression followerNameLike(String nameLike) {
+    if (nameLike == null || nameLike.isBlank()) {
+      return null;
+    }
+    return follow.follower.name.containsIgnoreCase(nameLike);
+  }
+
+  private BooleanExpression followeeNameLike(String nameLike) {
+    if (nameLike == null || nameLike.isBlank()) {
+      return null;
+    }
+    return follow.followee.name.containsIgnoreCase(nameLike);
+  }
+
+  private BooleanExpression cursor(String cursor, UUID idAfter) {
+    if (cursor == null || idAfter == null) {
+      return null;
+    }
+
+    Instant createdAtCursor = Instant.parse(cursor);
+    return follow.createdAt.lt(createdAtCursor)
+        .or(follow.createdAt.eq(createdAtCursor).and(follow.id.lt(idAfter)));
+  }
+}

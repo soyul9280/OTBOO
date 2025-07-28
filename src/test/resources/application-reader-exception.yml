@@ -1,0 +1,5 @@
+# Reader 예외 검증을 위한 용도
+
+spring:
+  main:
+    allow-bean-definition-overriding: true

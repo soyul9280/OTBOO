@@ -1,0 +1,84 @@
+# 공통 backend 설정
+x-backend-common: &backend-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      PROJECT_NAME: ${PROJECT_NAME}
+      PROJECT_VERSION: ${PROJECT_VERSION}
+  image: ${PROJECT_NAME}:local-slim
+  env_file:
+    - .env.docker
+  expose:
+    - "8080"
+  depends_on:
+    - db
+  networks:
+    - otboo-network
+
+# service
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: otboo-nginx
+    ports:
+      - "3000:80"
+    env_file:
+      - .env.docker
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/local.conf:/etc/nginx/conf.d/default.conf
+      - ./src/main/resources/static:/usr/share/nginx/html:ro
+    depends_on:
+      - backend1
+    networks:
+      - otboo-network
+
+  db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: otboo-db
+    env_file:
+      - .env.docker
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - otboo-postgres-data:/var/lib/postgresql/data
+      - ./db/init/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - otboo-network
+
+  broker:
+    image: apache/kafka:4.0.0
+    container_name: otboo-broker
+    ports:
+      - "9092:9092"
+    networks:
+      - otboo-network
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:29093
+      KAFKA_LISTENERS: PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+
+  backend1:
+    <<: *backend-common
+    container_name: otboo-backend-1
+
+volumes:
+  otboo-postgres-data:
+
+networks:
+  otboo-network:
+    driver: bridge

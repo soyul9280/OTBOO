@@ -37,4 +37,11 @@ out/
 .vscode/
 
 ### 환경 변수 파일 ###
-.env
+*.env*
+
+### SQL 파일 ###
+*.sql*
+
+### macOS 시스템 파일 무시 ###
+.DS_Store
+**/.DS_Store

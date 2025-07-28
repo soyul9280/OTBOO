@@ -1,0 +1,128 @@
+package com.codeit.weatherwear.domain.notification;
+
+import com.codeit.weatherwear.domain.notification.dto.NotificationDto;
+import com.codeit.weatherwear.domain.notification.dto.request.NotificationSearchRequest;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
+import com.codeit.weatherwear.global.event.dto.MultipleNotificationCreatedEvent;
+import com.codeit.weatherwear.global.event.dto.NotificationCreatedEvent;
+import com.codeit.weatherwear.domain.notification.Notification.Level;
+import com.codeit.weatherwear.domain.notification.repository.NotificationRepository;
+import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
+import com.codeit.weatherwear.domain.user.repository.UserRepository;
+import com.codeit.weatherwear.global.request.SortDirection;
+import com.codeit.weatherwear.global.response.PageResponse;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class NotificationService {
+
+  private final NotificationRepository notificationRepository;
+  private final UserRepository userRepository;
+  private final DomainEventPublisher eventPublisher;
+
+  @Transactional
+  public NotificationDto create(UUID receiverId, String title, String content, Level level) {
+    if (!userRepository.existsById(receiverId)) {
+      throw new UserNotFoundException();
+    }
+
+    Notification notification = notificationRepository
+        .save(Notification.create(receiverId, title, content, level));
+    log.info("notification created. id={}", notification.getId());
+    NotificationDto dto = NotificationDto.from(notification);
+    eventPublisher.publish(new NotificationCreatedEvent(dto));
+    return dto;
+  }
+
+  @Transactional
+  public List<NotificationDto> create(List<UUID> receiverIds, String title, String content, Level level) {
+    List<UUID> existingIds = userRepository.findExistingIds(receiverIds);
+    List<Notification> notifications = existingIds.stream()
+        .map(receiverId -> {
+          Notification notification = Notification.create(receiverId, title, content, level);
+          log.info("notification created. id={}", notification.getId());
+          return notification;
+        })
+        .toList();
+
+    notificationRepository.saveAll(notifications);
+    List<NotificationDto> dtos = notifications.stream()
+        .map(NotificationDto::from)
+        .toList();
+
+    eventPublisher.publish(new MultipleNotificationCreatedEvent(dtos));
+    return dtos;
+  }
+
+  @Transactional
+  public List<NotificationDto> createAllUser(String title, String content, Level level) {
+    List<Notification> notifications = userRepository.findAllId().stream()
+        .map(receiverId -> {
+          Notification notification = Notification.create(receiverId, title, content, level);
+          log.info("notification created. id={}", notification.getId());
+          return notification;
+        })
+        .toList();
+
+    notificationRepository.saveAll(notifications);
+    List<NotificationDto> dtos = notifications.stream()
+        .map(NotificationDto::from)
+        .toList();
+
+    eventPublisher.publish(new MultipleNotificationCreatedEvent(dtos));
+    return dtos;
+  }
+
+  public PageResponse<NotificationDto> findNotification(UUID receiverId,
+      NotificationSearchRequest notificationSearchRequest, Pageable pageable
+  ) {
+    Slice<NotificationDto> dtos = notificationRepository
+        .findNotification(receiverId, notificationSearchRequest.cursor(), notificationSearchRequest.idAfter(), pageable);
+    long totalCount = notificationRepository.countByReceiverId(receiverId);
+    return toPageResponse(dtos, totalCount);
+  }
+
+  @Transactional
+  public void delete(UUID id) {
+    notificationRepository.findById(id).ifPresent(notification -> {
+      notificationRepository.delete(notification);
+      log.info("notification deleted. id={}", id);
+    });
+  }
+
+  private PageResponse<NotificationDto> toPageResponse(Slice<NotificationDto> notifications, long totalCount) {
+    List<NotificationDto> content = notifications.getContent();
+    boolean hasNext = notifications.hasNext();
+    Instant nextCursor = null;
+    UUID nextIdAfter = null;
+
+    if (hasNext) {
+      NotificationDto notification = content.get(content.size() - 1);
+
+      nextCursor = notification.createdAt();
+      nextIdAfter = notification.id();
+    }
+    String sortBy = "createdAt";
+
+    return new PageResponse<>(
+        content,
+        nextCursor,
+        nextIdAfter,
+        hasNext,
+        totalCount,
+        sortBy,
+        SortDirection.DESCENDING.name()
+    );
+  }
+}

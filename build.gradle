@@ -34,8 +34,15 @@ jacocoTestReport {
     }
 }
 
+// 환경변수에서 버전 불러오기 - 아니면 0.0.1-SNAPSHOT
+def envVersion = System.getenv("PROJECT_VERSION") ?: "0.0.1-SNAPSHOT"
+
 group = 'com.codeit'
-version = '0.0.1-SNAPSHOT'
+version = envVersion
+
+bootJar {
+    archiveFileName = "${project.name}-${project.version}.jar"
+}
 
 java {
     toolchain {
@@ -57,11 +64,27 @@ dependencies {
     //jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+    // actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     //spring web
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     //swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
+
+    //validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Spring Batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+
+    //querydsl
+    implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     //lombok
     compileOnly 'org.projectlombok:lombok'
@@ -71,14 +94,69 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
-    // postgreSQL, H2 Database
+    // postgreSQL
     runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'com.h2database:h2'
+
+    //mapstruct
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+    // test container
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:kafka'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
 
+    // JPA Json 타입 매핑용
+    implementation 'com.vladmihalcea:hibernate-types-60:2.20.0'
+
+    // spring security
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    testImplementation("org.springframework.security:spring-security-test")
+
+    // jwt
+    implementation "io.jsonwebtoken:jjwt-api:0.12.5"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:0.12.5"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:0.12.5"
+
+    // Java Mail Sender
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // google oauth
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    //웹 크롤링 jsoup
+    implementation 'org.jsoup:jsoup:1.21.1'
+    //웹 크롤링 selenium
+    implementation 'org.seleniumhq.selenium:selenium-java:4.34.0'
+    implementation 'commons-io:commons-io:2.15.1'
+
+    //웹소켓
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    //S3
+    implementation 'software.amazon.awssdk:s3:2.32.4'
+
+    // thymeleaf
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // cache
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+
+    //retry
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+}
 
 tasks.named('test') {
     useJUnitPlatform()
