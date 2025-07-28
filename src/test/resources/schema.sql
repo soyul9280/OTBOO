@@ -10,7 +10,7 @@ CREATE TABLE locations
     x            integer         NOT NULL,
     y            integer         NOT NULL,
     name         varchar(255)    NOT NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 -- -- Unique Index 설정 SQL - locations(latitude, longitude)
@@ -40,16 +40,12 @@ CREATE TABLE users
     linked_oauth_providers     jsonb           NULL,
     location_id                uuid            NULL,
     temp_password_expiration_time TIMESTAMP WITH TIME ZONE NULL, -- 0702 새로 추가
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
--- Unique Index 설정 SQL - users(email)
-CREATE UNIQUE INDEX UQ_users_1
-    ON users(email);
-
 -- Unique Index 설정 SQL - users(name)
-CREATE UNIQUE INDEX UQ_users_2
-    ON users(name);
+-- CREATE UNIQUE INDEX UQ_users_2
+--     ON users(name);
 
 -- Foreign Key 설정 SQL - users(location_id) -> locations(id)
 ALTER TABLE users
@@ -76,7 +72,7 @@ CREATE TABLE weather
     temperature_max                       double precision            ,
     wind_speed                            double precision            ,
     wind_speed_as_word                    varchar(10)                 ,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 -- Foreign Key 설정 SQL - weather(location_id) -> locations(id)
@@ -94,21 +90,21 @@ CREATE TABLE clothes_attribute_def
     updated_at           timestamp with time zone    NULL,
     name                 varchar(50)                 NOT NULL,
     selectable_values    jsonb               NOT NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 
 -- clothes Table Create SQL
 -- 테이블 생성 SQL - clothes
 CREATE TABLE clothes (
-    id            uuid                        NOT NULL,
-    created_at    timestamp with time zone    NOT NULL,
-    updated_at    timestamp with time zone    NULL,
-    name          varchar(255)                NOT NULL,
-    image_url     varchar(512)                NULL,
-    type          varchar(40)                 NOT NULL,
-    owner_id      uuid                        NOT NULL,
-    PRIMARY KEY (id)
+                         id            uuid                        NOT NULL,
+                         created_at    timestamp with time zone    NOT NULL,
+                         updated_at    timestamp with time zone    NULL,
+                         name          varchar(255)                NOT NULL,
+                         image_url     varchar(512)                NULL,
+                         type          varchar(40)                 NOT NULL,
+                         owner_id      uuid                        NOT NULL,
+                         PRIMARY KEY (id)
 );
 
 -- Foreign Key 설정 SQL - clothes(owner_id) -> users(id)
@@ -129,7 +125,7 @@ CREATE TABLE feed
     comment_count    integer                     DEFAULT 0 NOT NULL,
     content          text                        NOT NULL,
     weather_id       uuid                        NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 -- Foreign Key 설정 SQL - feed(author_id) -> users(id)
@@ -155,7 +151,7 @@ CREATE TABLE weather_api_data
     fcst_value    varchar(50)    NOT NULL,
     nx            integer        NOT NULL,
     ny            integer        NOT NULL,
-     PRIMARY KEY (base_date, base_time, category)
+    PRIMARY KEY (base_date, base_time, category)
 );
 
 
@@ -169,7 +165,7 @@ CREATE TABLE notifications
     title          varchar(255)                NOT NULL,
     content        varchar(255)                NOT NULL,
     level          varchar(16)                 NOT NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 -- follows Table Create SQL
@@ -180,7 +176,7 @@ CREATE TABLE follows
     created_at     timestamp with time zone  NOT NULL,
     followee_id    uuid    NOT NULL,
     follower_id    uuid    NOT NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 -- Foreign Key 설정 SQL - follows(followee_id) -> users(id)
@@ -204,7 +200,7 @@ CREATE TABLE direct_messages
     sender_id      uuid                        NOT NULL,
     receiver_id    uuid                        NOT NULL,
     content        varchar(512)                NOT NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 
@@ -230,7 +226,7 @@ CREATE TABLE clothes_attribute
     clothes_id       uuid                        NULL,
     definition_id    uuid                        NULL,
     value            varchar(50)                 NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 -- Foreign Key 설정 SQL - clothes_attribute(definition_id) -> clothes_attribute_def(id)
@@ -257,7 +253,7 @@ CREATE TABLE jwt_sessions
     user_id            uuid                        NOT NULL,
     access_token       varchar(512)                NOT NULL,
     refresh_token      varchar(512)                NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 
@@ -270,7 +266,7 @@ CREATE TABLE ootd
     updated_at    timestamp with time zone    NOT NULL,
     clothes_id    uuid                        NOT NULL,
     feed_id       uuid                        NOT NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 -- Foreign Key 설정 SQL - ootd(clothes_id) -> clothes(id)
@@ -294,7 +290,7 @@ CREATE TABLE feed_comment
     feed_id       uuid                        NOT NULL,
     author_id     uuid                        NOT NULL,
     content       text                        NOT NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 
@@ -319,7 +315,7 @@ CREATE TABLE feed_like
     updated_at    timestamp with time zone    NULL,
     feed_id       uuid                        NOT NULL,
     user_id       uuid                        NOT NULL,
-     PRIMARY KEY (id)
+    PRIMARY KEY (id)
 );
 
 
@@ -333,5 +329,3 @@ ALTER TABLE feed_like
 ALTER TABLE feed_like
     ADD CONSTRAINT FK_feed_like_user_id_users_id FOREIGN KEY (user_id)
         REFERENCES users (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-
-
