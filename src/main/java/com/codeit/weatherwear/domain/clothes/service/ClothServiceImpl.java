@@ -18,6 +18,7 @@ import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
+import com.codeit.weatherwear.domain.clothes.service.parser.ZigZagParser;
 import com.codeit.weatherwear.domain.recommendation.service.AIRecommendationService;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
@@ -150,7 +151,8 @@ public class ClothServiceImpl implements ClothService {
             log.debug("[Fail Extracting Cloth] Site Not Support - URL: {}", url);
             return new NotSupportSiteException(url);
           });
-      return parser.extract(document);
+
+      return parser.extract(url, document);
     } catch (IOException e) {
       log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
       throw new RuntimeException(e);

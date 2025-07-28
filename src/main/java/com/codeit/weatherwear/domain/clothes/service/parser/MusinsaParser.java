@@ -25,7 +25,7 @@ public class MusinsaParser implements SiteParser {
   }
 
   @Override
-  public ClothesDto extract(Document document) {
+  public ClothesDto extract(String url, Document document) {
     log.info("[Start Extracting Musinsa Cloth]");
     try {
       Element scriptTag = document.selectFirst("script#pdp-data");
@@ -61,4 +61,5 @@ public class MusinsaParser implements SiteParser {
       throw new RuntimeException(e);
     }
   }
+
 }
