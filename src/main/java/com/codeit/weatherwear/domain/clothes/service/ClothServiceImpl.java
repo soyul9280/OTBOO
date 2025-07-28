@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Slice;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.annotation.Backoff;
@@ -138,7 +139,8 @@ public class ClothServiceImpl implements ClothService {
     try {
       Document document = Jsoup.connect(url)
           .timeout(15000)
-          .userAgent("Mozilla/5.0")
+          .userAgent(
+              "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36")
           .get();
 
       SiteParser parser = siteParsers.stream()
@@ -196,7 +198,7 @@ public class ClothServiceImpl implements ClothService {
           throw new S3DeleteException();
         }
         log.info("[Updating Cloth] Change ThumbNail Image: {}", uploadUrl);
-        cloth.updateImageUrl(uploadUrl);
+        cloth.updateImageUrl(uploadKey);
       }
     }
 
