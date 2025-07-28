@@ -94,7 +94,7 @@ public class RecommendationServiceImpl implements RecommendationService {
       return randomRecommendService.recommend(filteredByAI, user, weather);
     } catch (GeminiApiClientException | GeminiApiServerException | GeminiParseException e) {
       //실패 시, 옷의 두께, 날씨 조건으로 필터링 된 옷만 랜덤 추천
-      log.debug("[Recommendation] Filtered Candidates By LLM Failed", e.getMessage());
+      log.debug("[Recommendation] Filtered Candidates By LLM Failed, {}", e.getMessage());
       return randomRecommendService.recommend(filtered, user, weather);
     }
   }

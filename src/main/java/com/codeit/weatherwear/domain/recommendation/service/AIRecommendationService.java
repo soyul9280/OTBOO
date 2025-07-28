@@ -38,6 +38,7 @@ public class AIRecommendationService {
     //Gemini 프롬포트 생성 + 응답
     String prompt = buildPrompt(weather, user, filtered);
     String response = geminiApiClient.getInfo(prompt);
+
     //응답 파싱 - 결과 의상 ID목록
     List<UUID> filteredNameByLLM = parseResponse(response);
     return clothRepository.findAllByIdWithAttributes(filteredNameByLLM);
@@ -57,13 +58,14 @@ public class AIRecommendationService {
   }
 
   private String getClothesInfo(List<Cloth> cloths) {
-    StringBuilder clothesInfo = new StringBuilder("옷 속성 정보 \n");
+    StringBuilder clothesInfo = new StringBuilder("옷 정보 \n");
     for (Cloth cloth : cloths) {
+      clothesInfo.append("ID: ").append(cloth.getId()).append("\n");
       clothesInfo.append("이름: ").append(cloth.getName()).append("\n");
       clothesInfo.append("타입: ").append(cloth.getClothType()).append("\n");
       clothesInfo.append("속성: \n");
       cloth.getClothesWithAttributes().forEach(attr -> {
-        clothesInfo.append("  - ")
+        clothesInfo.append(" - ")
             .append(attr.getAttribute().getName()).append(": ")
             .append(attr.getValue()).append("\n");
       });
@@ -95,10 +97,11 @@ public class AIRecommendationService {
 
   private String promptContent() {
     return "너는 날씨와 사용자의 특성을 기반으로 옷을 추천해주는 전문가야. "
-        + "다음은 더위 민감도(0: 추위 많이 탐 ~ 5: 더위 많이 탐),날씨 정보, 날씨에 맞게 1차 필터링된 옷 정보야. "
+        + "다음은 더위 민감도(0: 추위 많이 탐 ~ 5: 더위 많이 탐), 날씨 정보, 날씨에 맞게 1차 필터링된 옷 정보야. "
         + "각 옷은 속성의 '계절'과 '두께' 조건만 고려된 상태야. "
-        + "너는 이 옷들의 '계절'과 '두께'를 제외한 나머지 속성들(예: 색상, 재질, 스타일 등) 중 사용자가 선택한 값들을 종합적으로 고려하여 "
-        + "현재 날씨 정보에 알맞는 옷들을 골라줘. 옷들의 조합은 고려하지 않아도 돼. "
+        + "각 옷은 고유한 ID(UUID)를 가지고 있어. "
+        + "너는 이 옷들의 나머지 속성들(예: 색상, 재질, 스타일 등) 중 사용자가 선택한 값들을 종합적으로 고려하여 "
+        + "현재 날씨 정보에 알맞는 옷들의 ID만 골라줘. "
         + "응답은 반드시 다음과 같은 JSON 형식의 문자열 배열로 해줘:"
         + " [\"id\"]. JSON 외에는 아무 설명도 붙이지 말고, 오직 배열만 포함시켜줘. 그리고 reason은 필요없어.";
   }
