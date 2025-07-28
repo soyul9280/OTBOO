@@ -1,7 +1,6 @@
 package com.codeit.weatherwear.domain.clothes.mapper;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeWithDefDto;
-import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
@@ -35,11 +34,15 @@ public class ClothMapper {
 
   }
 
-  public List<ClothesAttributeDefDto> toAttributeDefDto(List<ClothWithAttributes> attrs) {
+  public List<ClothesAttributeWithDefDto> toAttributeDefDto(List<ClothWithAttributes> attrs) {
     return attrs
         .stream().map(
-            attr -> new ClothesAttributeDefDto(attr.getId(), attr.getAttribute().getName(),
-                attr.getAttribute().getSelectableValues())
+            attr -> new ClothesAttributeWithDefDto(
+                attr.getId(),
+                attr.getAttribute().getName(),
+                attr.getAttribute().getSelectableValues(),
+                attr.getValue()
+            )
         )
         .toList();
   }
