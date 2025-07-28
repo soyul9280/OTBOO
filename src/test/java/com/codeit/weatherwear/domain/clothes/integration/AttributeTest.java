@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -46,9 +46,13 @@ public class AttributeTest {
     restTemplate = restTemplate.withBasicAuth("user", "password");
   }
 
+  @AfterEach
+  void tearDown() {
+    repository.deleteAll();
+  }
+
   @Test
   @DisplayName("속성 생성 - 성공")
-  @Transactional
   void create_success() throws Exception {
     //given
     ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(
