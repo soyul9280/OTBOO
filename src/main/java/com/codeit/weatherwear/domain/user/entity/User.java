@@ -62,7 +62,6 @@ public class User {
   private String password;
 
   @Enumerated(EnumType.STRING)
-  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(nullable = false)
   private Role role = Role.USER;
 
@@ -70,7 +69,6 @@ public class User {
   private boolean locked = false;
 
   @Enumerated(EnumType.STRING)
-  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(nullable = true)
   private Gender gender;
 

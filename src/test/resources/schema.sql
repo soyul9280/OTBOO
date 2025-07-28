@@ -18,8 +18,8 @@ CREATE TABLE locations
 --     ON locations(latitude, longitude);
 
 -- 새로 추가!!!
-CREATE TYPE role AS ENUM ('USER', 'ADMIN');
-CREATE TYPE gender AS ENUM ('FEMALE', 'MALE', 'OTHER');
+-- CREATE TYPE role AS ENUM ('USER', 'ADMIN');
+-- CREATE TYPE gender AS ENUM ('FEMALE', 'MALE', 'OTHER');
 
 -- users Table Create SQL
 -- 테이블 생성 SQL - users
@@ -29,8 +29,8 @@ CREATE TABLE users
     created_at                 TIMESTAMP WITH TIME ZONE    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at                 TIMESTAMP WITH TIME ZONE    NULL,
     email                      varchar(255)    NOT NULL,
-    gender                     gender,
-    role                       role     NOT NULL DEFAULT 'USER',
+    gender                     varchar(20),
+    role                       varchar(20)     NOT NULL DEFAULT 'USER',
     name                       varchar(255)    NOT NULL,
     password                   varchar(255)    NOT NULL,
     locked                     boolean         DEFAULT FALSE NOT NULL,
