@@ -38,7 +38,7 @@ public class ClothMapper {
     return attrs
         .stream().map(
             attr -> new ClothesAttributeWithDefDto(
-                attr.getId(),
+                attr.getAttribute().getId(),
                 attr.getAttribute().getName(),
                 attr.getAttribute().getSelectableValues(),
                 attr.getValue()
