@@ -1,6 +1,6 @@
 package com.codeit.weatherwear.domain.ootd.dto.response;
 
-import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeDefDto;
+import com.codeit.weatherwear.domain.clothes.dto.response.ClothesAttributeWithDefDto;
 import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
@@ -14,5 +14,5 @@ public class OotdDto {
   private final String name;
   private final String imageUrl;
   private final String type;
-  private final List<ClothesAttributeDefDto> attributes;
+  private final List<ClothesAttributeWithDefDto> attributes;
 }
