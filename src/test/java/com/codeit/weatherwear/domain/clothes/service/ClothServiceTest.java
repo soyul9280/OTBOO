@@ -2,6 +2,7 @@ package com.codeit.weatherwear.domain.clothes.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -20,6 +21,7 @@ import com.codeit.weatherwear.domain.clothes.entity.ClothType;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.AttributeNotFoundException;
 import com.codeit.weatherwear.domain.clothes.exception.attribute.InvalidAttributeValueException;
 import com.codeit.weatherwear.domain.clothes.exception.cloth.ClothNotFoundException;
+import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionException;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
@@ -39,7 +41,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
@@ -59,10 +60,10 @@ public class ClothServiceTest {
   @Mock
   private ClothMapper mapper;
   @Mock
-  private List<SiteParser> siteParsers;
+  private SiteParser zigzagParser;
   @Mock
   private AIRecommendationService aiRecommendationService;
-  @InjectMocks
+
   private ClothServiceImpl sut;
 
   UUID ownerId;
@@ -77,6 +78,17 @@ public class ClothServiceTest {
 
   @BeforeEach
   void setUp() {
+    List<SiteParser> siteParsers = List.of(zigzagParser);
+    sut = new ClothServiceImpl(
+        clothRepository,
+        attributeRepository,
+        userRepository,
+        thumbnailImageStorage,
+        mapper,
+        siteParsers,
+        aiRecommendationService
+    );
+
     ownerId = UUID.randomUUID();
     clothesId = UUID.randomUUID();
     colorId = UUID.randomUUID();
@@ -393,66 +405,66 @@ public class ClothServiceTest {
       verify(thumbnailImageStorage, never()).upload(any());
     }
 
-    /*  @Test
-      @DisplayName("의상 수정 성공- 이미지 존재, 이미지 & 속성 & 이름 수정")
-      void update_withImage() {
-        //given
-        ClothesAttributeDto color = new ClothesAttributeDto(colorId, "빨강");
-        ClothesAttributeDto size = new ClothesAttributeDto(sizeId, "L");
-        ClothesAttributeWithDefDto colorDto = new ClothesAttributeWithDefDto(colorId,
-            "색상", List.of("빨강", "파랑"), "빨강");
-        ClothesAttributeWithDefDto sizeDto = new ClothesAttributeWithDefDto(sizeId,
-            "사이즈", List.of("S", "L"), "L");
+    @Test
+    @DisplayName("의상 수정 성공- 이미지 존재, 이미지 & 속성 & 이름 수정")
+    void update_withImage() {
+      //given
+      ClothesAttributeDto color = new ClothesAttributeDto(colorId, "빨강");
+      ClothesAttributeDto size = new ClothesAttributeDto(sizeId, "L");
+      ClothesAttributeWithDefDto colorDto = new ClothesAttributeWithDefDto(colorId,
+          "색상", List.of("빨강", "파랑"), "빨강");
+      ClothesAttributeWithDefDto sizeDto = new ClothesAttributeWithDefDto(sizeId,
+          "사이즈", List.of("S", "L"), "L");
 
-        String oldImageKey = "old-image-key";
-        String newImageKey = "new-image-key";
-        String newImageUrl = "https://s3.com/new-image.jpg";
-        MultipartFile newFile = new MockMultipartFile("file", "new.jpg", "image/jpeg",
-            "new-content".getBytes());
+      String oldImageKey = "old-image-key";
+      String newImageKey = "new-image-key";
+      String newImageUrl = "https://s3.com/new-image.jpg";
+      MultipartFile newFile = new MockMultipartFile("file", "new.jpg", "image/jpeg",
+          "new-content".getBytes());
 
-        Cloth clothWithImage = Cloth.builder()
-            .id(clothesId)
-            .createdAt(Instant.now())
-            .updatedAt(Instant.now())
-            .name("후드티")
-            .clothType(ClothType.TOP)
-            .clothesImageUrl(oldImageKey)
-            .user(mockUser)
-            .build();
+      Cloth clothWithImage = Cloth.builder()
+          .id(clothesId)
+          .createdAt(Instant.now())
+          .updatedAt(Instant.now())
+          .name("후드티")
+          .clothType(ClothType.TOP)
+          .clothesImageUrl(oldImageKey)
+          .user(mockUser)
+          .build();
 
-        ClothesUpdateRequest request = new ClothesUpdateRequest(
-            "빨강 후드티", ClothType.TOP, List.of(color, size)
-        );
+      ClothesUpdateRequest request = new ClothesUpdateRequest(
+          "빨강 후드티", ClothType.TOP, List.of(color, size)
+      );
 
-        ClothesDto clothesDto = ClothesDto.builder()
-            .id(clothesId)
-            .ownerId(ownerId)
-            .name("후드티")
-            .imageUrl(newImageUrl)
-            .type(ClothType.TOP)
-            .attributes(List.of(colorDto, sizeDto))
-            .build();
+      ClothesDto clothesDto = ClothesDto.builder()
+          .id(clothesId)
+          .ownerId(ownerId)
+          .name("후드티")
+          .imageUrl(newImageUrl)
+          .type(ClothType.TOP)
+          .attributes(List.of(colorDto, sizeDto))
+          .build();
 
-        given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(
-            Optional.of(clothWithImage));
-        given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef, sizeDef));
-        given(thumbnailImageStorage.upload(newFile)).willReturn(newImageKey);
-        given(thumbnailImageStorage.get(newImageKey)).willReturn(newImageUrl);
-        given(mapper.toDto(any(Cloth.class), any())).willReturn(clothesDto);
-        //when
-        ClothesDto result = sut.update(clothesId, request, newFile);
-        //then
-        assertThat(result.getName()).isEqualTo("후드티");
-        assertThat(result.getType()).isEqualTo(ClothType.TOP);
-        assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
-        assertThat(result.getAttributes().get(1).value()).isEqualTo("L");
-        verify(clothRepository).findByIdWithAttributes(clothesId);
-        verify(attributeRepository).findAllById(any());
-        verify(thumbnailImageStorage).upload(newFile);
-        verify(thumbnailImageStorage).get(newImageKey);
-        verify(thumbnailImageStorage).delete(oldImageKey);
-      }
-  */
+      given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(
+          Optional.of(clothWithImage));
+      given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef, sizeDef));
+      given(thumbnailImageStorage.upload(newFile)).willReturn(newImageKey);
+      given(thumbnailImageStorage.get(newImageKey)).willReturn(newImageUrl);
+      given(mapper.toDto(any(Cloth.class), any())).willReturn(clothesDto);
+      //when
+      ClothesDto result = sut.update(clothesId, request, newFile);
+      //then
+      assertThat(result.getName()).isEqualTo("후드티");
+      assertThat(result.getType()).isEqualTo(ClothType.TOP);
+      assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
+      assertThat(result.getAttributes().get(1).value()).isEqualTo("L");
+      verify(clothRepository).findByIdWithAttributes(clothesId);
+      verify(attributeRepository).findAllById(any());
+      verify(thumbnailImageStorage).upload(newFile);
+      verify(thumbnailImageStorage, times(2)).get(newImageKey);
+      verify(thumbnailImageStorage).delete(oldImageKey);
+    }
+
     @Test
     @DisplayName("수정 실패 - 이미지 없는 의상, 속성 ID가 존재하지 않음")
     void update_fail() {
@@ -537,4 +549,50 @@ public class ClothServiceTest {
     }
 
   }
+
+
+  @Nested
+  @DisplayName("구매링크 테스트")
+  class ExtractFromUrl {
+
+    @Test
+    @DisplayName("Zigzag URL - 정상적으로 옷 정보를 추출한다")
+    void zigzag_success() {
+      // given
+      String url = "https://zigzag.kr/product/123";
+      ClothesDto dto = ClothesDto.builder()
+          .name("Zigzag 티셔츠")
+          .imageUrl("https://zigzag.kr/image.jpg")
+          .build();
+
+      given(zigzagParser.supports(url)).willReturn(true);
+      given(zigzagParser.extract(url)).willReturn(dto);
+
+      // when
+      ClothesDto result = sut.getFromUrl(url);
+
+      // then
+      assertThat(result.getName()).isEqualTo("Zigzag 티셔츠");
+      assertThat(result.getImageUrl()).isEqualTo("https://zigzag.kr/image.jpg");
+      verify(zigzagParser).extract(url);
+    }
+
+    @Test
+    @DisplayName("Zigzag URL - 지원하는 파서가 없어 실패한다")
+    void zigzag_parserNotFound() {
+      // given
+      String url = "https://zigzag.kr/product/123";
+      given(zigzagParser.supports(url)).willReturn(false);
+
+      // when & then
+      assertThatThrownBy(() -> sut.getFromUrl(url))
+          .isInstanceOf(ExtractionException.class)
+          .hasMessageContaining("URL에서 정보를 가져오는데 실패했습니다");
+
+      verify(zigzagParser).supports(url);
+      verify(zigzagParser, never()).extract(anyString());
+    }
+  }
+
+
 }
