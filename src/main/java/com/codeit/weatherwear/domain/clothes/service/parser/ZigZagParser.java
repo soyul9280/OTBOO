@@ -1,7 +1,6 @@
 package com.codeit.weatherwear.domain.clothes.service.parser;
 
 import com.codeit.weatherwear.domain.clothes.dto.response.ClothesDto;
-import com.codeit.weatherwear.domain.clothes.exception.cloth.ExtractionException;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +8,6 @@ import org.jsoup.nodes.Document;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Component;
@@ -27,7 +25,7 @@ public class ZigZagParser implements SiteParser {
   }
 
   @Override
-  public ClothesDto extract(String url, Document document) {
+  public ClothesDto extract(String url) {
     log.info("[Start Extracting ZigZag Cloth]");
     WebDriver driver = webDriverProvider.getWebDriver();
     try {
@@ -48,5 +46,10 @@ public class ZigZagParser implements SiteParser {
     } finally {
       driver.quit();
     }
+  }
+
+  @Override
+  public ClothesDto extract(Document document) {
+    throw new UnsupportedOperationException("Zigzag는 Jsoup 기반 추출을 지원하지 않습니다.");
   }
 }

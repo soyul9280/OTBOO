@@ -16,7 +16,12 @@ public class TwentyNineCmParser implements SiteParser {
   }
 
   @Override
-  public ClothesDto extract(String url, Document document) {
+  public ClothesDto extract(String url) {
+    throw new UnsupportedOperationException("29CM는 Selenium 기반 추출을 지원하지 않습니다.");
+  }
+
+  @Override
+  public ClothesDto extract(Document document) {
     log.info("[Start Extracting 29cm Cloth]");
     String name = document.title();
     String imageUrl = extractOgImage(document);
