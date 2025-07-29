@@ -14,13 +14,13 @@ public class SeleniumWebDriverProvider {
 
   public SeleniumWebDriverProvider() {
     options = new ChromeOptions();
-    options.addArguments("--headless");
+    options.addArguments("--headless=new");
     options.addArguments("--lang=ko");
     options.addArguments("--disable-gpu");
     options.addArguments("--no-sandbox");
     options.addArguments(
         "--user-agent=Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36");
-    options.setPageLoadStrategy(PageLoadStrategy.NONE);
+    options.setPageLoadStrategy(PageLoadStrategy.EAGER);
     options.setPageLoadTimeout(Duration.ofSeconds(15));
   }
 
