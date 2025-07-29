@@ -25,6 +25,7 @@ public class CookieUtils {
       int maxAge) {
     Cookie cookie = new Cookie(name, value);
     cookie.setPath("/");
+    cookie.setAttribute("SameSite", "Lax");
     cookie.setHttpOnly(true);
     cookie.setMaxAge(maxAge);
     response.addCookie(cookie);
@@ -38,6 +39,7 @@ public class CookieUtils {
         if (cookie.getName().equals(name)) {
           cookie.setValue("");
           cookie.setPath("/");
+          cookie.setAttribute("SameSite", "Lax");
           cookie.setMaxAge(0);
           response.addCookie(cookie);
         }
