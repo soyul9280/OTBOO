@@ -20,6 +20,7 @@ import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
+import com.codeit.weatherwear.domain.recommendation.exception.GeminiApiServerException;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
@@ -34,8 +35,10 @@ import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,6 +104,7 @@ class RecommendationServiceImplTest {
     //여름
     mockWeather = Weather.builder()
         .temperature(Temperature.builder().current(27.0).build())
+        .humidity(Humidity.builder().current(60.0).build())
         .precipitation(Precipitation.builder().probability(0.1).build())
         .windSpeed(WindSpeed.builder().speed(1.0).build())
         .forecastAt(Instant.now())
@@ -222,6 +226,86 @@ class RecommendationServiceImplTest {
     verify(weatherRepository, times(1)).findById(any());
     verify(clothRepository, never()).findById(any());
     verify(thumbnailImageStorage, never()).get(any());
+  }
+
+  @Test
+  @DisplayName("AI 추천 결과가 없을 때 filtered 리스트로 fallback하여 추천 수행")
+  void recommend_Empty_AI_Recommend() {
+    /** given **/
+    given(userRepository.findByEmail(email)).willReturn(Optional.of(mockUser));
+    given(weatherRepository.findById(weatherId)).willReturn(Optional.of(mockWeather));
+    given(clothRepository.findAllWithAttributesByUserId(userId)).willReturn(all);
+
+    // AI 추천 결과가 empty
+    given(aiRecommendationService.getRecommendationCandidates(anyList(), eq(mockUser),
+        eq(mockWeather)))
+        .willReturn(Collections.emptyList());
+
+    RecommendClothesDto hatDto = RecommendClothesDto.builder()
+        .name("hat")
+        .imageUrl("hat_url")
+        .build();
+
+    Map<Cloth, RecommendClothesDto> dtoMap = Map.of(hat, hatDto);
+    // filtered 리스트로 random fallback 호출
+    given(randomRecommendService.recommend(anyList(), eq(mockUser), eq(mockWeather)))
+        .willAnswer(invocation -> {
+          List<Cloth> filtered = invocation.getArgument(0);
+          return RecommendationDto.builder()
+              .userId(mockUser.getId())
+              .weatherId(mockWeather.getId())
+              .clothes(filtered.stream().map(dtoMap::get).filter(Objects::nonNull).toList())
+              .build();
+        });
+    /** when **/
+    RecommendationDto result = sut.recommendClothes(weatherId);
+
+    /** then **/
+    assertThat(result).isNotNull();
+    assertThat(result.getClothes()).containsExactly(hatDto); // hat만 포함됨
+    verify(aiRecommendationService).getRecommendationCandidates(anyList(), eq(mockUser),
+        eq(mockWeather));
+    verify(randomRecommendService).recommend(anyList(), eq(mockUser), eq(mockWeather));
+  }
+
+  @Test
+  @DisplayName("AI 추천 실패 시, 랜덤추천 진행")
+  void recommend_AI_Fail_RandomRecommend() {
+    /** given **/
+    given(userRepository.findByEmail(email)).willReturn(Optional.of(mockUser));
+    given(weatherRepository.findById(weatherId)).willReturn(Optional.of(mockWeather));
+    given(clothRepository.findAllWithAttributesByUserId(userId)).willReturn(all);
+
+    // AI 추천 실패 - 예외 발생
+    given(aiRecommendationService.getRecommendationCandidates(anyList(), eq(mockUser),
+        eq(mockWeather)))
+        .willThrow(new GeminiApiServerException());
+
+    RecommendClothesDto hatDto = RecommendClothesDto.builder()
+        .name("hat")
+        .imageUrl("hat_url")
+        .build();
+
+    Map<Cloth, RecommendClothesDto> dtoMap = Map.of(hat, hatDto);
+    given(randomRecommendService.recommend(anyList(), eq(mockUser), eq(mockWeather)))
+        .willAnswer(invocation -> {
+          List<Cloth> filtered = invocation.getArgument(0);
+          return RecommendationDto.builder()
+              .userId(mockUser.getId())
+              .weatherId(mockWeather.getId())
+              .clothes(filtered.stream().map(dtoMap::get).filter(Objects::nonNull).toList())
+              .build();
+        });
+
+    /** when **/
+    RecommendationDto result = sut.recommendClothes(weatherId);
+
+    /** then **/
+    assertThat(result).isNotNull();
+    assertThat(result.getClothes()).containsExactly(hatDto); // hat만 포함
+    verify(aiRecommendationService).getRecommendationCandidates(anyList(), eq(mockUser),
+        eq(mockWeather));
+    verify(randomRecommendService).recommend(anyList(), eq(mockUser), eq(mockWeather));
   }
 
 

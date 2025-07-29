@@ -30,12 +30,12 @@ public class ClothTest {
   void setUp() {
     restTemplate = restTemplate.withBasicAuth("user", "password");
   }
-/*
+
   @Test
-  @DisplayName("무신사 URL에서 의상 정보 추출 - 성공")
+  @DisplayName("Zigzag URL에서 요소를 찾지 못해 3번 재시도 후 recover() 호출됨")
   void extractClothesFromMusinsaUrl_success() {
     // given
-    String rawUrl = "https://www.musinsa.com/products/5117573";
+    String rawUrl = "https://zigzag.com/product/invalid-product-id";
     URI uri = UriComponentsBuilder
         .fromPath("/api/clothes/extractions")
         .queryParam("url", rawUrl)
@@ -49,10 +49,6 @@ public class ClothTest {
     );
 
     // then
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    ClothesDto dto = response.getBody();
-    assertThat(dto).isNotNull();
-    assertThat(dto.getName()).isNotEmpty();
-    assertThat(dto.getImageUrl()).contains("http");
-  }*/
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 }
