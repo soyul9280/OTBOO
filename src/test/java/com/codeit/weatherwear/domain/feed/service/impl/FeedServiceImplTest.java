@@ -20,6 +20,7 @@ import com.codeit.weatherwear.domain.feed.repository.FeedRepository;
 import com.codeit.weatherwear.domain.feed.service.FeedCommentService;
 import com.codeit.weatherwear.domain.feed.service.FeedLikeService;
 import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
+import com.codeit.weatherwear.domain.follow.repository.FollowRepository;
 import com.codeit.weatherwear.domain.location.entity.Location;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
 import com.codeit.weatherwear.domain.ootd.service.OotdService;
@@ -40,6 +41,7 @@ import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.entity.WindSpeed;
 import com.codeit.weatherwear.domain.weather.mapper.WeatherMapper;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
 import com.codeit.weatherwear.global.response.PageResponse;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -69,6 +71,11 @@ class FeedServiceImplTest {
   private FeedRepository feedRepository;
   @Mock
   private WeatherRepository weatherRepository;
+  @Mock
+  private FollowRepository followRepository;
+
+  @Mock
+  private DomainEventPublisher domainEventPublisher;
 
   @Mock
   private OotdService ootdService;

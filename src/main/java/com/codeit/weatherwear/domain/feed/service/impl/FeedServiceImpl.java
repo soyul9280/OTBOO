@@ -13,6 +13,7 @@ import com.codeit.weatherwear.domain.feed.service.FeedCommentService;
 import com.codeit.weatherwear.domain.feed.service.FeedLikeService;
 import com.codeit.weatherwear.domain.feed.service.FeedService;
 import com.codeit.weatherwear.domain.follow.dto.UserSummaryDto;
+import com.codeit.weatherwear.domain.follow.repository.FollowRepository;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
 import com.codeit.weatherwear.domain.ootd.service.OotdService;
 import com.codeit.weatherwear.domain.user.entity.User;
@@ -22,6 +23,8 @@ import com.codeit.weatherwear.domain.weather.dto.response.WeatherSummaryDto;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
 import com.codeit.weatherwear.domain.weather.mapper.WeatherMapper;
 import com.codeit.weatherwear.domain.weather.repository.WeatherRepository;
+import com.codeit.weatherwear.global.event.DomainEventPublisher;
+import com.codeit.weatherwear.global.event.dto.FolloweeFeedPostedEvent;
 import com.codeit.weatherwear.global.response.PageResponse;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.util.List;
@@ -47,6 +50,8 @@ public class FeedServiceImpl implements FeedService {
   private final WeatherMapper weatherMapper;
   private final WeatherRepository weatherRepository;
   private final ThumbnailImageStorage thumbnailImageStorage;
+  private final DomainEventPublisher domainEventPublisher;
+  private final FollowRepository followRepository;
 
   @Transactional
   @Override
@@ -73,6 +78,9 @@ public class FeedServiceImpl implements FeedService {
     Feed feed = feedMapper.toEntity(author, weather, feedCreateRequest);
     Feed saved = feedRepository.save(feed);
     List<OotdDto> ootdList = ootdService.createOotdList(feed, feedCreateRequest.getClothesIds());
+
+    // 팔로우 한 사람한테 알림보내기
+    alertFollowMe(author, saved.getContent());
 
     return toFeedDto(saved, ootdList, false);
   }
@@ -155,6 +163,15 @@ public class FeedServiceImpl implements FeedService {
         condition.getSortBy(),
         condition.getSortDirection().name()
     );
+  }
+
+  private void alertFollowMe(User author, String content) {
+    // 팔로우 한 사람 UUID
+    List<UUID> followerIds = followRepository.findFollowerIdsByFolloweeId(
+        author.getId());
+
+    domainEventPublisher.publish(
+        new FolloweeFeedPostedEvent(followerIds, author.getName(), content));
   }
 
 }
