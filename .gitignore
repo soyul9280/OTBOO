@@ -41,6 +41,7 @@ out/
 
 ### SQL 파일 ###
 *.sql*
+!**/src/test/resources/*.sql
 
 ### macOS 시스템 파일 무시 ###
 .DS_Store
