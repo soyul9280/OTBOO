@@ -36,13 +36,13 @@ spring:
           google:
             client-id: ${GOOGLE_OAUTH_CLIENT_ID}
             client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            redirect-uri: "${OAUTH2_BASE_URL:http://localhost:8080/login/oauth2/code}/{registrationId}"
             scope:
               - email
               - profile
           kakao:
             client-id: ${KAKAO_CLIENT_REST_API_KEY}
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            redirect-uri: "${OAUTH2_BASE_URL:http://localhost:8080/login/oauth2/code}/{registrationId}"
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             scope:
