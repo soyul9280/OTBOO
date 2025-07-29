@@ -9,6 +9,7 @@ import com.codeit.weatherwear.domain.security.customauthentication.jwt.JwtAuthen
 import com.codeit.weatherwear.domain.security.customauthentication.jwt.JwtLogoutHandler;
 import com.codeit.weatherwear.domain.security.customauthentication.oauth2.CustomOAuth2SuccessHandler;
 import com.codeit.weatherwear.domain.security.customauthentication.oauth2.CustomOAuth2UserService;
+import com.codeit.weatherwear.domain.security.customauthentication.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.codeit.weatherwear.domain.security.service.JwtSessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -50,7 +51,8 @@ public class SecurityConfig {
       JwtLogoutHandler jwtLogoutHandler,
       CustomOAuth2UserService customOAuth2UserService,
       @Qualifier("customOAuth2SuccessHandler") AuthenticationSuccessHandler customOAuth2SuccessHandler,
-      @Qualifier("customOAuth2FailureHandler") AuthenticationFailureHandler customOAuth2FailureHandler)
+      @Qualifier("customOAuth2FailureHandler") AuthenticationFailureHandler customOAuth2FailureHandler,
+      HttpCookieOAuth2AuthorizationRequestRepository cookieOAuth2AuthorizationRequestRepository)
       throws Exception {
 
     httpSecurity
@@ -62,10 +64,14 @@ public class SecurityConfig {
         .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(jwtAuthenticationFilter, CustomAuthenticationFilter.class)
         .oauth2Login(oauth2 -> oauth2
-            .userInfoEndpoint(userInfo -> userInfo
-                .userService(customOAuth2UserService))
-            .successHandler(customOAuth2SuccessHandler)
-            .failureHandler(customOAuth2FailureHandler)
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService))
+                .successHandler(customOAuth2SuccessHandler)
+                .failureHandler(customOAuth2FailureHandler)
+                .authorizationEndpoint(authEndpoint -> authEndpoint
+                    .authorizationRequestRepository(cookieOAuth2AuthorizationRequestRepository)
+                )
+            // 인증 요청을 쿠키에 저장하고 검색
         )
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
