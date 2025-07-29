@@ -74,7 +74,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
       User user = optionalUser.get();
       // 계정이 잠금 상태면 로그인 불가능
       if (user.isLocked()) {
-        log.info("소셜 로그인 - 잠금 계정");
+        log.info("OAuth sign-in : Locked Account tried to sign in");
         throw new OAuth2AuthenticationException(
             new OAuth2Error(ErrorCode.ACCOUNT_LOCKED.name(), ErrorCode.ACCOUNT_LOCKED.getMessage(),
                 null));
