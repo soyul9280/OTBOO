@@ -25,7 +25,12 @@ public class MusinsaParser implements SiteParser {
   }
 
   @Override
-  public ClothesDto extract(String url, Document document) {
+  public ClothesDto extract(String url) {
+    throw new UnsupportedOperationException("Musinsa는 Selenium 기반 추출을 지원하지 않습니다.");
+  }
+
+  @Override
+  public ClothesDto extract(Document document) {
     log.info("[Start Extracting Musinsa Cloth]");
     try {
       Element scriptTag = document.selectFirst("script#pdp-data");

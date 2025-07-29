@@ -33,8 +33,13 @@ public class CustomOAuth2FailureHandler implements
       switch (error.getErrorCode()) {
         case "ACCOUNT_LOCKED" -> status = HttpServletResponse.SC_UNAUTHORIZED; // 잠금 계정이면 401
         case "USER_ALREADY_EXISTS" -> status = HttpServletResponse.SC_BAD_REQUEST; // 사용자 중복이면 400
-        default -> {
+        case "authorization_request_not_found" -> {
           status = HttpServletResponse.SC_BAD_REQUEST;
+          errorMessage = "인증 요청 정보가 유실되었습니다. 다시 시도해주세요.";
+        }
+        default -> {
+          status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+          errorMessage = "처리 중 문제가 생겼습니다. 다시 시도해주세요.";
           log.warn("Undefined OAuth2 SignIn ErrorCode: {}", error.getErrorCode());
         }
       }

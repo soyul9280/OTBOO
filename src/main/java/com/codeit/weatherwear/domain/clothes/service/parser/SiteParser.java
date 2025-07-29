@@ -7,5 +7,7 @@ public interface SiteParser {
 
   boolean supports(String url);
 
-  ClothesDto extract(String url, Document document);
+  ClothesDto extract(String url);
+
+  ClothesDto extract(Document document);
 }

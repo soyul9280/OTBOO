@@ -74,9 +74,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
       User user = optionalUser.get();
       // 계정이 잠금 상태면 로그인 불가능
       if (user.isLocked()) {
-        log.info("소셜 로그인 - 잠금 계정");
+        log.info("OAuth sign-in : Locked Account tried to sign in");
         throw new OAuth2AuthenticationException(
-            new OAuth2Error(ErrorCode.ACCOUNT_LOCKED.name(), ErrorCode.ACCOUNT_LOCKED.getMessage(),
+            new OAuth2Error(ErrorCode.ACCOUNT_LOCKED.name(), ErrorCode.ACCOUNT_LOCKED.getDetail(),
                 null));
       }
       // 기존 회원이 소셜 연동되어 있지 않다면 연동 정보 추가
@@ -103,7 +103,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
       log.info("Fail To Create New User From OAuth2 Provider: User Already Exists");
       throw new OAuth2AuthenticationException(
           new OAuth2Error(ErrorCode.USER_ALREADY_EXISTS.name(),
-              ErrorCode.USER_ALREADY_EXISTS.getMessage(), null));
+              ErrorCode.USER_ALREADY_EXISTS.getDetail(), null));
     }
   }
 

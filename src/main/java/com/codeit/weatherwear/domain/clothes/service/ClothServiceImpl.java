@@ -18,7 +18,6 @@ import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
 import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
-import com.codeit.weatherwear.domain.clothes.service.parser.ZigZagParser;
 import com.codeit.weatherwear.domain.recommendation.service.AIRecommendationService;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
@@ -41,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Slice;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.annotation.Backoff;
@@ -137,6 +135,21 @@ public class ClothServiceImpl implements ClothService {
     int retryCount = Optional.ofNullable(RetrySynchronizationManager.getContext())
         .map(RetryContext::getRetryCount)
         .orElse(1);
+
+    //지그재그일 경우 Jsoup 작동안함, Selenium 작동
+    if (url.contains("zigzag.kr")) {
+      SiteParser zigzagParser = siteParsers.stream()
+          .filter(p -> p.supports(url))
+          .findFirst()
+          .orElseThrow(() -> {
+            log.debug("[Fail Extracting Cloth] Not ZigZag Site - URL: {}", url);
+            return new ExtractionException(url);
+          });
+
+      return zigzagParser.extract(url);
+    }
+
+    //나머지 사이트 - Jsoup
     try {
       Document document = Jsoup.connect(url)
           .timeout(15000)
@@ -152,7 +165,7 @@ public class ClothServiceImpl implements ClothService {
             return new NotSupportSiteException(url);
           });
 
-      return parser.extract(url, document);
+      return parser.extract(document);
     } catch (IOException e) {
       log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
       throw new RuntimeException(e);
@@ -160,6 +173,7 @@ public class ClothServiceImpl implements ClothService {
       log.warn("[Fail Getting Cloth From Url] Retry count: {}", retryCount);
       throw e;
     }
+
   }
 
   @Recover
