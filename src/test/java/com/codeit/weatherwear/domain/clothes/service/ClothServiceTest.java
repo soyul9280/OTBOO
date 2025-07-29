@@ -393,66 +393,66 @@ public class ClothServiceTest {
       verify(thumbnailImageStorage, never()).upload(any());
     }
 
-    /*  @Test
-      @DisplayName("의상 수정 성공- 이미지 존재, 이미지 & 속성 & 이름 수정")
-      void update_withImage() {
-        //given
-        ClothesAttributeDto color = new ClothesAttributeDto(colorId, "빨강");
-        ClothesAttributeDto size = new ClothesAttributeDto(sizeId, "L");
-        ClothesAttributeWithDefDto colorDto = new ClothesAttributeWithDefDto(colorId,
-            "색상", List.of("빨강", "파랑"), "빨강");
-        ClothesAttributeWithDefDto sizeDto = new ClothesAttributeWithDefDto(sizeId,
-            "사이즈", List.of("S", "L"), "L");
+    @Test
+    @DisplayName("의상 수정 성공- 이미지 존재, 이미지 & 속성 & 이름 수정")
+    void update_withImage() {
+      //given
+      ClothesAttributeDto color = new ClothesAttributeDto(colorId, "빨강");
+      ClothesAttributeDto size = new ClothesAttributeDto(sizeId, "L");
+      ClothesAttributeWithDefDto colorDto = new ClothesAttributeWithDefDto(colorId,
+          "색상", List.of("빨강", "파랑"), "빨강");
+      ClothesAttributeWithDefDto sizeDto = new ClothesAttributeWithDefDto(sizeId,
+          "사이즈", List.of("S", "L"), "L");
 
-        String oldImageKey = "old-image-key";
-        String newImageKey = "new-image-key";
-        String newImageUrl = "https://s3.com/new-image.jpg";
-        MultipartFile newFile = new MockMultipartFile("file", "new.jpg", "image/jpeg",
-            "new-content".getBytes());
+      String oldImageKey = "old-image-key";
+      String newImageKey = "new-image-key";
+      String newImageUrl = "https://s3.com/new-image.jpg";
+      MultipartFile newFile = new MockMultipartFile("file", "new.jpg", "image/jpeg",
+          "new-content".getBytes());
 
-        Cloth clothWithImage = Cloth.builder()
-            .id(clothesId)
-            .createdAt(Instant.now())
-            .updatedAt(Instant.now())
-            .name("후드티")
-            .clothType(ClothType.TOP)
-            .clothesImageUrl(oldImageKey)
-            .user(mockUser)
-            .build();
+      Cloth clothWithImage = Cloth.builder()
+          .id(clothesId)
+          .createdAt(Instant.now())
+          .updatedAt(Instant.now())
+          .name("후드티")
+          .clothType(ClothType.TOP)
+          .clothesImageUrl(oldImageKey)
+          .user(mockUser)
+          .build();
 
-        ClothesUpdateRequest request = new ClothesUpdateRequest(
-            "빨강 후드티", ClothType.TOP, List.of(color, size)
-        );
+      ClothesUpdateRequest request = new ClothesUpdateRequest(
+          "빨강 후드티", ClothType.TOP, List.of(color, size)
+      );
 
-        ClothesDto clothesDto = ClothesDto.builder()
-            .id(clothesId)
-            .ownerId(ownerId)
-            .name("후드티")
-            .imageUrl(newImageUrl)
-            .type(ClothType.TOP)
-            .attributes(List.of(colorDto, sizeDto))
-            .build();
+      ClothesDto clothesDto = ClothesDto.builder()
+          .id(clothesId)
+          .ownerId(ownerId)
+          .name("후드티")
+          .imageUrl(newImageUrl)
+          .type(ClothType.TOP)
+          .attributes(List.of(colorDto, sizeDto))
+          .build();
 
-        given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(
-            Optional.of(clothWithImage));
-        given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef, sizeDef));
-        given(thumbnailImageStorage.upload(newFile)).willReturn(newImageKey);
-        given(thumbnailImageStorage.get(newImageKey)).willReturn(newImageUrl);
-        given(mapper.toDto(any(Cloth.class), any())).willReturn(clothesDto);
-        //when
-        ClothesDto result = sut.update(clothesId, request, newFile);
-        //then
-        assertThat(result.getName()).isEqualTo("후드티");
-        assertThat(result.getType()).isEqualTo(ClothType.TOP);
-        assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
-        assertThat(result.getAttributes().get(1).value()).isEqualTo("L");
-        verify(clothRepository).findByIdWithAttributes(clothesId);
-        verify(attributeRepository).findAllById(any());
-        verify(thumbnailImageStorage).upload(newFile);
-        verify(thumbnailImageStorage).get(newImageKey);
-        verify(thumbnailImageStorage).delete(oldImageKey);
-      }
-  */
+      given(clothRepository.findByIdWithAttributes(clothesId)).willReturn(
+          Optional.of(clothWithImage));
+      given(attributeRepository.findAllById(any())).willReturn(List.of(colorDef, sizeDef));
+      given(thumbnailImageStorage.upload(newFile)).willReturn(newImageKey);
+      given(thumbnailImageStorage.get(newImageKey)).willReturn(newImageUrl);
+      given(mapper.toDto(any(Cloth.class), any())).willReturn(clothesDto);
+      //when
+      ClothesDto result = sut.update(clothesId, request, newFile);
+      //then
+      assertThat(result.getName()).isEqualTo("후드티");
+      assertThat(result.getType()).isEqualTo(ClothType.TOP);
+      assertThat(result.getAttributes().get(0).value()).isEqualTo("빨강");
+      assertThat(result.getAttributes().get(1).value()).isEqualTo("L");
+      verify(clothRepository).findByIdWithAttributes(clothesId);
+      verify(attributeRepository).findAllById(any());
+      verify(thumbnailImageStorage).upload(newFile);
+      verify(thumbnailImageStorage, times(2)).get(newImageKey);
+      verify(thumbnailImageStorage).delete(oldImageKey);
+    }
+
     @Test
     @DisplayName("수정 실패 - 이미지 없는 의상, 속성 ID가 존재하지 않음")
     void update_fail() {
