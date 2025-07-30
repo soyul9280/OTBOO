@@ -17,14 +17,15 @@
 ---
 
 ## 💡 프로젝트 소개
+<img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/33552380-1f6a-4511-9b1b-10f687909e14" />
 
-![img_3.png](img_3.png)
+---
 
 > 👗 오늘 뭐 입지? 고민은 그만!
 >
 > 이 서비스는 사용자가 등록한 옷과 날씨 데이터를 기반으로 개인 맞춤형 의상 조합을 추천해주는 플랫폼입니다.
 > 추천된 의상은 OOTD 피드에 공유할 수 있고, 다른 사용자의 스타일을 팔로우, 좋아요, 댓글, DM을 통해 함께 즐길 수 있어요.
-> 옷장을 부탁해는 오늘도 당신의 스타일을 책임집니다. 🌦👕💬
+> 옷장을 부탁해는 오늘도 당신의 스타일을 책임집니다. 🌦👕
 
 - 개인화 의상 및 아이템 추천 SaaS
 - 날씨, 취향을 고려해 사용자가 보유한 의상 조합을 추천해주고, OOTD 피드, 팔로우 등의 소셜 기능을 갖춘 서비스
@@ -49,14 +50,11 @@
       사용자 프로필에서 세팅하는 온도 민감도를 이용하여
       자체 구현 알고리즘 및 LLM API를 통해
       나의 옷장 속에서 나만의 OOTD를 추천 받을 수 있습니다.
-      ![img_4.png](img_4.png)
-
 - OOTD 피드를 통한 소셜 공유
     - 추천 받은 코디를 피드로 올려 나만의 OOTD를 공유할 수 있습니다.
       OOTD 피드들을 통해 다양한 OOTD를 감상하고,
       마음에 드는 사용자는 팔로우하여, 피드를 구독할 수 있습니다.
       팔로워의 피드가 새로 등록되면 알림을 통해 알려줍니다.
-      ![img_5.png](img_5.png)
 
 | 항목            | 상세 내용                                                             |
 |---------------|-------------------------------------------------------------------|
@@ -194,18 +192,20 @@ sb01-otboo-team10 # 루트 디렉토리
 
 ### 👗 의상 추천 알고리즘
 
-![img_6.png](img_6.png)
+<img width="642" height="395" alt="image" src="https://github.com/user-attachments/assets/d54e9f59-c77c-4478-9e45-398021ad344c" />
+
 
 ### 🌨️ 인프라 아키텍처
 
 ALB → Nginx (80) → Spring Boot (8080) 구조로 구성되며,
 또한, 외부 서비스로는 Kafka(Confluent Cloud)와 S3를 연동하여 데이터 스트리밍과 파일 저장을 처리합니다.
 
-![img_7.png](img_7.png)
+<img width="704" height="357" alt="image" src="https://github.com/user-attachments/assets/9392130e-c796-4881-9c09-b5478eb45885" />
 
 ### ⚙️ 배포 아키텍처
 
-![img_8.png](img_8.png)
+<img width="1591" height="679" alt="image" src="https://github.com/user-attachments/assets/85f074e3-3100-49b2-acbe-4aef83b6b558" />
+
 
 
 
