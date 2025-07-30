@@ -11,6 +11,7 @@ import com.codeit.weatherwear.domain.user.exception.UserNotFoundException;
 import com.codeit.weatherwear.domain.user.repository.UserRepository;
 import com.codeit.weatherwear.global.request.SortDirection;
 import com.codeit.weatherwear.global.response.PageResponse;
+import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,7 @@ public class DirectMessageService {
   private final DirectMessageRepository directMessageRepository;
   private final UserRepository userRepository;
   private final DomainEventPublisher eventPublisher;
+  private final ThumbnailImageStorage thumbnailImageStorage;
 
   @Transactional
   public DirectMessageDto create(DirectMessageCreateRequest request) {
@@ -44,8 +46,21 @@ public class DirectMessageService {
 
     log.info("direct message created. id={}", directMessage.getId());
 
-    eventPublisher.publish(new DirectMessageReceivedEvent(DirectMessageDto.from(directMessage)));
-    return DirectMessageDto.from(directMessage);
+    String senderProfileImage = null;
+    String receiverProfileImage = null;
+
+    if (sender.getProfileImageUrl() != null) {
+      senderProfileImage = thumbnailImageStorage.get(sender.getProfileImageUrl());
+    }
+    if (receiver.getProfileImageUrl() != null) {
+      receiverProfileImage = thumbnailImageStorage.get(receiver.getProfileImageUrl());
+    }
+
+    DirectMessageDto dto = DirectMessageDto
+        .from(directMessage, senderProfileImage, receiverProfileImage);
+
+    eventPublisher.publish(new DirectMessageReceivedEvent(dto));
+    return dto;
   }
 
   public PageResponse<DirectMessageDto> findDirectMessages(

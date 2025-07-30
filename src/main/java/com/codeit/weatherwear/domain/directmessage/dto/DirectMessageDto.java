@@ -13,12 +13,13 @@ public record DirectMessageDto (
     String content
 ) {
 
-  public static DirectMessageDto from(DirectMessage directMessage) {
+  public static DirectMessageDto from(DirectMessage directMessage, String senderProfileImage,
+      String receiverProfileImage) {
     return new DirectMessageDto(
         directMessage.getId(),
         directMessage.getCreatedAt(),
-        UserSummaryDto.from(directMessage.getSender()),
-        UserSummaryDto.from(directMessage.getReceiver()),
+        UserSummaryDto.from(directMessage.getSender(), senderProfileImage),
+        UserSummaryDto.from(directMessage.getReceiver(), receiverProfileImage),
         directMessage.getContent()
     );
   }
