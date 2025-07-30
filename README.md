@@ -206,6 +206,10 @@ ALB → Nginx (80) → Spring Boot (8080) 구조로 구성되며,
 
 <img width="1591" height="679" alt="image" src="https://github.com/user-attachments/assets/85f074e3-3100-49b2-acbe-4aef83b6b558" />
 
+### 데이터베이스 ERD
+
+<img width="3810" height="4804" alt="image" src="https://github.com/user-attachments/assets/7983e452-859b-4b52-81b3-0d7e3d9d7132" />
+
 
 
 
