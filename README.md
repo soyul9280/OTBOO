@@ -17,6 +17,7 @@
 ---
 
 ## 💡 프로젝트 소개
+
 <img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/33552380-1f6a-4511-9b1b-10f687909e14" />
 
 ---
@@ -39,7 +40,7 @@
 | **🎬 시연 영상**   | [구글 드라이브 ](https://drive.google.com/file/d/1ZjCzH3yKtEAy6KNyDh82zTFcG_bK2LD2/view?usp=sharing) |
 | **📋 협업 문서**   | [Notion 페이지](https://www.notion.so/SB01-10-21a97c15da088039b48ce74cc4fdbc12)                   |
 | **📘 API 문서**  | [Swagger API](https://app.swaggerhub.com/apis/SOO713247/otboo_project_api/1.0.0)               |
-| **📑 발표 자료**   | [구글 드라이브](https://drive.google.com/file/d/1-czfj9iM5ZJy2fopzbk2kihjsYQ9_oLG/view?usp=sharing)  |
+| **📑 발표 자료**   | [구글 드라이브](https://drive.google.com/file/d/1h6Hw1A_uIVSKq2PjLMk2efyT3duk4ROq/view?usp=sharing)  |
 
 ### 👗 제공 기능
 
@@ -193,7 +194,6 @@ sb01-otboo-team10 # 루트 디렉토리
 ### 👗 의상 추천 알고리즘
 
 <img width="642" height="395" alt="image" src="https://github.com/user-attachments/assets/d54e9f59-c77c-4478-9e45-398021ad344c" />
-
 
 ### 🌨️ 인프라 아키텍처
 
