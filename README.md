@@ -39,7 +39,7 @@
 | **🔗 배포 링크**   | https://dev.otboo.shop/                                                                        |
 | **🎬 시연 영상**   | [구글 드라이브 ](https://drive.google.com/file/d/1ZjCzH3yKtEAy6KNyDh82zTFcG_bK2LD2/view?usp=sharing) |
 | **📋 협업 문서**   | [Notion 페이지](https://www.notion.so/SB01-10-21a97c15da088039b48ce74cc4fdbc12)                   |
-| **📘 API 문서**  | [Swagger API](https://app.swaggerhub.com/apis/SOO713247/otboo_project_api/1.0.0)               |
+| **📘 API 문서**  | [Swagger API](https://gitsoyounglee.github.io/otboo-swagger-ui/#/)               |
 | **📑 발표 자료**   | [구글 드라이브](https://drive.google.com/file/d/1h6Hw1A_uIVSKq2PjLMk2efyT3duk4ROq/view?usp=sharing)  |
 
 ### 👗 제공 기능
