@@ -1,9 +1,8 @@
 name: Deploy Spring Application (Springboot Application to AWS ECS)
 on:
-  pull_request:
+  push:
     branches:
-      - release
-      - '**'          # 모든 브랜치에 대해 트리거
+      - dev
   workflow_dispatch:  # 수동 실행
 
 # 공통 환경 변수
