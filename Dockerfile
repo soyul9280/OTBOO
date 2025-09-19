@@ -1,4 +1,4 @@
-FROM amazoncorretto:17-alpine AS builder
+FROM eclipse-temurin:17-jdk AS builder
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN cp build/libs/*.jar application.jar
 
 RUN java -Djarmode=layertools -jar application.jar extract
 
-FROM amazoncorretto:17-alpine
+FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
 COPY --from=builder /app/dependencies/ ./
