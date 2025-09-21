@@ -192,7 +192,7 @@ public class ClothServiceImpl implements ClothService {
   @Override
   public ClothesDto update(UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
     log.info("[Start Updating Cloth] ID: {}, Cloth Name: {}", clothesId, request.name());
-    Cloth cloth = clothRepository.findByIdWithAttributes(clothesId)
+    Cloth cloth = clothRepository.findById(clothesId)
         .orElseThrow(() -> {
           log.warn("[Fail Updating Cloth] ID: {}, Cloth Name: {}", clothesId, request.name());
           return new ClothNotFoundException();
@@ -276,12 +276,22 @@ public class ClothServiceImpl implements ClothService {
     log.debug("[Query Result] Total Count: {}, hasNext: {}", clothesList.size(), clothes.hasNext());
 
     //toDto : N+1문제 해결위해 한번에 갖고오기
-    List<UUID> ids = clothesList.stream()
+   /* List<UUID> ids = clothesList.stream()
         .map(Cloth::getId)
         .toList();
     List<Cloth> clothesWithAttrs = clothRepository.findAllByIdWithAttributes(ids);
+*/
+    List<ClothesDto> data = clothesList.stream()
+        .map(cloth -> {
+          String imageUrl =
+              cloth.getClothesImageUrl() != null
+                  ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
+                  : null;
+          return clothMapper.toDto(cloth, imageUrl);
+        })
+        .toList();
 
-    List<ClothesDto> data = clothesWithAttrs.stream()
+    /*List<ClothesDto> data = clothesWithAttrs.stream()
         .map(cloth -> {
           String imageUrl =
               cloth.getClothesImageUrl() != null
@@ -291,7 +301,7 @@ public class ClothServiceImpl implements ClothService {
         })
         .toList();
     log.debug("[Response Result] Count Changed To ClothesDto: {}", data.size());
-
+*/
     Cloth last =
         (clothesList.size() > 0) ? clothesList.get(clothesList.size() - 1) : null;
 
