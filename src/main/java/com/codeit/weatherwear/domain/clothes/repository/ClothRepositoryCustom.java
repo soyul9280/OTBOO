@@ -21,10 +21,10 @@ public interface ClothRepositoryCustom {
 
   Long getTotalCount(UUID ownerId, ClothType typeEqual);
 
-  Optional<Cloth> findByIdWithAttributes(UUID clothId);
+ /* Optional<Cloth> findByIdWithAttributes(UUID clothId);
 
   List<Cloth> findAllByIdWithAttributes(List<UUID> clothIds);
 
   List<Cloth> findAllWithAttributesByUserId(UUID userId);
-
+*/
 }

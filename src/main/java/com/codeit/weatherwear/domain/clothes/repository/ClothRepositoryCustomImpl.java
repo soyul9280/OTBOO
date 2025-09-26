@@ -71,7 +71,7 @@ public class ClothRepositoryCustomImpl implements ClothRepositoryCustom {
         .where(builder)
         .fetchOne();
   }
-
+/*
   @Override
   public Optional<Cloth> findByIdWithAttributes(UUID clothId) {
     QCloth cloth = QCloth.cloth;
@@ -104,6 +104,6 @@ public class ClothRepositoryCustomImpl implements ClothRepositoryCustom {
         .selectFrom(cloth)
         .where(cloth.user.id.eq(userId))
         .fetch();
-  }
+  }*/
 
 }

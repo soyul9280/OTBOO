@@ -63,7 +63,7 @@ public class Cloth {
   @JoinColumn(name = "owner_id")
   private User user;
 
-  @BatchSize(size = 100)
+  //  @BatchSize(size = 100)
   @OneToMany(mappedBy = "cloth", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ClothWithAttributes> clothesWithAttributes;
 
@@ -95,6 +95,7 @@ public class Cloth {
   public void updateName(String name) {
     this.name = name;
   }
+
   public void updateType(ClothType clothType) {
     this.clothType = clothType;
   }

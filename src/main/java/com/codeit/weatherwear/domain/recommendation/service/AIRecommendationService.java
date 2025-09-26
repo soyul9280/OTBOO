@@ -29,9 +29,14 @@ public class AIRecommendationService {
   private final ClothRepository clothRepository;
   private final GeminiApiClient geminiApiClient;
 
-  @Cacheable(value = "recommendations",
-      key = "#user.id.toString() + '_' + #user.temperatureSensitivity",
-      condition = "#weather.skyStatus != null && #weather.temperature != null && #weather.humidity != null && #weather.windSpeed != null && #weather.precipitation != null")
+  @Cacheable(
+      value = "recommendations",
+      key = "#user.id.toString() + '_' + #user.temperatureSensitivity + '_' + "
+          + "(#weather.location != null ? #weather.location.name : 'unknown') + '_' + "
+          + "T(com.codeit.weatherwear.domain.recommendation.util.WeatherBucket).bucketizeTemp(#weather.temperature.current) + '_' + "
+          + "(#weather.skyStatus != null ? #weather.skyStatus : 'unknown')",
+      condition = "#weather.skyStatus != null && #weather.temperature != null"
+  )
   public List<Cloth> getRecommendationCandidates(List<Cloth> filtered, User user, Weather weather
   ) {
     log.info("[CACHE CHECK] - Cache Start");
@@ -120,6 +125,5 @@ public class AIRecommendationService {
     }
     return list;
   }
-
 
 }

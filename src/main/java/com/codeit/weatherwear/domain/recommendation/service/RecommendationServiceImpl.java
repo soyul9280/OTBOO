@@ -43,6 +43,7 @@ public class RecommendationServiceImpl implements RecommendationService {
   private final ClothRepository clothRepository;
   private final RandomRecommendService randomRecommendService;
   private final AIRecommendationService aiRecommendationService;
+  private final CacheMetricsService cacheMetricsService;
 
   /**
    * 의상 추천
@@ -85,6 +86,7 @@ public class RecommendationServiceImpl implements RecommendationService {
       );
       log.info("[Recommendation] Filtered Candidates By LLM Completed, count: {}",
           filteredByAI.size());
+      cacheMetricsService.logRecommendationCacheStats();
 
       // filteredByAI가 비어있을 경우 fallback 처리
       if (filteredByAI.isEmpty()) {

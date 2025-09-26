@@ -49,7 +49,6 @@ public class ClothWithAttributes {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "definition_id")
-  @BatchSize(size = 100)
   private Attribute attribute;
 
   @Builder
