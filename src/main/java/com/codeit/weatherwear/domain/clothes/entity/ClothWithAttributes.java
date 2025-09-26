@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -26,43 +27,45 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ClothWithAttributes {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private Instant createdAt;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private UUID id;
 
-    @LastModifiedDate
-    @Column(updatable = true)
-    private Instant updatedAt;
+  @CreatedDate
+  @Column(updatable = false)
+  private Instant createdAt;
 
-    @Column(name = "\"value\"")
-    private String value;
+  @LastModifiedDate
+  @Column(updatable = true)
+  private Instant updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "clothes_id")
-    private Cloth cloth;
+  @Column(name = "\"value\"")
+  private String value;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "definition_id")
-    private Attribute attribute;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "clothes_id")
+  private Cloth cloth;
 
-    @Builder
-    public ClothWithAttributes(UUID id, Instant createdAt, Instant updatedAt, String value,
-        Cloth cloth,
-        Attribute attribute) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.value = value;
-        this.cloth = cloth;
-        this.attribute = attribute;
-    }
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "definition_id")
+  @BatchSize(size = 100)
+  private Attribute attribute;
 
-    protected void setClothes(Cloth cloth) {
-        this.cloth = cloth;
-    }
+  @Builder
+  public ClothWithAttributes(UUID id, Instant createdAt, Instant updatedAt, String value,
+      Cloth cloth,
+      Attribute attribute) {
+    this.id = id;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.value = value;
+    this.cloth = cloth;
+    this.attribute = attribute;
+  }
+
+  protected void setClothes(Cloth cloth) {
+    this.cloth = cloth;
+  }
 }
 
