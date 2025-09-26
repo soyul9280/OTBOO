@@ -63,7 +63,6 @@ public class Cloth {
   @JoinColumn(name = "owner_id")
   private User user;
 
-  //  @BatchSize(size = 100)
   @OneToMany(mappedBy = "cloth", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ClothWithAttributes> clothesWithAttributes;
 
