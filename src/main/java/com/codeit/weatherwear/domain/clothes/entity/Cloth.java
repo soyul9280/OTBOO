@@ -63,9 +63,6 @@ public class Cloth {
   @JoinColumn(name = "owner_id")
   private User user;
 
-  @OneToMany(mappedBy = "cloth", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ClothWithAttributes> clothesWithAttributes;
-
   public static final String FIELD_CREATED_AT = "createdAt";
 
   @Builder
@@ -78,17 +75,6 @@ public class Cloth {
     this.clothType = clothType;
     this.clothesImageUrl = clothesImageUrl;
     this.user = user;
-    this.clothesWithAttributes = Optional.ofNullable(clothesWithAttributes)
-        .orElse(new ArrayList<>());
-  }
-
-  public void addAttribute(ClothWithAttributes attributes) {
-    this.clothesWithAttributes.add(attributes);
-    attributes.setClothes(this);
-  }
-
-  public void clearAttributes() {
-    this.clothesWithAttributes.clear();
   }
 
   public void updateName(String name) {

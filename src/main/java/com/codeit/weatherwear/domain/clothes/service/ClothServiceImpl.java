@@ -17,6 +17,7 @@ import com.codeit.weatherwear.domain.clothes.exception.cloth.NotSupportSiteExcep
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.clothes.repository.AttributeRepository;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
+import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
 import com.codeit.weatherwear.domain.clothes.service.parser.SiteParser;
 import com.codeit.weatherwear.domain.recommendation.service.AIRecommendationService;
 import com.codeit.weatherwear.domain.user.entity.User;
@@ -29,6 +30,7 @@ import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,6 +65,7 @@ public class ClothServiceImpl implements ClothService {
   private final ClothMapper clothMapper;
   private final List<SiteParser> siteParsers;
   private final AIRecommendationService aiRecommendationService;
+  private final ClothWithAttributesRepository clothWithAttributesRepository;
 
   /**
    * 의상 등록
@@ -94,6 +97,7 @@ public class ClothServiceImpl implements ClothService {
         .clothesImageUrl(thumbnailKey)
         .user(user)
         .build();
+    Cloth savedCloth = clothRepository.save(cloth);
 
     List<UUID> attributesIds = request.attributes().stream()
         .map(ClothesAttributeDto::definitionId).toList();
@@ -105,14 +109,16 @@ public class ClothServiceImpl implements ClothService {
     Map<UUID, Attribute> attrMap = attributesList.stream()
         .collect(Collectors.toMap(Attribute::getId, Function.identity()));
 
-    applyAttributesToCloth(request.attributes(), attrMap, cloth);
+    List<ClothWithAttributes> attrEntities = new ArrayList<>();
+    applyAttributesToCloth(request.attributes(), attrMap, savedCloth, attrEntities);
+    clothWithAttributesRepository.saveAll(attrEntities);
 
-    Cloth savedCloth = clothRepository.save(cloth);
     log.info("[Creating Cloth Completed] Id: {}, Cloth Name: {}", savedCloth.getId(),
         savedCloth.getName());
     String imageUrl = thumbnailKey != null ? thumbnailImageStorage.get(thumbnailKey) : null;
+
     aiRecommendationService.evictRecommendationCache(user);
-    return clothMapper.toDto(savedCloth, imageUrl);
+    return clothMapper.toDto(savedCloth, imageUrl, attrEntities);
   }
 
   /**
@@ -230,26 +236,29 @@ public class ClothServiceImpl implements ClothService {
     if (request.type() != null) {
       cloth.updateType(request.type());
     }
-    //속성 수정 경우
-    List<UUID> attrIds = request.attributes().stream()
-        .map(ClothesAttributeDto::definitionId)
-        .toList();
-    List<Attribute> attributes = attributeRepository.findAllById(attrIds);
 
+    //속성 수정 경우
+    List<ClothWithAttributes> savedAttributes = List.of();
     if (request.attributes() != null) {
-      cloth.clearAttributes();
+      clothWithAttributesRepository.deleteAllByClothId(clothesId);
+      List<UUID> attrIds = request.attributes().stream()
+          .map(ClothesAttributeDto::definitionId)
+          .toList();
+      List<Attribute> attributes = attributeRepository.findAllById(attrIds);
+
       Map<UUID, Attribute> attributeMap = attributes.stream()
           .collect(Collectors.toMap(Attribute::getId, Function.identity()));
-
-      applyAttributesToCloth(request.attributes(), attributeMap, cloth);
-
+      List<ClothWithAttributes> attrEntities = new ArrayList<>();
+      applyAttributesToCloth(request.attributes(), attributeMap, cloth, attrEntities);
+      savedAttributes = clothWithAttributesRepository.saveAll(
+          attrEntities);
     }
     User user = cloth.getUser();
     if (user != null) {
       aiRecommendationService.evictRecommendationCache(user);
     }
     log.info("[Updating Cloth Completed] ID : {}, Name: {}", clothesId, cloth.getName());
-    return clothMapper.toDto(cloth, imageUrl);
+    return clothMapper.toDto(cloth, imageUrl, savedAttributes);
   }
 
   @Override
@@ -276,32 +285,29 @@ public class ClothServiceImpl implements ClothService {
     log.debug("[Query Result] Total Count: {}, hasNext: {}", clothesList.size(), clothes.hasNext());
 
     //toDto : N+1문제 해결위해 한번에 갖고오기
-   /* List<UUID> ids = clothesList.stream()
+    List<UUID> ids = clothesList.stream()
         .map(Cloth::getId)
         .toList();
-    List<Cloth> clothesWithAttrs = clothRepository.findAllByIdWithAttributes(ids);
-*/
+    //fetch join으로 속성까지 같이 갖고옴
+    List<ClothWithAttributes> clothesWithAttrs = clothWithAttributesRepository.findByClothIdIn(ids);
+
+    //clothId기준 그룹화
+    Map<UUID, List<ClothWithAttributes>> grouped =
+        clothesWithAttrs.stream().collect(Collectors.groupingBy(cwa -> cwa.getCloth().getId()));
+
+    //dto매핑
     List<ClothesDto> data = clothesList.stream()
         .map(cloth -> {
           String imageUrl =
               cloth.getClothesImageUrl() != null
                   ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
                   : null;
-          return clothMapper.toDto(cloth, imageUrl);
-        })
-        .toList();
-
-    /*List<ClothesDto> data = clothesWithAttrs.stream()
-        .map(cloth -> {
-          String imageUrl =
-              cloth.getClothesImageUrl() != null
-                  ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
-                  : null;
-          return clothMapper.toDto(cloth, imageUrl);
+          List<ClothWithAttributes> attrs = grouped.getOrDefault(cloth.getId(), List.of());
+          return clothMapper.toDto(cloth, imageUrl, attrs);
         })
         .toList();
     log.debug("[Response Result] Count Changed To ClothesDto: {}", data.size());
-*/
+
     Cloth last =
         (clothesList.size() > 0) ? clothesList.get(clothesList.size() - 1) : null;
 
@@ -355,9 +361,9 @@ public class ClothServiceImpl implements ClothService {
     log.info("[Deleting Cloth Completed] ID: {}", clothesId);
   }
 
-  private static void applyAttributesToCloth(List<ClothesAttributeDto> attributeDtos,
+  private void applyAttributesToCloth(List<ClothesAttributeDto> attributeDtos,
       Map<UUID, Attribute> attrMap,
-      Cloth cloth) {
+      Cloth cloth, List<ClothWithAttributes> attrEntities) {
     for (ClothesAttributeDto dto : attributeDtos) {
       Attribute attribute = attrMap.get(dto.definitionId());
       if (attribute == null) {
@@ -370,18 +376,15 @@ public class ClothServiceImpl implements ClothService {
             dto.definitionId());
         throw new InvalidAttributeValueException();
       }
-
-      ClothWithAttributes attr = ClothWithAttributes.builder()
-          .value(dto.value())
-          .attribute(attribute)
+      ClothWithAttributes entity = ClothWithAttributes.builder()
           .cloth(cloth)
+          .attribute(attribute)
+          .value(dto.value())
           .build();
 
-      cloth.addAttribute(attr);
+      attrEntities.add(entity);
     }
     log.debug("[Applying Attributes Completed]");
-
   }
-
 }
 

@@ -1,7 +1,9 @@
 package com.codeit.weatherwear.domain.recommendation.service;
 
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
+import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
+import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
 import com.codeit.weatherwear.domain.recommendation.exception.GeminiParseException;
 import com.codeit.weatherwear.domain.recommendation.external.GeminiApiClient;
 import com.codeit.weatherwear.domain.user.entity.User;
@@ -14,7 +16,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -28,10 +32,16 @@ public class AIRecommendationService {
 
   private final ClothRepository clothRepository;
   private final GeminiApiClient geminiApiClient;
+  private final ClothWithAttributesRepository clothWithAttributesRepository;
 
-  @Cacheable(value = "recommendations",
-      key = "#user.id.toString() + '_' + #user.temperatureSensitivity",
-      condition = "#weather.skyStatus != null && #weather.temperature != null && #weather.humidity != null && #weather.windSpeed != null && #weather.precipitation != null")
+  @Cacheable(
+      value = "recommendations",
+      key = "#user.id.toString() + '_' + #user.temperatureSensitivity + '_' + "
+          + "(#weather.location != null ? #weather.location.name : 'unknown') + '_' + "
+          + "T(com.codeit.weatherwear.domain.recommendation.util.WeatherBucket).bucketizeTemp(#weather.temperature.current) + '_' + "
+          + "(#weather.skyStatus != null ? #weather.skyStatus : 'unknown')",
+      condition = "#weather.skyStatus != null && #weather.temperature != null"
+  )
   public List<Cloth> getRecommendationCandidates(List<Cloth> filtered, User user, Weather weather
   ) {
     log.info("[CACHE CHECK] - Cache Start");
@@ -41,7 +51,8 @@ public class AIRecommendationService {
 
     //응답 파싱 - 결과 의상 ID목록
     List<UUID> filteredNameByLLM = parseResponse(response);
-    return clothRepository.findAllByIdWithAttributes(filteredNameByLLM);
+    List<Cloth> recommendedClothes = clothRepository.findAllById(filteredNameByLLM);
+    return recommendedClothes;
   }
 
   @CacheEvict(value = "recommendations", key = "#user.id.toString() + '_' + #user.temperatureSensitivity")
@@ -59,18 +70,28 @@ public class AIRecommendationService {
 
   private String getClothesInfo(List<Cloth> cloths) {
     StringBuilder clothesInfo = new StringBuilder("옷 정보 \n");
+    List<UUID> clothIds = cloths.stream()
+        .map(Cloth::getId)
+        .toList();
+    List<ClothWithAttributes> attrs = clothWithAttributesRepository.findByClothIdIn(clothIds);
+    Map<UUID, List<ClothWithAttributes>> grouped =
+        attrs.stream().collect(Collectors.groupingBy(cwa -> cwa.getCloth().getId()));
     for (Cloth cloth : cloths) {
       clothesInfo.append("ID: ").append(cloth.getId()).append("\n");
       clothesInfo.append("이름: ").append(cloth.getName()).append("\n");
       clothesInfo.append("타입: ").append(cloth.getClothType()).append("\n");
       clothesInfo.append("속성: \n");
-      cloth.getClothesWithAttributes().forEach(attr -> {
+      List<ClothWithAttributes> cwaList = grouped.getOrDefault(cloth.getId(), List.of());
+      for (ClothWithAttributes cwa : cwaList) {
         clothesInfo.append(" - ")
-            .append(attr.getAttribute().getName()).append(": ")
-            .append(attr.getValue()).append("\n");
-      });
+            .append(cwa.getAttribute().getName())
+            .append(": ")
+            .append(cwa.getValue())
+            .append("\n");
+      }
       clothesInfo.append("\n");
     }
+    System.out.println(clothesInfo);
     return String.valueOf(clothesInfo.append("\n"));
   }
 
@@ -120,6 +141,5 @@ public class AIRecommendationService {
     }
     return list;
   }
-
 
 }

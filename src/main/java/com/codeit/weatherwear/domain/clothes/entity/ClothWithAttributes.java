@@ -49,7 +49,6 @@ public class ClothWithAttributes {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "definition_id")
-  @BatchSize(size = 100)
   private Attribute attribute;
 
   @Builder
@@ -62,10 +61,6 @@ public class ClothWithAttributes {
     this.value = value;
     this.cloth = cloth;
     this.attribute = attribute;
-  }
-
-  protected void setClothes(Cloth cloth) {
-    this.cloth = cloth;
   }
 }
 

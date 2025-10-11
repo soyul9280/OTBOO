@@ -1,7 +1,9 @@
 package com.codeit.weatherwear.domain.recommendation.service;
 
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
+import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.repository.ClothRepository;
+import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.AttributeType;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Season;
 import com.codeit.weatherwear.domain.recommendation.attributeCategory.Thickness;
@@ -43,6 +45,8 @@ public class RecommendationServiceImpl implements RecommendationService {
   private final ClothRepository clothRepository;
   private final RandomRecommendService randomRecommendService;
   private final AIRecommendationService aiRecommendationService;
+  private final CacheMetricsService cacheMetricsService;
+  private final ClothWithAttributesRepository clothWithAttributesRepository;
 
   /**
    * 의상 추천
@@ -65,10 +69,25 @@ public class RecommendationServiceImpl implements RecommendationService {
     });
     log.debug("[Recommendation] User: {}, Weather: {}", user.getId(), weather.getId());
 
-    List<Cloth> clothes = clothRepository.findAllWithAttributesByUserId(user.getId());
+    List<Cloth> clothes = clothRepository.findAllByUserId(user.getId());
+    if (clothes.isEmpty()) {
+      log.info("[Recommendation] No clothes found for user: {}", user.getId());
+      return RecommendationDto.builder()
+          .weatherId(weatherId)
+          .userId(user.getId())
+          .clothes(List.of())
+          .build();
+    }
+
+    List<UUID> clothIds = clothes.stream().map(Cloth::getId).toList();
+    List<ClothWithAttributes> allAttributes =
+        clothWithAttributesRepository.findByClothIdIn(clothIds);
+    Map<UUID, List<ClothWithAttributes>> groupedAttrs =
+        allAttributes.stream()
+            .collect(Collectors.groupingBy(cwa -> cwa.getCloth().getId()));
 
     //날씨에 적당한 옷 타입마다 필터링하기
-    List<Cloth> filtered = filterCloth(user, weather, clothes);
+    List<Cloth> filtered = filterCloth(user, weather, clothes, groupedAttrs);
     log.info("[Recommendation] Filter Cloth By Thick & Season Completed, count: {}",
         filtered.size());
 
@@ -85,6 +104,7 @@ public class RecommendationServiceImpl implements RecommendationService {
       );
       log.info("[Recommendation] Filtered Candidates By LLM Completed, count: {}",
           filteredByAI.size());
+      cacheMetricsService.logRecommendationCacheStats();
 
       // filteredByAI가 비어있을 경우 fallback 처리
       if (filteredByAI.isEmpty()) {
@@ -99,7 +119,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
   }
 
-  private List<Cloth> filterCloth(User user, Weather weather, List<Cloth> cloths) {
+  private List<Cloth> filterCloth(User user, Weather weather, List<Cloth> cloths,
+      Map<UUID, List<ClothWithAttributes>> groupedAttrs) {
     //체감온도 계산
     double apparent = calculateApparentTemperature(weather);
 
@@ -110,7 +131,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     //옷 필터링
     log.info("[Recommendation] Filter Cloth start");
     return cloths.stream()
-        .filter(c -> isSuitable(c, adjusted))
+        .filter(c -> isSuitable(c, adjusted, groupedAttrs))
         .toList();
   }
 
@@ -162,17 +183,20 @@ public class RecommendationServiceImpl implements RecommendationService {
         - 4.686035;
   }
 
-  private boolean isSuitable(Cloth cloth, double temp) {
+  private boolean isSuitable(Cloth cloth, double temp,
+      Map<UUID, List<ClothWithAttributes>> groupedAttrs) {
+    List<ClothWithAttributes> attrs = groupedAttrs.getOrDefault(cloth.getId(), List.of());
+
     // 옷의 속성 리스트를 가져와 Map 형태로 변환하여 쉽게 접근
-    Map<String, String> attributeMap = toAttributeMap(cloth);
+    Map<String, String> attributeMap = toAttributeMap(attrs);
 
     //체감온도에 따른 계절, 두께 조건 적용
     return matchSeasonConstraint(attributeMap.get(AttributeType.SEASON.getKey()), temp)
         && matchThicknessConstraint(attributeMap.get(AttributeType.THICKNESS.getKey()), temp);
   }
 
-  private Map<String, String> toAttributeMap(Cloth cloth) {
-    return cloth.getClothesWithAttributes().stream()
+  private Map<String, String> toAttributeMap(List<ClothWithAttributes> attrs) {
+    return attrs.stream()
         .collect(Collectors.toMap(
             attr -> attr.getAttribute().getName().toLowerCase(),
             attr -> attr.getValue().toLowerCase()
