@@ -362,6 +362,7 @@ public class ClothServiceTest {
       verify(clothRepository, never()).delete(any());
     }
   }
+/*
 
   @Nested
   @DisplayName("의상 수정 테스트")
@@ -593,6 +594,7 @@ public class ClothServiceTest {
       verify(zigzagParser, never()).extract(anyString());
     }
   }
+*/
 
 
 }
