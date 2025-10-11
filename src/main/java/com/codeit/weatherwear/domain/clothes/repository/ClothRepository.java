@@ -12,16 +12,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ClothRepository extends JpaRepository<Cloth, UUID>, ClothRepositoryCustom {
 
-  @EntityGraph(attributePaths = {"clothesWithAttributes", "clothesWithAttributes.attribute"})
-  @Query("SELECT c FROM Cloth c WHERE c.id = :clothId")
-  Optional<Cloth> findByIdWithAttributes(UUID clothId);
-
-  @EntityGraph(attributePaths = {"clothesWithAttributes", "clothesWithAttributes.attribute"})
-  @Query("SELECT c FROM Cloth c WHERE c.id IN :clothIds")
-  List<Cloth> findAllByIdWithAttributes(List<UUID> clothIds);
-
-  @EntityGraph(attributePaths = {"clothesWithAttributes", "clothesWithAttributes.attribute"})
-  @Query("SELECT c FROM Cloth c WHERE c.user.id = :userId")
-  List<Cloth> findAllWithAttributesByUserId(UUID userId);
-
+  List<Cloth> findAllByUserId(UUID userId);
 }

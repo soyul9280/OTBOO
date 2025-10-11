@@ -12,24 +12,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ClothMapper {
 
-  public ClothesDto toDto(Cloth cloth, String imageUrl) {
-    List<ClothesAttributeWithDefDto> clothesAttributeWithDefDtos = cloth.getClothesWithAttributes()
-        .stream()
-        .map(attr -> new ClothesAttributeWithDefDto(
-            attr.getAttribute().getId(),
-            attr.getAttribute().getName(),
-            attr.getAttribute().getSelectableValues(),
-            attr.getValue()
-        ))
-        .toList();
-
+  public ClothesDto toDto(Cloth cloth, String imageUrl, List<ClothWithAttributes> attributes) {
     return ClothesDto.builder()
         .id(cloth.getId())
         .ownerId(cloth.getUser().getId())
         .name(cloth.getName())
         .imageUrl(imageUrl)
         .type(cloth.getClothType())
-        .attributes(clothesAttributeWithDefDtos)
+        .attributes(toAttributeDefDto(attributes))
         .build();
 
   }

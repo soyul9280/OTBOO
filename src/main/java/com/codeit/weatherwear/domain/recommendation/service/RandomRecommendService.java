@@ -3,7 +3,9 @@ package com.codeit.weatherwear.domain.recommendation.service;
 import com.codeit.weatherwear.domain.clothes.dto.response.RecommendClothesDto;
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
 import com.codeit.weatherwear.domain.clothes.entity.ClothType;
+import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.mapper.RecommendClothesMapper;
+import com.codeit.weatherwear.domain.clothes.repository.ClothWithAttributesRepository;
 import com.codeit.weatherwear.domain.recommendation.dto.response.RecommendationDto;
 import com.codeit.weatherwear.domain.user.entity.User;
 import com.codeit.weatherwear.domain.weather.entity.Weather;
@@ -12,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class RandomRecommendService {
 
   private final RecommendClothesMapper recommendClothesMapper;
   private final ThumbnailImageStorage thumbnailImageStorage;
+  private final ClothWithAttributesRepository clothWithAttributesRepository;
 
   public RecommendationDto recommend(List<Cloth> candidates, User user, Weather weather) {
     // 타입별 그룹핑
@@ -54,13 +58,27 @@ public class RandomRecommendService {
       getRandomCloth(grouped.get(type), false).ifPresent(finalRecommendation::add);
     }
 
+    List<UUID> clothIds = finalRecommendation.stream()
+        .map(Cloth::getId)
+        .toList();
+
+    List<ClothWithAttributes> clothesWithAttrs =
+        clothWithAttributesRepository.findByClothIdIn(clothIds);
+
+    // clothId 기준 그룹화
+    Map<UUID, List<ClothWithAttributes>> groupedAttrs =
+        clothesWithAttrs.stream()
+            .collect(Collectors.groupingBy(cwa -> cwa.getCloth().getId()));
+
     // DTO 변환 + 썸네일 처리
     List<RecommendClothesDto> recommendedClothes = finalRecommendation.stream()
         .map(cloth -> {
           String imageUrl = cloth.getClothesImageUrl() != null
               ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
               : null;
-          return recommendClothesMapper.toDto(cloth, imageUrl);
+          List<ClothWithAttributes> attrs = groupedAttrs.getOrDefault(cloth.getId(), List.of());
+
+          return recommendClothesMapper.toDto(cloth, imageUrl, attrs);
         })
         .toList();
 

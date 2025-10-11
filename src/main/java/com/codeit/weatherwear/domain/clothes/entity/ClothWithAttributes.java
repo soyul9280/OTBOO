@@ -62,9 +62,5 @@ public class ClothWithAttributes {
     this.cloth = cloth;
     this.attribute = attribute;
   }
-
-  protected void setClothes(Cloth cloth) {
-    this.cloth = cloth;
-  }
 }
 

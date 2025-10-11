@@ -1,11 +1,13 @@
 package com.codeit.weatherwear.domain.ootd.mapper;
 
 import com.codeit.weatherwear.domain.clothes.entity.Cloth;
+import com.codeit.weatherwear.domain.clothes.entity.ClothWithAttributes;
 import com.codeit.weatherwear.domain.clothes.mapper.ClothMapper;
 import com.codeit.weatherwear.domain.feed.entity.Feed;
 import com.codeit.weatherwear.domain.ootd.dto.response.OotdDto;
 import com.codeit.weatherwear.domain.ootd.entity.Ootd;
 import com.codeit.weatherwear.global.storage.ThumbnailImageStorage;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +25,7 @@ public class OotdMapper {
         .build();
   }
 
-  public OotdDto toDto(Ootd ootd) {
+  public OotdDto toDto(Ootd ootd, List<ClothWithAttributes> attrs) {
     Cloth cloth = ootd.getCloth();
     String imageUrl =
         cloth.getClothesImageUrl() != null ? thumbnailImageStorage.get(cloth.getClothesImageUrl())
@@ -34,7 +36,7 @@ public class OotdMapper {
         .name(cloth.getName())
         .imageUrl(imageUrl)
         .type(cloth.getClothType().toString())
-        .attributes(clothMapper.toAttributeDefDto(cloth.getClothesWithAttributes()))
+        .attributes(clothMapper.toAttributeDefDto(attrs))
         .build();
   }
 
