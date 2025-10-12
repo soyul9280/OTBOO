@@ -36,10 +36,9 @@ public class AIRecommendationService {
 
   @Cacheable(
       value = "recommendations",
-      key = "#user.id.toString() + '_' + #user.temperatureSensitivity + '_' + "
-          + "(#weather.location != null ? #weather.location.name : 'unknown') + '_' + "
-          + "T(com.codeit.weatherwear.domain.recommendation.util.WeatherBucket).bucketizeTemp(#weather.temperature.current) + '_' + "
-          + "(#weather.skyStatus != null ? #weather.skyStatus : 'unknown')",
+      key = "#user.id.toString() + '_' + #user.temperatureSensitivity + ':' + "
+          + "T(com.codeit.weatherwear.domain.recommendation.util.WeatherBucket).bucketizeTemp(#weather.temperature.current) + ':' + "
+          + "(#weather.skyStatus != null ? T(com.codeit.weatherwear.domain.recommendation.util.SkyBucket).normalize(#weather.skyStatus) : 'unknown')",
       condition = "#weather.skyStatus != null && #weather.temperature != null"
   )
   public List<Cloth> getRecommendationCandidates(List<Cloth> filtered, User user, Weather weather
